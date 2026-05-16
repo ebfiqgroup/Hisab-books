@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Pencil, Trash2, Plus, Check, X, RotateCcw, Wallet } from "lucide-react";
-import { fmtTk, toBn } from "@/lib/finance";
+import { fmtTk, toBn, loadCustomCats, saveCustomCats, allCatsForType } from "@/lib/finance";
 
 type Rule = { id: string; category: string; percent: number };
 
@@ -40,6 +40,25 @@ export function SalaryAllocator() {
 
   useEffect(() => { saveRules(rules); }, [rules]);
 
+  // Ensure a category exists in the expense category list; if not, add as custom.
+  const ensureCategory = (cat: string) => {
+    const map = loadCustomCats();
+    const existing = allCatsForType("expense", map);
+    if (existing.includes(cat)) return false;
+    const next = { ...map, expense: [...map.expense, cat] };
+    saveCustomCats(next);
+    return true;
+  };
+  const ensureCategories = (cats: string[]) => {
+    const map = loadCustomCats();
+    const existing = new Set(allCatsForType("expense", map));
+    const toAdd = cats.filter((c) => !existing.has(c));
+    if (toAdd.length === 0) return 0;
+    const next = { ...map, expense: [...map.expense, ...toAdd] };
+    saveCustomCats(next);
+    return toAdd.length;
+  };
+
   const base = Number(salary) || 0;
   const totalPct = useMemo(() => rules.reduce((s, r) => s + r.percent, 0), [rules]);
   const totalAmt = useMemo(() => rules.reduce((s, r) => s + (base * r.percent) / 100, 0), [rules, base]);
@@ -53,6 +72,7 @@ export function SalaryAllocator() {
     if (!cat) { toast.error("ক্যাটাগরির নাম দিন"); return; }
     if (!Number.isFinite(pct) || pct < 0 || pct > 100) { toast.error("শতকরা ০-১০০ এর মধ্যে দিন"); return; }
     setRules((rs) => rs.map((r) => (r.id === id ? { ...r, category: cat, percent: pct } : r)));
+    if (ensureCategory(cat)) toast.success(`"${cat}" ক্যাটাগরি যোগ হয়েছে`);
     cancelEdit();
   };
 
@@ -67,6 +87,7 @@ export function SalaryAllocator() {
     if (!cat) { toast.error("ক্যাটাগরির নাম দিন"); return; }
     if (!Number.isFinite(pct) || pct < 0 || pct > 100) { toast.error("শতকরা ০-১০০ এর মধ্যে দিন"); return; }
     setRules((rs) => [...rs, { id: uid(), category: cat, percent: pct }]);
+    if (ensureCategory(cat)) toast.success(`"${cat}" ক্যাটাগরি যোগ হয়েছে`);
     setAdding(false); setDraftCat(""); setDraftPct("");
   };
 
@@ -80,6 +101,8 @@ export function SalaryAllocator() {
     if (rules.length === 0) { toast.error("কোনো বণ্টন নিয়ম নেই"); return; }
     if (!confirm(`মোট ${fmtTk(totalAmt)} ব্যয় হিসেবে যোগ হবে। চালিয়ে যাবেন?`)) return;
     setBusy(true);
+    // Auto-register any allocation category that isn't already in the expense list
+    const added = ensureCategories(rules.filter((r) => r.percent > 0).map((r) => r.category));
     const { data: u } = await supabase.auth.getUser();
     const user_id = u?.user?.id;
     if (!user_id) { setBusy(false); toast.error("লগইন প্রয়োজন"); return; }
@@ -97,7 +120,11 @@ export function SalaryAllocator() {
     const { error } = await supabase.from("transactions").insert(rows);
     setBusy(false);
     if (error) { toast.error(error.message); return; }
-    toast.success(`${toBn(rows.length)}টি বণ্টন যোগ হয়েছে`);
+    toast.success(
+      added > 0
+        ? `${toBn(rows.length)}টি বণ্টন ও ${toBn(added)}টি নতুন ক্যাটাগরি যোগ হয়েছে`
+        : `${toBn(rows.length)}টি বণ্টন যোগ হয়েছে`,
+    );
     qc.invalidateQueries({ queryKey: ["transactions"] });
   };
 
