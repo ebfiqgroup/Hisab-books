@@ -30,7 +30,14 @@ function Dashboard() {
   const qc = useQueryClient();
   const [chartRange, setChartRange] = useState<"সাপ্তাহিক" | "মাসিক" | "বার্ষিক">("সাপ্তাহিক");
   const [txnOpen, setTxnOpen] = useState(false);
-  const [donutView, setDonutView] = useState<"expense" | "income">("expense");
+  const [donutView, setDonutView] = useState<"expense" | "income">(() => {
+    if (typeof window === "undefined") return "expense";
+    const v = localStorage.getItem("dashboard_donut_view");
+    return v === "income" ? "income" : "expense";
+  });
+  useMemo(() => {
+    if (typeof window !== "undefined") localStorage.setItem("dashboard_donut_view", donutView);
+  }, [donutView]);
   const now = new Date();
   const { startISO, endISO, prevStartISO } = useMemo(() => monthBounds(now), []);
 
