@@ -103,7 +103,7 @@ function Dashboard() {
   const remove = (id: number) => setTasks(tasks.filter((t) => t.id !== id));
   const toggle = (id: number) => setTasks(tasks.map((t) => (t.id === id ? { ...t, done: !t.done } : t)));
 
-  const DraftForm = () => (
+  const renderDraft = () => (
     <div className="p-3 rounded-lg border border-indigo-200 bg-indigo-50/40 space-y-2">
       <input
         autoFocus
@@ -324,10 +324,10 @@ function Dashboard() {
               </button>
             </div>
             <div className="space-y-2.5 max-h-80 overflow-y-auto pr-1">
-              {adding && <DraftForm />}
+              {adding && renderDraft()}
               {tasks.map((t) =>
                 editingId === t.id ? (
-                  <DraftForm key={t.id} />
+                  <div key={t.id}>{renderDraft()}</div>
                 ) : (
                   <div key={t.id} className="group flex items-center gap-3 p-2.5 rounded-lg border border-slate-100 hover:bg-slate-50 transition">
                     <input
