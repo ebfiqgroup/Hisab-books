@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Sidebar } from "@/components/Sidebar";
 import { TxnDialog } from "@/components/dashboard/TxnDialog";
@@ -14,39 +14,65 @@ export const Route = createFileRoute("/_authenticated/transactions")({
 
 type Txn = { id: string; type: "income" | "expense"; category: string; amount: number; occurred_on: string; note: string | null };
 
+const PAGE_SIZE = 50;
+
 function TransactionsPage() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState<"all" | "income" | "expense">("all");
   const [cat, setCat] = useState<string>("");
   const [q, setQ] = useState("");
+  const [debouncedQ, setDebouncedQ] = useState("");
 
-  const txnQ = useQuery({
-    queryKey: ["transactions", "all"],
-    queryFn: async () => {
-      const { data, error } = await supabase
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQ(q.trim()), 300);
+    return () => clearTimeout(t);
+  }, [q]);
+
+  const txnQ = useInfiniteQuery({
+    queryKey: ["transactions", "list", filter, cat, debouncedQ],
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }) => {
+      const from = (pageParam as number) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      let query = supabase
         .from("transactions")
         .select("id,type,category,amount,occurred_on,note")
         .order("occurred_on", { ascending: false })
-        .limit(1000);
+        .order("id", { ascending: false })
+        .range(from, to);
+      if (filter !== "all") query = query.eq("type", filter);
+      if (cat) query = query.eq("category", cat);
+      if (debouncedQ) query = query.ilike("note", `%${debouncedQ}%`);
+      const { data, error } = await query;
       if (error) throw error;
       return (data ?? []) as Txn[];
     },
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.length < PAGE_SIZE ? undefined : allPages.length,
   });
 
-  const all = txnQ.data ?? [];
-  const filtered = useMemo(() => {
-    const needle = q.trim().toLowerCase();
-    return all.filter((t) => {
-      if (filter !== "all" && t.type !== filter) return false;
-      if (cat && t.category !== cat) return false;
-      if (needle && !(t.note ?? "").toLowerCase().includes(needle) && !t.category.toLowerCase().includes(needle)) return false;
-      return true;
-    });
-  }, [all, filter, cat, q]);
+  const filtered = useMemo(
+    () => (txnQ.data?.pages ?? []).flat(),
+    [txnQ.data],
+  );
 
   const totalInc = filtered.filter((t) => t.type === "income").reduce((s, t) => s + Number(t.amount), 0);
   const totalExp = filtered.filter((t) => t.type === "expense").reduce((s, t) => s + Number(t.amount), 0);
+
+  // Infinite scroll sentinel
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && txnQ.hasNextPage && !txnQ.isFetchingNextPage) {
+        txnQ.fetchNextPage();
+      }
+    }, { rootMargin: "200px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [txnQ.hasNextPage, txnQ.isFetchingNextPage, txnQ.fetchNextPage]);
 
   const remove = async (id: string) => {
     if (!confirm("লেনদেনটি মুছে ফেলবেন?")) return;
@@ -76,7 +102,7 @@ function TransactionsPage() {
         <div className="grid grid-cols-3 gap-4 mb-6">
           <div className="bg-white rounded-xl p-4 border border-slate-200">
             <div className="text-xs text-slate-500">মোট লেনদেন</div>
-            <div className="text-xl font-bold text-slate-800">{toBn(filtered.length)}</div>
+            <div className="text-xl font-bold text-slate-800">{toBn(filtered.length)}{txnQ.hasNextPage ? "+" : ""}</div>
           </div>
           <div className="bg-white rounded-xl p-4 border border-slate-200">
             <div className="text-xs text-slate-500">মোট আয়</div>
@@ -160,6 +186,14 @@ function TransactionsPage() {
               })}
             </tbody>
           </table>
+          {/* Sentinel + footer */}
+          <div ref={sentinelRef} />
+          {txnQ.isFetchingNextPage && (
+            <div className="text-center text-slate-400 text-xs py-4">আরও লোড হচ্ছে...</div>
+          )}
+          {!txnQ.hasNextPage && filtered.length > 0 && (
+            <div className="text-center text-slate-300 text-xs py-4">— শেষ —</div>
+          )}
         </div>
       </main>
       <TxnDialog open={open} onOpenChange={setOpen} />
