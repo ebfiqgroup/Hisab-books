@@ -239,51 +239,30 @@ function Dashboard() {
             </div>
           </div>
 
-          {/* Future budget & plan chart */}
+          {/* Future budget & plan - task list */}
           <div className="bg-white rounded-xl p-5 border border-slate-200">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-slate-800">আগামী বাজেট ও পরিকল্পনা</h3>
               <span className="text-xs text-slate-500">পরবর্তী ৬ মাস</span>
             </div>
-            <div className="h-56 -ml-2">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
-                  data={[
-                    { d: "জুন", budget: 40000, plan: 28000 },
-                    { d: "জুলাই", budget: 42000, plan: 30000 },
-                    { d: "আগস্ট", budget: 45000, plan: 33000 },
-                    { d: "সেপ্ট", budget: 43000, plan: 35000 },
-                    { d: "অক্টো", budget: 48000, plan: 38000 },
-                    { d: "নভে", budget: 50000, plan: 42000 },
-                  ]}
-                  margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-                >
-                  <defs>
-                    <linearGradient id="budGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#6366f1" stopOpacity={0.4} />
-                      <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="planGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.4} />
-                      <stop offset="100%" stopColor="#f59e0b" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                  <XAxis dataKey="d" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
-                  <Tooltip
-                    contentStyle={{ borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12 }}
-                    formatter={(v: number, name: string) => [`৳ ${v.toLocaleString()}`, name === "budget" ? "বাজেট" : "পরিকল্পনা"]}
-                  />
-                  <Legend
-                    iconType="circle"
-                    wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
-                    formatter={(v) => (v === "budget" ? "বাজেট" : "পরিকল্পনা")}
-                  />
-                  <Area type="monotone" dataKey="budget" stroke="#6366f1" strokeWidth={2} fill="url(#budGrad)" />
-                  <Area type="monotone" dataKey="plan" stroke="#f59e0b" strokeWidth={2} fill="url(#planGrad)" />
-                </AreaChart>
-              </ResponsiveContainer>
+            <div className="space-y-2.5">
+              {[
+                { task: "জুন মাসের বাজেট নির্ধারণ", date: "১ জুন", amount: "৳ ৪০,০০০", priority: "উচ্চ", pColor: "bg-rose-50 text-rose-600" },
+                { task: "জরুরি তহবিলে জমা", date: "৫ জুন", amount: "৳ ৫,০০০", priority: "উচ্চ", pColor: "bg-rose-50 text-rose-600" },
+                { task: "ল্যাপটপ সঞ্চয় শুরু", date: "১০ জুন", amount: "৳ ৩,০০০", priority: "মাঝারি", pColor: "bg-amber-50 text-amber-600" },
+                { task: "বিদ্যুৎ ও গ্যাস বিল", date: "১৫ জুন", amount: "৳ ২,৫০০", priority: "উচ্চ", pColor: "bg-rose-50 text-rose-600" },
+                { task: "পরিবারের জন্য কেনাকাটা", date: "২০ জুন", amount: "৳ ৪,৫০০", priority: "মাঝারি", pColor: "bg-amber-50 text-amber-600" },
+                { task: "ভবিষ্যৎ ফান্ডে অবদান", date: "২৫ জুন", amount: "৳ ৬,০০০", priority: "নিম্ন", pColor: "bg-emerald-50 text-emerald-600" },
+              ].map((t, i) => (
+                <label key={i} className="flex items-center gap-3 p-2.5 rounded-lg border border-slate-100 hover:bg-slate-50 cursor-pointer transition">
+                  <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-slate-800 truncate">{t.task}</div>
+                    <div className="text-xs text-slate-500 mt-0.5">{t.date} · {t.amount}</div>
+                  </div>
+                  <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${t.pColor}`}>{t.priority}</span>
+                </label>
+              ))}
             </div>
           </div>
         </div>
