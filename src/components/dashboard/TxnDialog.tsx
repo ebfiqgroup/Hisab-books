@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Loader2 } from "lucide-react";
 import {
   BUILTIN_CATS,
   loadCustomCats,
@@ -87,6 +87,7 @@ export function TxnDialog({
   };
 
   const save = async () => {
+    if (busy) return;
     const amt = parseFloat(amount);
     if (!amt || amt <= 0) { toast.error("সঠিক পরিমাণ দিন"); return; }
     setBusy(true);
@@ -164,8 +165,11 @@ export function TxnDialog({
             <input type="text" value={note} onChange={(e) => setNote(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
           </div>
           <div className="flex gap-2 pt-2">
-            <button onClick={() => onOpenChange(false)} className="flex-1 py-2 border border-slate-200 rounded-lg text-sm">বাতিল</button>
-            <button onClick={save} disabled={busy} className="flex-1 py-2 bg-indigo-600 text-white rounded-lg text-sm disabled:opacity-50">সেভ</button>
+            <button onClick={() => onOpenChange(false)} disabled={busy} className="flex-1 py-2 border border-slate-200 rounded-lg text-sm disabled:opacity-50">বাতিল</button>
+            <button onClick={save} disabled={busy} className="flex-1 py-2 bg-indigo-600 text-white rounded-lg text-sm disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+              {busy && <Loader2 className="w-4 h-4 animate-spin" />}
+              {busy ? "সেভ হচ্ছে..." : "সেভ"}
+            </button>
           </div>
         </div>
       </DialogContent>
