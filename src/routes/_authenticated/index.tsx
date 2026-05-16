@@ -28,7 +28,14 @@ const BN_DAYS = ["রবি", "সোম", "মঙ্গল", "বুধ", "ব�
 function Dashboard() {
   const { forType } = useCustomCategories();
   const qc = useQueryClient();
-  const [chartRange, setChartRange] = useState<"সাপ্তাহিক" | "মাসিক" | "বার্ষিক">("সাপ্তাহিক");
+  const [chartRange, setChartRange] = useState<"সাপ্তাহিক" | "মাসিক" | "বার্ষিক">(() => {
+    if (typeof window === "undefined") return "সাপ্তাহিক";
+    const v = localStorage.getItem("dashboard_chart_range");
+    return v === "মাসিক" || v === "বার্ষিক" ? v : "সাপ্তাহিক";
+  });
+  useEffect(() => {
+    localStorage.setItem("dashboard_chart_range", chartRange);
+  }, [chartRange]);
   const [txnOpen, setTxnOpen] = useState(false);
   const [donutView, setDonutView] = useState<"expense" | "income">(() => {
     if (typeof window === "undefined") return "expense";
