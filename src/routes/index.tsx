@@ -1,9 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
-  Wallet, Calendar, Settings, Download, Bell, ChevronDown,
+  Wallet, Calendar, Download, Bell, ChevronDown, Users, TrendingDown,
   ArrowDown, ArrowUp, PiggyBank, BookOpen, House, StickyNote
 } from "lucide-react";
-import { Users, TrendingDown } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 
 export const Route = createFileRoute("/")({ component: Dashboard });
