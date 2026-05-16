@@ -319,9 +319,17 @@ function Dashboard() {
         <div className="bg-white rounded-xl p-5 border border-slate-200">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-slate-800">আয় / ব্যয় চার্ট</h3>
-            <select value={chartRange} onChange={(e) => setChartRange(e.target.value as typeof chartRange)} className="px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white">
-              <option value="সাপ্তাহিক">সাপ্তাহিক</option><option value="মাসিক">মাসিক</option><option value="বার্ষিক">বার্ষিক</option>
-            </select>
+            <div className="flex bg-slate-100 rounded-lg p-1 text-xs">
+              {(["সাপ্তাহিক", "মাসিক", "বার্ষিক"] as const).map((r) => (
+                <button
+                  key={r}
+                  onClick={() => setChartRange(r)}
+                  className={`px-3 py-1 rounded-md transition ${chartRange === r ? "bg-white shadow text-slate-800 font-medium" : "text-slate-500 hover:text-slate-700"}`}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="h-56 -ml-2">
             <ResponsiveContainer width="100%" height="100%">
