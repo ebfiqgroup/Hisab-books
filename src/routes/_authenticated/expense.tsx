@@ -3,9 +3,9 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
-import { TxnDialog } from "@/components/dashboard/TxnDialog";
+import { TxnDialog, type EditTxn } from "@/components/dashboard/TxnDialog";
 import { fmtTk, toBn } from "@/lib/finance";
-import { Plus, Trash2, TrendingDown } from "lucide-react";
+import { Plus, Trash2, TrendingDown, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/expense")({ component: ExpensePage });
@@ -15,6 +15,7 @@ type Txn = { id: string; type: "income" | "expense"; category: string; amount: n
 function ExpensePage() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<EditTxn | null>(null);
   const q = useQuery({
     queryKey: ["transactions", "expense"],
     queryFn: async () => {
@@ -32,10 +33,15 @@ function ExpensePage() {
     toast.success("মুছে ফেলা হয়েছে");
     qc.invalidateQueries({ queryKey: ["transactions"] });
   };
+  const openEdit = (t: Txn) => {
+    setEditing({ id: t.id, type: t.type, category: t.category, amount: Number(t.amount), occurred_on: t.occurred_on, note: t.note });
+    setOpen(true);
+  };
+  const openNew = () => { setEditing(null); setOpen(true); };
 
   return (
     <AppShell title="ব্যয়" actions={
-      <button onClick={() => setOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-rose-500 text-white rounded-lg text-sm font-medium hover:bg-rose-600">
+      <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 bg-rose-500 text-white rounded-lg text-sm font-medium hover:bg-rose-600">
         <Plus className="w-4 h-4" /> নতুন ব্যয়
       </button>
     }>
@@ -69,16 +75,21 @@ function ExpensePage() {
                 <td className="px-4 py-3 text-slate-500 text-xs">{toBn(t.occurred_on)}</td>
                 <td className="px-4 py-3 text-right font-bold text-rose-500">{fmtTk(Number(t.amount))}</td>
                 <td className="px-4 py-3 text-right">
-                  <button onClick={() => remove(t.id)} className="p-1.5 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center justify-end gap-1">
+                    <button onClick={() => openEdit(t)} className="p-1.5 rounded-md hover:bg-indigo-50 text-slate-400 hover:text-indigo-600" title="এডিট">
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => remove(t.id)} className="p-1.5 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600" title="মুছুন">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <TxnDialog open={open} onOpenChange={setOpen} />
+      <TxnDialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }} editTxn={editing} />
     </AppShell>
   );
 }
