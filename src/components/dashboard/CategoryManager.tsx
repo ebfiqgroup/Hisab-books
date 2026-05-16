@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -26,6 +26,10 @@ export function CategoryManager({
   const [editingName, setEditingName] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
+  const [confirmDel, setConfirmDel] = useState<
+    | { kind: "custom" | "builtin"; name: string; raw?: string; used: number; target: string }
+    | null
+  >(null);
 
   const custom = map[type];
   const builtInsRaw = BUILTIN_CATS_RAW[type];
@@ -36,6 +40,12 @@ export function CategoryManager({
     const hidden = new Set(map.hidden?.[type] ?? []);
     if (hidden.has("অন্যান্য")) return "অন্যান্য"; // re-activate raw on use
     return effective("অন্যান্য");
+  };
+
+  // All currently-available category names (excluding the one being deleted)
+  const availableTargets = (excludeEffective: string): string[] => {
+    const active = [...builtinsFor(type, map), ...custom];
+    return active.filter((n) => n !== excludeEffective);
   };
 
   const startEdit = (name: string) => { setEditingName(name); setDraft(name); };
@@ -119,25 +129,7 @@ export function CategoryManager({
       .eq("category", name);
     if (ce) { toast.error(ce.message); return; }
     const used = count ?? 0;
-    const target = fallbackTarget();
-    const msg = used > 0
-      ? `এই ক্যাটাগরিতে ${used}টি লেনদেন আছে। সেগুলো "${target}"-তে সরিয়ে নিয়ে ক্যাটাগরি মুছবেন?`
-      : "এই ক্যাটাগরি মুছবেন?";
-    if (!confirm(msg)) return;
-    setBusy(true);
-    if (used > 0) {
-      const { error } = await supabase
-        .from("transactions")
-        .update({ category: target })
-        .eq("type", type)
-        .eq("category", name);
-      if (error) { setBusy(false); toast.error(error.message); return; }
-    }
-    const next = { ...map, [type]: custom.filter((c) => c !== name) };
-    setMap(next); saveCustomCats(next);
-    setBusy(false);
-    toast.success("মুছে ফেলা হয়েছে");
-    qc.invalidateQueries({ queryKey: ["transactions"] });
+    setConfirmDel({ kind: "custom", name, used, target: fallbackTarget() });
   };
 
   const removeBuiltin = async (raw: string) => {
@@ -150,28 +142,36 @@ export function CategoryManager({
       .eq("category", cur);
     if (ce) { toast.error(ce.message); return; }
     const used = count ?? 0;
-    const target = fallbackTarget();
-    const msg = used > 0
-      ? `"${cur}" ক্যাটাগরিতে ${used}টি লেনদেন আছে। সেগুলো "${target}"-তে সরিয়ে নিয়ে মুছবেন?`
-      : `"${cur}" মুছবেন?`;
-    if (!confirm(msg)) return;
+    setConfirmDel({ kind: "builtin", name: cur, raw, used, target: fallbackTarget() });
+  };
+
+  const performDelete = async () => {
+    if (!confirmDel) return;
+    const { kind, name, raw, used, target } = confirmDel;
+    if (used > 0 && !target) { toast.error("টার্গেট ক্যাটাগরি দিন"); return; }
     setBusy(true);
     if (used > 0) {
       const { error } = await supabase
         .from("transactions")
         .update({ category: target })
         .eq("type", type)
-        .eq("category", cur);
+        .eq("category", name);
       if (error) { setBusy(false); toast.error(error.message); return; }
     }
-    const nextHidden = {
-      income: [...(map.hidden?.income ?? [])],
-      expense: [...(map.hidden?.expense ?? [])],
-    };
-    if (!nextHidden[type].includes(raw)) nextHidden[type].push(raw);
-    const next = { ...map, hidden: nextHidden };
-    setMap(next); saveCustomCats(next);
+    if (kind === "custom") {
+      const next = { ...map, [type]: custom.filter((c) => c !== name) };
+      setMap(next); saveCustomCats(next);
+    } else if (raw) {
+      const nextHidden = {
+        income: [...(map.hidden?.income ?? [])],
+        expense: [...(map.hidden?.expense ?? [])],
+      };
+      if (!nextHidden[type].includes(raw)) nextHidden[type].push(raw);
+      const next = { ...map, hidden: nextHidden };
+      setMap(next); saveCustomCats(next);
+    }
     setBusy(false);
+    setConfirmDel(null);
     toast.success("মুছে ফেলা হয়েছে");
     qc.invalidateQueries({ queryKey: ["transactions"] });
   };
@@ -301,6 +301,55 @@ export function CategoryManager({
           <div className="text-[11px] text-slate-400">টিপ: নতুন ক্যাটাগরি যোগ করতে "নতুন আয়/ব্যয়" ডায়ালগ ব্যবহার করুন।</div>
         </div>
       </DialogContent>
+      <Dialog open={!!confirmDel} onOpenChange={(v) => { if (!busy && !v) setConfirmDel(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>ক্যাটাগরি মুছে ফেলুন</DialogTitle>
+          </DialogHeader>
+          {confirmDel && (
+            <div className="space-y-3 text-sm">
+              <div className="text-slate-700">
+                <span className="font-medium">"{confirmDel.name}"</span> ক্যাটাগরি মুছবেন?
+              </div>
+              {confirmDel.used > 0 ? (
+                <div className="space-y-2">
+                  <div className="text-slate-600">
+                    এই ক্যাটাগরিতে <span className="font-medium">{confirmDel.used}</span>টি লেনদেন আছে। সেগুলো কোন ক্যাটাগরিতে সরাবেন?
+                  </div>
+                  <select
+                    value={confirmDel.target}
+                    onChange={(e) => setConfirmDel({ ...confirmDel, target: e.target.value })}
+                    className="w-full px-2 py-2 border border-slate-200 rounded-md text-sm"
+                    disabled={busy}
+                  >
+                    {availableTargets(confirmDel.name).map((t) => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <div className="text-slate-500 text-xs">এই ক্যাটাগরিতে কোনো লেনদেন নেই।</div>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <button
+              disabled={busy}
+              onClick={() => setConfirmDel(null)}
+              className="px-3 py-1.5 text-sm rounded-md border border-slate-200 hover:bg-slate-50 disabled:opacity-50"
+            >
+              বাতিল
+            </button>
+            <button
+              disabled={busy}
+              onClick={performDelete}
+              className="px-3 py-1.5 text-sm rounded-md bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-50"
+            >
+              {busy ? "মুছছি..." : "মুছুন"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }
