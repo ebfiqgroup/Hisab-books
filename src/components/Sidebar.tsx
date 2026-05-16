@@ -20,7 +20,7 @@ const navItems = [
 export function Sidebar() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   return (
-    <aside className="w-64 flex flex-col text-white" style={{ background: "oklch(0.22 0.04 250)" }}>
+    <aside className="w-64 flex flex-col text-white h-screen sticky top-0 overflow-y-auto" style={{ background: "oklch(0.22 0.04 250)" }}>
       <div className="p-5 flex items-center gap-3 border-b border-white/10">
         <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
           <Wallet className="w-5 h-5 text-emerald-400" />

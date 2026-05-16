@@ -162,11 +162,11 @@ function Dashboard() {
   }).join(", ");
 
   return (
-    <div className="min-h-screen flex" style={{ background: "oklch(0.97 0.005 250)" }}>
+    <div className="h-screen flex overflow-hidden" style={{ background: "oklch(0.97 0.005 250)" }}>
       <Sidebar />
 
       {/* Main */}
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-6 overflow-y-auto h-screen">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-slate-800">মাসিক ড্যাশবোর্ড</h1>
