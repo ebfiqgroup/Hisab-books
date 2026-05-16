@@ -12,7 +12,7 @@ import {
   ArrowDown, ArrowUp, PiggyBank, StickyNote, Plus, Pencil, Trash2, Check, X, Target,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { TxnDialog } from "@/components/dashboard/TxnDialog";
+import { TxnDialog, type EditTxn } from "@/components/dashboard/TxnDialog";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/")({ component: Dashboard });
@@ -37,6 +37,7 @@ function Dashboard() {
     localStorage.setItem("dashboard_chart_range", chartRange);
   }, [chartRange]);
   const [txnOpen, setTxnOpen] = useState(false);
+  const [editingTxn, setEditingTxn] = useState<EditTxn | null>(null);
   const [donutView, setDonutView] = useState<"expense" | "income">(() => {
     if (typeof window === "undefined") return "expense";
     const v = localStorage.getItem("dashboard_donut_view");
@@ -247,7 +248,7 @@ function Dashboard() {
           <button onClick={downloadReport} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">
             রিপোর্ট ডাউনলোড <Download className="w-4 h-4" />
           </button>
-          <button onClick={() => setTxnOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700">
+          <button onClick={() => { setEditingTxn(null); setTxnOpen(true); }} className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700">
             <Plus className="w-4 h-4" /> লেনদেন
           </button>
         </>
@@ -358,7 +359,7 @@ function Dashboard() {
             <h3 className="font-bold text-slate-800">সাম্প্রতিক লেনদেন</h3>
             <div className="flex items-center gap-2">
               <Link to="/transactions" className="text-sm text-indigo-600 hover:underline">সব দেখুন</Link>
-              <button onClick={() => setTxnOpen(true)} className="flex items-center gap-1 px-2.5 py-1.5 text-xs bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+              <button onClick={() => { setEditingTxn(null); setTxnOpen(true); }} className="flex items-center gap-1 px-2.5 py-1.5 text-xs bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
                 <Plus className="w-3 h-3" /> নতুন
               </button>
             </div>
@@ -369,7 +370,12 @@ function Dashboard() {
             {recent.map((t) => {
               const income = t.type === "income";
               return (
-                <div key={t.id} className="flex items-center gap-2 py-1">
+                <div
+                  key={t.id}
+                  onClick={() => { setEditingTxn({ id: t.id, type: t.type, category: t.category, amount: Number(t.amount), occurred_on: t.occurred_on, note: t.note }); setTxnOpen(true); }}
+                  className="flex items-center gap-2 py-1 cursor-pointer hover:bg-slate-50 rounded-md px-1 -mx-1"
+                  title="এডিট করতে ক্লিক করুন"
+                >
                   <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${income ? "bg-emerald-50" : "bg-rose-50"}`}>
                     {income ? <ArrowUp className="w-4 h-4 text-emerald-600" /> : <ArrowDown className="w-4 h-4 text-rose-500" />}
                   </div>
@@ -479,7 +485,7 @@ function Dashboard() {
 
       <div className="text-center text-xs text-slate-500 mt-6">© {toBn(now.getFullYear())} আমার হিসাব <span className="text-rose-500">♥</span></div>
 
-      <TxnDialog open={txnOpen} onOpenChange={setTxnOpen} />
+      <TxnDialog open={txnOpen} onOpenChange={(v) => { setTxnOpen(v); if (!v) setEditingTxn(null); }} editTxn={editingTxn} />
     </AppShell>
   );
 }

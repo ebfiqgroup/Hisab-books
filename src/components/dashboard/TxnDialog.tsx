@@ -12,7 +12,24 @@ import {
   type TxnType,
 } from "@/lib/finance";
 
-export function TxnDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
+export type EditTxn = {
+  id: string;
+  type: TxnType;
+  category: string;
+  amount: number;
+  occurred_on: string;
+  note: string | null;
+};
+
+export function TxnDialog({
+  open,
+  onOpenChange,
+  editTxn,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  editTxn?: EditTxn | null;
+}) {
   const qc = useQueryClient();
   const [type, setType] = useState<TxnType>("expense");
   const [category, setCategory] = useState("খাবার");
@@ -26,12 +43,20 @@ export function TxnDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
 
   useEffect(() => {
     if (open) {
-      setType("expense"); setCategory("খাবার"); setAmount(""); setNote("");
-      setDate(new Date().toISOString().slice(0, 10));
+      if (editTxn) {
+        setType(editTxn.type);
+        setCategory(editTxn.category);
+        setAmount(String(editTxn.amount));
+        setDate(editTxn.occurred_on);
+        setNote(editTxn.note ?? "");
+      } else {
+        setType("expense"); setCategory("খাবার"); setAmount(""); setNote("");
+        setDate(new Date().toISOString().slice(0, 10));
+      }
       setCustomMap(loadCustomCats());
       setAdding(false); setNewCat("");
     }
-  }, [open]);
+  }, [open, editTxn]);
 
   const custom = customMap[type];
   const builtIns = BUILTIN_CATS[type];
@@ -67,12 +92,13 @@ export function TxnDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
     setBusy(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { toast.error("লগইন প্রয়োজন"); setBusy(false); return; }
-    const { error } = await supabase.from("transactions").insert({
-      user_id: user.id, type, category, amount: amt, occurred_on: date, note: note || null,
-    });
+    const payload = { type, category, amount: amt, occurred_on: date, note: note || null };
+    const { error } = editTxn
+      ? await supabase.from("transactions").update(payload).eq("id", editTxn.id)
+      : await supabase.from("transactions").insert({ user_id: user.id, ...payload });
     setBusy(false);
     if (error) { toast.error(error.message); return; }
-    toast.success("লেনদেন যুক্ত হয়েছে");
+    toast.success(editTxn ? "আপডেট হয়েছে" : "লেনদেন যুক্ত হয়েছে");
     qc.invalidateQueries({ queryKey: ["transactions"] });
     onOpenChange(false);
   };
@@ -80,7 +106,7 @@ export function TxnDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
-        <DialogHeader><DialogTitle>নতুন লেনদেন</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{editTxn ? "লেনদেন এডিট" : "নতুন লেনদেন"}</DialogTitle></DialogHeader>
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-2">
             <button onClick={() => setType("income")} className={`py-2 rounded-lg border text-sm font-medium ${type === "income" ? "bg-emerald-50 border-emerald-300 text-emerald-700" : "border-slate-200 text-slate-600"}`}>আয়</button>
