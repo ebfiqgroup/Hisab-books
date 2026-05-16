@@ -10,8 +10,17 @@ export const CATEGORIES = [
   { key: "অন্যান্য", color: "#9ca3af" },
 ] as const;
 
-export const categoryColor = (k: string) =>
-  CATEGORIES.find((c) => c.key === k)?.color ?? "#9ca3af";
+const PALETTE = ["#10b981", "#f43f5e", "#6366f1", "#3b82f6", "#2563eb", "#f97316", "#22c55e", "#a855f7", "#0ea5e9", "#ec4899", "#eab308", "#14b8a6"];
+const hashStr = (s: string) => {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h;
+};
+export const categoryColor = (k: string) => {
+  const found = CATEGORIES.find((c) => c.key === k)?.color;
+  if (found) return found;
+  return PALETTE[hashStr(k) % PALETTE.length];
+};
 
 const BN_DIGITS = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
 export const toBn = (s: string | number) =>
