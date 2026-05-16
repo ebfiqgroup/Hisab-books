@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Sidebar } from "@/components/Sidebar";
 import { Download, BarChart3, TrendingUp, TrendingDown, PiggyBank } from "lucide-react";
 
-export const Route = createFileRoute("/report")({
+export const Route = createFileRoute("/_authenticated/report")({
   head: () => ({
     meta: [
       { title: "রিপোর্ট - আমার হিসাব" },

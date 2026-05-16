@@ -1,0 +1,75 @@
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { CATEGORIES } from "@/lib/finance";
+
+export function TxnDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
+  const qc = useQueryClient();
+  const [type, setType] = useState<"income" | "expense">("expense");
+  const [category, setCategory] = useState("খাবার");
+  const [amount, setAmount] = useState("");
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setType("expense"); setCategory("খাবার"); setAmount(""); setNote("");
+      setDate(new Date().toISOString().slice(0, 10));
+    }
+  }, [open]);
+
+  const save = async () => {
+    const amt = parseFloat(amount);
+    if (!amt || amt <= 0) { toast.error("সঠিক পরিমাণ দিন"); return; }
+    setBusy(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { toast.error("লগইন প্রয়োজন"); setBusy(false); return; }
+    const { error } = await supabase.from("transactions").insert({
+      user_id: user.id, type, category, amount: amt, occurred_on: date, note: note || null,
+    });
+    setBusy(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("লেনদেন যুক্ত হয়েছে");
+    qc.invalidateQueries({ queryKey: ["transactions"] });
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader><DialogTitle>নতুন লেনদেন</DialogTitle></DialogHeader>
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-2">
+            <button onClick={() => setType("income")} className={`py-2 rounded-lg border text-sm font-medium ${type === "income" ? "bg-emerald-50 border-emerald-300 text-emerald-700" : "border-slate-200 text-slate-600"}`}>আয়</button>
+            <button onClick={() => setType("expense")} className={`py-2 rounded-lg border text-sm font-medium ${type === "expense" ? "bg-rose-50 border-rose-300 text-rose-700" : "border-slate-200 text-slate-600"}`}>ব্যয়</button>
+          </div>
+          <div>
+            <label className="text-xs text-slate-600 mb-1 block">ক্যাটাগরি</label>
+            <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
+              {CATEGORIES.map((c) => <option key={c.key} value={c.key}>{c.key}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="text-xs text-slate-600 mb-1 block">পরিমাণ (৳)</label>
+            <input type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" placeholder="0.00" />
+          </div>
+          <div>
+            <label className="text-xs text-slate-600 mb-1 block">তারিখ</label>
+            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+          </div>
+          <div>
+            <label className="text-xs text-slate-600 mb-1 block">নোট (ঐচ্ছিক)</label>
+            <input type="text" value={note} onChange={(e) => setNote(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+          </div>
+          <div className="flex gap-2 pt-2">
+            <button onClick={() => onOpenChange(false)} className="flex-1 py-2 border border-slate-200 rounded-lg text-sm">বাতিল</button>
+            <button onClick={save} disabled={busy} className="flex-1 py-2 bg-indigo-600 text-white rounded-lg text-sm disabled:opacity-50">সেভ</button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

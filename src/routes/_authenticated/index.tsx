@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 
-export const Route = createFileRoute("/")({ component: Dashboard });
+export const Route = createFileRoute("/_authenticated/")({ component: Dashboard });
 
 const chartData = {
   সাপ্তাহিক: [
