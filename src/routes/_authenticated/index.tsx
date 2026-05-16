@@ -209,21 +209,6 @@ function Dashboard() {
       </div>
     </div>
   );
-  // Build conic gradient
-  let acc = 0;
-  const segs = expenses.map(e => {
-    const start = acc;
-    acc += e.deg;
-    return `${e.color} ${start}deg ${acc}deg`;
-  }).join(", ");
-  // scale to 360
-  const scale = 360 / acc;
-  let acc2 = 0;
-  const segs2 = expenses.map(e => {
-    const start = acc2;
-    acc2 += e.deg * scale;
-    return `${e.color} ${start}deg ${acc2}deg`;
-  }).join(", ");
 
   return (
     <div className="h-screen flex overflow-hidden" style={{ background: "oklch(0.97 0.005 250)" }}>
