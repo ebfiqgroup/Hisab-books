@@ -1,11 +1,42 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import {
-  Wallet, Calendar, Download, Bell, ChevronDown, Users, TrendingDown,
+  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
+} from "recharts";
+import {
+  Wallet, Calendar, Download, Bell, Users, TrendingDown,
   ArrowDown, ArrowUp, PiggyBank, BookOpen, House, StickyNote
 } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 
 export const Route = createFileRoute("/")({ component: Dashboard });
+
+const chartData = {
+  সাপ্তাহিক: [
+    { d: "সোম", inc: 8500, exp: 5200 },
+    { d: "মঙ্গল", inc: 12000, exp: 6800 },
+    { d: "বুধ", inc: 9500, exp: 4200 },
+    { d: "বৃহঃ", inc: 15000, exp: 7500 },
+    { d: "শুক্র", inc: 11000, exp: 8800 },
+    { d: "শনি", inc: 6500, exp: 3500 },
+    { d: "রবি", inc: 3000, exp: 2800 },
+  ],
+  মাসিক: [
+    { d: "জানু", inc: 58000, exp: 34000 },
+    { d: "ফেব্রু", inc: 62500, exp: 36200 },
+    { d: "মার্চ", inc: 58300, exp: 34620 },
+    { d: "এপ্রিল", inc: 61200, exp: 37100 },
+    { d: "মে", inc: 65450, exp: 38750 },
+    { d: "জুন", inc: 67000, exp: 40000 },
+  ],
+  বার্ষিক: [
+    { d: "২০২০", inc: 520000, exp: 320000 },
+    { d: "২০২১", inc: 610000, exp: 380000 },
+    { d: "২০২২", inc: 685000, exp: 410000 },
+    { d: "২০২৩", inc: 720000, exp: 445000 },
+    { d: "২০২৪", inc: 785500, exp: 462000 },
+  ],
+};
 
 const stats = [
   { label: "মোট আয়", value: "৳ ৬৫,৪৫০", last: "৳ ৫৮,৩০০", pct: "12.28%", color: "income", Icon: Wallet, bg: "bg-emerald-50", fg: "text-emerald-600", val: "text-emerald-600" },
