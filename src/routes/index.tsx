@@ -1,4 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import {
+  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
+} from "recharts";
 import {
   Wallet, Calendar, Download, Bell, ChevronDown, Users, TrendingDown,
   ArrowDown, ArrowUp, PiggyBank, BookOpen, House, StickyNote
@@ -6,6 +10,33 @@ import {
 import { Sidebar } from "@/components/Sidebar";
 
 export const Route = createFileRoute("/")({ component: Dashboard });
+
+const chartData = {
+  সাপ্তাহিক: [
+    { d: "সোম", inc: 8500, exp: 5200 },
+    { d: "মঙ্গল", inc: 12000, exp: 6800 },
+    { d: "বুধ", inc: 9500, exp: 4200 },
+    { d: "বৃহঃ", inc: 15000, exp: 7500 },
+    { d: "শুক্র", inc: 11000, exp: 8800 },
+    { d: "শনি", inc: 6500, exp: 3500 },
+    { d: "রবি", inc: 3000, exp: 2800 },
+  ],
+  মাসিক: [
+    { d: "জানু", inc: 58000, exp: 34000 },
+    { d: "ফেব্রু", inc: 62500, exp: 36200 },
+    { d: "মার্চ", inc: 58300, exp: 34620 },
+    { d: "এপ্রিল", inc: 61200, exp: 37100 },
+    { d: "মে", inc: 65450, exp: 38750 },
+    { d: "জুন", inc: 67000, exp: 40000 },
+  ],
+  বার্ষিক: [
+    { d: "২০২০", inc: 520000, exp: 320000 },
+    { d: "২০২১", inc: 610000, exp: 380000 },
+    { d: "২০২২", inc: 685000, exp: 410000 },
+    { d: "২০২৩", inc: 720000, exp: 445000 },
+    { d: "২০২৪", inc: 785500, exp: 462000 },
+  ],
+};
 
 const stats = [
   { label: "মোট আয়", value: "৳ ৬৫,৪৫০", last: "৳ ৫৮,৩০০", pct: "12.28%", color: "income", Icon: Wallet, bg: "bg-emerald-50", fg: "text-emerald-600", val: "text-emerald-600" },
@@ -40,6 +71,7 @@ const goals = [
 ];
 
 function Dashboard() {
+  const [chartRange, setChartRange] = useState<keyof typeof chartData>("সাপ্তাহিক");
   // Build conic gradient
   let acc = 0;
   const segs = expenses.map(e => {
@@ -143,41 +175,46 @@ function Dashboard() {
           <div className="bg-white rounded-xl p-5 border border-slate-200">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-slate-800">আয় / ব্যয় চার্ট</h3>
-              <button className="flex items-center gap-1 px-3 py-1.5 border border-slate-200 rounded-lg text-xs">
-                সাপ্তাহিক <ChevronDown className="w-3 h-3" />
-              </button>
+              <select
+                value={chartRange}
+                onChange={(e) => setChartRange(e.target.value as keyof typeof chartData)}
+                className="px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white text-slate-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-200"
+              >
+                <option value="সাপ্তাহিক">সাপ্তাহিক</option>
+                <option value="মাসিক">মাসিক</option>
+                <option value="বার্ষিক">বার্ষিক</option>
+              </select>
             </div>
-            {(() => {
-              const data = [
-                { d: "সোম", inc: 8500, exp: 5200 },
-                { d: "মঙ্গল", inc: 12000, exp: 6800 },
-                { d: "বুধ", inc: 9500, exp: 4200 },
-                { d: "বৃহঃ", inc: 15000, exp: 7500 },
-                { d: "শুক্র", inc: 11000, exp: 8800 },
-                { d: "শনি", inc: 6500, exp: 3500 },
-                { d: "রবি", inc: 3000, exp: 2800 },
-              ];
-              const max = 16000;
-              return (
-                <>
-                  <div className="flex items-end gap-3 h-48 px-1">
-                    {data.map((d) => (
-                      <div key={d.d} className="flex-1 flex flex-col items-center gap-1.5">
-                        <div className="flex items-end gap-1 h-40 w-full justify-center">
-                          <div className="w-3 bg-emerald-500 rounded-t transition-all hover:opacity-80" style={{ height: `${(d.inc / max) * 100}%` }} title={`আয়: ৳${d.inc}`}></div>
-                          <div className="w-3 bg-rose-500 rounded-t transition-all hover:opacity-80" style={{ height: `${(d.exp / max) * 100}%` }} title={`ব্যয়: ৳${d.exp}`}></div>
-                        </div>
-                        <span className="text-xs text-slate-500">{d.d}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex items-center justify-center gap-6 mt-4 pt-3 border-t border-slate-100 text-xs text-slate-600">
-                    <span className="flex items-center gap-2"><span className="w-3 h-3 bg-emerald-500 rounded"></span>আয়</span>
-                    <span className="flex items-center gap-2"><span className="w-3 h-3 bg-rose-500 rounded"></span>ব্যয়</span>
-                  </div>
-                </>
-              );
-            })()}
+            <div className="h-56 -ml-2">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData[chartRange]} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="incGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.4} />
+                      <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="expGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.4} />
+                      <stop offset="100%" stopColor="#f43f5e" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                  <XAxis dataKey="d" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12 }}
+                    formatter={(v: number, name: string) => [`৳ ${v.toLocaleString()}`, name === "inc" ? "আয়" : "ব্যয়"]}
+                  />
+                  <Legend
+                    iconType="circle"
+                    wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
+                    formatter={(v) => (v === "inc" ? "আয়" : "ব্যয়")}
+                  />
+                  <Area type="monotone" dataKey="inc" stroke="#10b981" strokeWidth={2} fill="url(#incGrad)" />
+                  <Area type="monotone" dataKey="exp" stroke="#f43f5e" strokeWidth={2} fill="url(#expGrad)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
 
