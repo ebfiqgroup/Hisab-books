@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CATEGORIES } from "@/lib/finance";
 import { Plus, X } from "lucide-react";
 
 type TxnType = "income" | "expense";
