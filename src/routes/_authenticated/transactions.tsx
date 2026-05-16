@@ -4,7 +4,8 @@ import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Sidebar } from "@/components/Sidebar";
 import { TxnDialog } from "@/components/dashboard/TxnDialog";
-import { fmtTk, toBn, CATEGORIES } from "@/lib/finance";
+import { fmtTk, toBn } from "@/lib/finance";
+import { useCustomCategories } from "@/hooks/useCustomCategories";
 import { ArrowUp, ArrowDown, Plus, Trash2, ArrowLeft, Search } from "lucide-react";
 import { toast } from "sonner";
 
@@ -18,6 +19,7 @@ const PAGE_SIZE = 50;
 
 function TransactionsPage() {
   const qc = useQueryClient();
+  const { forType, combined } = useCustomCategories();
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState<"all" | "income" | "expense">("all");
   const [cat, setCat] = useState<string>("");
@@ -129,7 +131,9 @@ function TransactionsPage() {
           </div>
           <select value={cat} onChange={(e) => setCat(e.target.value)} className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg bg-white">
             <option value="">সব ক্যাটাগরি</option>
-            {CATEGORIES.map((c) => <option key={c.key} value={c.key}>{c.key}</option>)}
+            {(filter === "all" ? combined : forType(filter)).map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
           </select>
           <div className="relative flex-1 min-w-[200px]">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
