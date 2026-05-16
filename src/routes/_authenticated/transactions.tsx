@@ -3,10 +3,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Sidebar } from "@/components/Sidebar";
-import { TxnDialog } from "@/components/dashboard/TxnDialog";
+import { TxnDialog, type EditTxn } from "@/components/dashboard/TxnDialog";
 import { fmtTk, toBn } from "@/lib/finance";
 import { useCustomCategories } from "@/hooks/useCustomCategories";
-import { ArrowUp, ArrowDown, Plus, Trash2, ArrowLeft, Search } from "lucide-react";
+import { ArrowUp, ArrowDown, Plus, Trash2, ArrowLeft, Search, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/transactions")({
@@ -21,6 +21,7 @@ function TransactionsPage() {
   const qc = useQueryClient();
   const { forType, combined } = useCustomCategories();
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<EditTxn | null>(null);
   const [filter, setFilter] = useState<"all" | "income" | "expense">("all");
   const [cat, setCat] = useState<string>("");
   const [q, setQ] = useState("");
@@ -83,6 +84,11 @@ function TransactionsPage() {
     toast.success("মুছে ফেলা হয়েছে");
     qc.invalidateQueries({ queryKey: ["transactions"] });
   };
+  const openEdit = (t: Txn) => {
+    setEditing({ id: t.id, type: t.type, category: t.category, amount: Number(t.amount), occurred_on: t.occurred_on, note: t.note });
+    setOpen(true);
+  };
+  const openNew = () => { setEditing(null); setOpen(true); };
 
   return (
     <div className="h-screen flex overflow-hidden" style={{ background: "oklch(0.97 0.005 250)" }}>
@@ -95,7 +101,7 @@ function TransactionsPage() {
             </Link>
             <h1 className="text-2xl font-bold text-slate-800">সব লেনদেন</h1>
           </div>
-          <button onClick={() => setOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">
+          <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">
             <Plus className="w-4 h-4" /> নতুন লেনদেন
           </button>
         </div>
@@ -181,9 +187,14 @@ function TransactionsPage() {
                     <td className="px-4 py-3 text-slate-500 text-xs">{toBn(t.occurred_on)}</td>
                     <td className={`px-4 py-3 text-right font-bold ${inc ? "text-emerald-600" : "text-rose-500"}`}>{fmtTk(Number(t.amount))}</td>
                     <td className="px-4 py-3 text-right">
-                      <button onClick={() => remove(t.id)} className="p-1.5 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center justify-end gap-1">
+                        <button onClick={() => openEdit(t)} className="p-1.5 rounded-md hover:bg-indigo-50 text-slate-400 hover:text-indigo-600" title="এডিট">
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => remove(t.id)} className="p-1.5 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600" title="মুছুন">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -200,7 +211,7 @@ function TransactionsPage() {
           )}
         </div>
       </main>
-      <TxnDialog open={open} onOpenChange={setOpen} />
+      <TxnDialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }} editTxn={editing} />
     </div>
   );
 }
