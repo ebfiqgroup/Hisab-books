@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 import { TxnDialog, type EditTxn } from "@/components/dashboard/TxnDialog";
 import { CategoryManager } from "@/components/dashboard/CategoryManager";
+import { SalaryAllocator } from "@/components/dashboard/SalaryAllocator";
 import { fmtTk, toBn } from "@/lib/finance";
 import { Plus, Trash2, TrendingDown, Pencil, Tags } from "lucide-react";
 import { toast } from "sonner";
@@ -61,6 +62,7 @@ function ExpensePage() {
           <div className="text-2xl font-bold text-rose-500">{fmtTk(total)}</div>
         </div>
       </div>
+      <SalaryAllocator />
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-slate-600 text-xs">
