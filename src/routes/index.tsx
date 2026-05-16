@@ -218,24 +218,73 @@ function Dashboard() {
           </div>
         </div>
 
-        {/* Recent transactions - full width */}
-        <div className="bg-white rounded-xl p-5 border border-slate-200 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-slate-800">সাম্প্রতিক লেনদেন</h3>
-            <a className="text-sm text-indigo-600 cursor-pointer">সব দেখুন</a>
-          </div>
-          <div className="space-y-3">
-            {transactions.map((t, i) => (
-              <div key={i} className="flex items-center gap-3 py-1">
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center ${t.income ? "bg-emerald-50" : "bg-rose-50"}`}>
-                  {t.income ? <ArrowUp className="w-4 h-4 text-emerald-600" /> : <ArrowDown className="w-4 h-4 text-rose-500" />}
+        {/* Recent transactions + Future budget */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="bg-white rounded-xl p-5 border border-slate-200">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-slate-800">সাম্প্রতিক লেনদেন</h3>
+              <a className="text-sm text-indigo-600 cursor-pointer">সব দেখুন</a>
+            </div>
+            <div className="space-y-3">
+              {transactions.map((t, i) => (
+                <div key={i} className="flex items-center gap-2 py-1">
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${t.income ? "bg-emerald-50" : "bg-rose-50"}`}>
+                    {t.income ? <ArrowUp className="w-4 h-4 text-emerald-600" /> : <ArrowDown className="w-4 h-4 text-rose-500" />}
+                  </div>
+                  <span className="font-medium text-slate-800 flex-1 text-sm">{t.label}</span>
+                  <span className="text-xs text-slate-500">{t.date}</span>
+                  <span className={`font-bold text-sm w-20 text-right ${t.income ? "text-emerald-600" : "text-rose-500"}`}>{t.amount}</span>
                 </div>
-                <span className="font-medium text-slate-800 flex-1">{t.label}</span>
-                <span className={`text-xs px-2.5 py-1 rounded-full ${t.income ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-600"}`}>{t.tag}</span>
-                <span className="text-xs text-slate-500 w-24 text-right">{t.date}</span>
-                <span className={`font-bold w-20 text-right ${t.income ? "text-emerald-600" : "text-rose-500"}`}>{t.amount}</span>
-              </div>
-            ))}
+              ))}
+            </div>
+          </div>
+
+          {/* Future budget & plan chart */}
+          <div className="bg-white rounded-xl p-5 border border-slate-200">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-slate-800">আগামী বাজেট ও পরিকল্পনা</h3>
+              <span className="text-xs text-slate-500">পরবর্তী ৬ মাস</span>
+            </div>
+            <div className="h-56 -ml-2">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={[
+                    { d: "জুন", budget: 40000, plan: 28000 },
+                    { d: "জুলাই", budget: 42000, plan: 30000 },
+                    { d: "আগস্ট", budget: 45000, plan: 33000 },
+                    { d: "সেপ্ট", budget: 43000, plan: 35000 },
+                    { d: "অক্টো", budget: 48000, plan: 38000 },
+                    { d: "নভে", budget: 50000, plan: 42000 },
+                  ]}
+                  margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="budGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#6366f1" stopOpacity={0.4} />
+                      <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="planGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.4} />
+                      <stop offset="100%" stopColor="#f59e0b" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                  <XAxis dataKey="d" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12 }}
+                    formatter={(v: number, name: string) => [`৳ ${v.toLocaleString()}`, name === "budget" ? "বাজেট" : "পরিকল্পনা"]}
+                  />
+                  <Legend
+                    iconType="circle"
+                    wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
+                    formatter={(v) => (v === "budget" ? "বাজেট" : "পরিকল্পনা")}
+                  />
+                  <Area type="monotone" dataKey="budget" stroke="#6366f1" strokeWidth={2} fill="url(#budGrad)" />
+                  <Area type="monotone" dataKey="plan" stroke="#f59e0b" strokeWidth={2} fill="url(#planGrad)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
 
