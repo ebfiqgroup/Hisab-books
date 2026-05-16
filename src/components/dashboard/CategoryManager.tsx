@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -11,6 +11,7 @@ import {
   saveCustomCats,
   type TxnType,
 } from "@/lib/finance";
+import { fmtTk } from "@/lib/finance";
 
 export function CategoryManager({
   open,
@@ -30,6 +31,10 @@ export function CategoryManager({
     | { kind: "custom" | "builtin"; name: string; raw?: string; used: number; target: string }
     | null
   >(null);
+  const [preview, setPreview] = useState<{
+    loading: boolean;
+    rows: Array<{ id: string; amount: number; note: string | null; occurred_on: string }>;
+  }>({ loading: false, rows: [] });
 
   const custom = map[type];
   const builtInsRaw = BUILTIN_CATS_RAW[type];
@@ -144,6 +149,26 @@ export function CategoryManager({
     const used = count ?? 0;
     setConfirmDel({ kind: "builtin", name: cur, raw, used, target: fallbackTarget() });
   };
+
+  // Load top transactions when delete dialog opens for a non-empty category
+  useEffect(() => {
+    if (!confirmDel || confirmDel.used === 0) { setPreview({ loading: false, rows: [] }); return; }
+    let cancelled = false;
+    setPreview({ loading: true, rows: [] });
+    (async () => {
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("id, amount, note, occurred_on")
+        .eq("type", type)
+        .eq("category", confirmDel.name)
+        .order("occurred_on", { ascending: false })
+        .limit(5);
+      if (cancelled) return;
+      if (error) { setPreview({ loading: false, rows: [] }); return; }
+      setPreview({ loading: false, rows: (data ?? []) as any });
+    })();
+    return () => { cancelled = true; };
+  }, [confirmDel, type]);
 
   const performDelete = async () => {
     if (!confirmDel) return;
@@ -326,6 +351,34 @@ export function CategoryManager({
                       <option key={t} value={t}>{t}</option>
                     ))}
                   </select>
+                  <div className="mt-2 rounded-md border border-slate-200 bg-slate-50 p-2">
+                    <div className="text-[11px] text-slate-500 mb-1.5">
+                      <span className="font-medium">{confirmDel.used}</span>টি লেনদেন{" "}
+                      <span className="font-medium">"{confirmDel.target}"</span>-তে যাবে। সর্বশেষ {Math.min(5, confirmDel.used)}টি প্রিভিউ:
+                    </div>
+                    {preview.loading ? (
+                      <div className="text-xs text-slate-400 py-1">লোড হচ্ছে...</div>
+                    ) : preview.rows.length === 0 ? (
+                      <div className="text-xs text-slate-400 py-1">কোনো প্রিভিউ নেই</div>
+                    ) : (
+                      <ul className="divide-y divide-slate-200">
+                        {preview.rows.map((r) => (
+                          <li key={r.id} className="flex items-center justify-between gap-2 py-1.5 text-xs">
+                            <div className="min-w-0 flex-1">
+                              <div className="truncate text-slate-700">{r.note || "—"}</div>
+                              <div className="text-[10px] text-slate-400">{r.occurred_on}</div>
+                            </div>
+                            <div className="font-medium text-slate-700 shrink-0">{fmtTk(Number(r.amount))}</div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {confirmDel.used > preview.rows.length && !preview.loading && (
+                      <div className="text-[10px] text-slate-400 mt-1">
+                        +{confirmDel.used - preview.rows.length}টি আরও
+                      </div>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <div className="text-slate-500 text-xs">এই ক্যাটাগরিতে কোনো লেনদেন নেই।</div>
