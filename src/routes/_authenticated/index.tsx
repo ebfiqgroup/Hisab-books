@@ -508,6 +508,7 @@ function Dashboard() {
           © ২০২৪ আমার হিসাব. সর্বস্বত্ব সংরক্ষিত. <span className="text-rose-500">♥</span>
         </div>
       </main>
+      <TxnDialog open={txnOpen} onOpenChange={setTxnOpen} />
     </div>
   );
 }
