@@ -16,6 +16,7 @@ import { Route as AuthenticatedTransactionsRouteImport } from './routes/_authent
 import { Route as AuthenticatedReportRouteImport } from './routes/_authenticated/report'
 import { Route as AuthenticatedIncomeRouteImport } from './routes/_authenticated/income'
 import { Route as AuthenticatedExpenseRouteImport } from './routes/_authenticated/expense'
+import { Route as AuthenticatedBudgetRouteImport } from './routes/_authenticated/budget'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -52,10 +53,16 @@ const AuthenticatedExpenseRoute = AuthenticatedExpenseRouteImport.update({
   path: '/expense',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedBudgetRoute = AuthenticatedBudgetRouteImport.update({
+  id: '/budget',
+  path: '/budget',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/auth': typeof AuthRoute
+  '/budget': typeof AuthenticatedBudgetRoute
   '/expense': typeof AuthenticatedExpenseRoute
   '/income': typeof AuthenticatedIncomeRoute
   '/report': typeof AuthenticatedReportRoute
@@ -63,6 +70,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
+  '/budget': typeof AuthenticatedBudgetRoute
   '/expense': typeof AuthenticatedExpenseRoute
   '/income': typeof AuthenticatedIncomeRoute
   '/report': typeof AuthenticatedReportRoute
@@ -73,6 +81,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/budget': typeof AuthenticatedBudgetRoute
   '/_authenticated/expense': typeof AuthenticatedExpenseRoute
   '/_authenticated/income': typeof AuthenticatedIncomeRoute
   '/_authenticated/report': typeof AuthenticatedReportRoute
@@ -84,16 +93,25 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/budget'
     | '/expense'
     | '/income'
     | '/report'
     | '/transactions'
   fileRoutesByTo: FileRoutesByTo
-  to: '/auth' | '/expense' | '/income' | '/report' | '/transactions' | '/'
+  to:
+    | '/auth'
+    | '/budget'
+    | '/expense'
+    | '/income'
+    | '/report'
+    | '/transactions'
+    | '/'
   id:
     | '__root__'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/budget'
     | '/_authenticated/expense'
     | '/_authenticated/income'
     | '/_authenticated/report'
@@ -157,10 +175,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedExpenseRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/budget': {
+      id: '/_authenticated/budget'
+      path: '/budget'
+      fullPath: '/budget'
+      preLoaderRoute: typeof AuthenticatedBudgetRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedBudgetRoute: typeof AuthenticatedBudgetRoute
   AuthenticatedExpenseRoute: typeof AuthenticatedExpenseRoute
   AuthenticatedIncomeRoute: typeof AuthenticatedIncomeRoute
   AuthenticatedReportRoute: typeof AuthenticatedReportRoute
@@ -169,6 +195,7 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedBudgetRoute: AuthenticatedBudgetRoute,
   AuthenticatedExpenseRoute: AuthenticatedExpenseRoute,
   AuthenticatedIncomeRoute: AuthenticatedIncomeRoute,
   AuthenticatedReportRoute: AuthenticatedReportRoute,
