@@ -31,6 +31,12 @@ export function CategoryManager({
   const builtInsRaw = BUILTIN_CATS_RAW[type];
   const renames = map.renames?.[type] ?? {};
   const effective = (raw: string) => renames[raw] ?? raw;
+  const fallbackTarget = () => {
+    // Effective name of "অন্যান্য" if it's still active; otherwise raw.
+    const hidden = new Set(map.hidden?.[type] ?? []);
+    if (hidden.has("অন্যান্য")) return "অন্যান্য"; // re-activate raw on use
+    return effective("অন্যান্য");
+  };
 
   const startEdit = (name: string) => { setEditingName(name); setDraft(name); };
   const cancelEdit = () => { setEditingName(null); setDraft(""); };
@@ -113,15 +119,16 @@ export function CategoryManager({
       .eq("category", name);
     if (ce) { toast.error(ce.message); return; }
     const used = count ?? 0;
+    const target = fallbackTarget();
     const msg = used > 0
-      ? `এই ক্যাটাগরিতে ${used}টি লেনদেন আছে। সেগুলো "অন্যান্য"-তে সরিয়ে নিয়ে ক্যাটাগরি মুছবেন?`
+      ? `এই ক্যাটাগরিতে ${used}টি লেনদেন আছে। সেগুলো "${target}"-তে সরিয়ে নিয়ে ক্যাটাগরি মুছবেন?`
       : "এই ক্যাটাগরি মুছবেন?";
     if (!confirm(msg)) return;
     setBusy(true);
     if (used > 0) {
       const { error } = await supabase
         .from("transactions")
-        .update({ category: "অন্যান্য" })
+        .update({ category: target })
         .eq("type", type)
         .eq("category", name);
       if (error) { setBusy(false); toast.error(error.message); return; }
@@ -131,6 +138,52 @@ export function CategoryManager({
     setBusy(false);
     toast.success("মুছে ফেলা হয়েছে");
     qc.invalidateQueries({ queryKey: ["transactions"] });
+  };
+
+  const removeBuiltin = async (raw: string) => {
+    if (raw === "অন্যান্য") { toast.error("\"অন্যান্য\" মুছে ফেলা যাবে না (ফলব্যাক ক্যাটাগরি)"); return; }
+    const cur = effective(raw);
+    const { count, error: ce } = await supabase
+      .from("transactions")
+      .select("id", { count: "exact", head: true })
+      .eq("type", type)
+      .eq("category", cur);
+    if (ce) { toast.error(ce.message); return; }
+    const used = count ?? 0;
+    const target = fallbackTarget();
+    const msg = used > 0
+      ? `"${cur}" ক্যাটাগরিতে ${used}টি লেনদেন আছে। সেগুলো "${target}"-তে সরিয়ে নিয়ে মুছবেন?`
+      : `"${cur}" মুছবেন?`;
+    if (!confirm(msg)) return;
+    setBusy(true);
+    if (used > 0) {
+      const { error } = await supabase
+        .from("transactions")
+        .update({ category: target })
+        .eq("type", type)
+        .eq("category", cur);
+      if (error) { setBusy(false); toast.error(error.message); return; }
+    }
+    const nextHidden = {
+      income: [...(map.hidden?.income ?? [])],
+      expense: [...(map.hidden?.expense ?? [])],
+    };
+    if (!nextHidden[type].includes(raw)) nextHidden[type].push(raw);
+    const next = { ...map, hidden: nextHidden };
+    setMap(next); saveCustomCats(next);
+    setBusy(false);
+    toast.success("মুছে ফেলা হয়েছে");
+    qc.invalidateQueries({ queryKey: ["transactions"] });
+  };
+
+  const restoreBuiltin = (raw: string) => {
+    const nextHidden = {
+      income: (map.hidden?.income ?? []).filter((x) => x !== raw),
+      expense: (map.hidden?.expense ?? []).filter((x) => x !== raw),
+    };
+    const next = { ...map, hidden: nextHidden };
+    setMap(next); saveCustomCats(next);
+    toast.success("ফিরিয়ে আনা হয়েছে");
   };
 
   return (
@@ -146,8 +199,9 @@ export function CategoryManager({
               {builtInsRaw.map((raw) => {
                 const cur = effective(raw);
                 const isEditing = editingName === `builtin:${raw}`;
+                const isHidden = (map.hidden?.[type] ?? []).includes(raw);
                 return (
-                  <li key={raw} className="flex items-center gap-2 px-3 py-2">
+                  <li key={raw} className={`flex items-center gap-2 px-3 py-2 ${isHidden ? "opacity-50" : ""}`}>
                     {isEditing ? (
                       <>
                         <input
@@ -170,16 +224,29 @@ export function CategoryManager({
                     ) : (
                       <>
                         <span className="flex-1 text-sm text-slate-700">
-                          {cur}
+                          {cur}{isHidden && <span className="ml-2 text-[11px] text-rose-500">(মুছে ফেলা)</span>}
                           {cur !== raw && <span className="ml-2 text-[11px] text-slate-400">(মূল: {raw})</span>}
                         </span>
-                        <button disabled={busy} onClick={() => { setEditingName(`builtin:${raw}`); setDraft(cur); }} className="p-1.5 rounded-md hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 disabled:opacity-50" title="এডিট">
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                        {cur !== raw && (
-                          <button disabled={busy} onClick={() => resetBuiltin(raw)} className="p-1.5 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-600 disabled:opacity-50" title="রিসেট">
+                        {isHidden ? (
+                          <button disabled={busy} onClick={() => restoreBuiltin(raw)} className="p-1.5 rounded-md hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 disabled:opacity-50" title="ফিরিয়ে আনুন">
                             <RotateCcw className="w-4 h-4" />
                           </button>
+                        ) : (
+                          <>
+                            <button disabled={busy} onClick={() => { setEditingName(`builtin:${raw}`); setDraft(cur); }} className="p-1.5 rounded-md hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 disabled:opacity-50" title="এডিট">
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                            {cur !== raw && (
+                              <button disabled={busy} onClick={() => resetBuiltin(raw)} className="p-1.5 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-600 disabled:opacity-50" title="রিসেট">
+                                <RotateCcw className="w-4 h-4" />
+                              </button>
+                            )}
+                            {raw !== "অন্যান্য" && (
+                              <button disabled={busy} onClick={() => removeBuiltin(raw)} className="p-1.5 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600 disabled:opacity-50" title="মুছুন">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </>
                         )}
                       </>
                     )}
