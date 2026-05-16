@@ -6,15 +6,15 @@ import {
 
 const navItems = [
   { icon: Home, label: "ড্যাশবোর্ড", to: "/" },
-  { icon: Wallet, label: "আয়", to: "/" },
-  { icon: TrendingDown, label: "ব্যয়", to: "/" },
+  { icon: Wallet, label: "আয়", to: "/income" },
+  { icon: TrendingDown, label: "ব্যয়", to: "/expense" },
   { icon: ArrowLeftRight, label: "লেনদেন", to: "/transactions" },
-  { icon: Clock, label: "বাজেট", to: "/" },
-  { icon: Target, label: "লক্ষ্য", to: "/" },
-  { icon: Users, label: "পাওনা/দেনা", to: "/" },
+  { icon: Clock, label: "বাজেট", to: "/budget" },
+  { icon: Target, label: "লক্ষ্য", to: "/goals" },
+  { icon: Users, label: "পাওনা/দেনা", to: "/debts" },
   { icon: BarChart3, label: "রিপোর্ট", to: "/report" },
-  { icon: Calendar, label: "ক্যালেন্ডার", to: "/" },
-  { icon: Settings, label: "সেটিংস", to: "/" },
+  { icon: Calendar, label: "ক্যালেন্ডার", to: "/calendar" },
+  { icon: Settings, label: "সেটিংস", to: "/settings" },
 ];
 
 export function Sidebar() {
@@ -32,7 +32,7 @@ export function Sidebar() {
       </div>
       <nav className="flex-1 p-3 space-y-1">
         {navItems.map((n, i) => {
-          const active = (n.to === "/" && path === "/" && n.label === "ড্যাশবোর্ড") || (n.to !== "/" && path === n.to);
+          const active = path === n.to;
           return (
             <Link
               key={i}
