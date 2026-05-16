@@ -8,7 +8,7 @@ const navItems = [
   { icon: Home, label: "ড্যাশবোর্ড", to: "/" },
   { icon: Wallet, label: "আয়", to: "/" },
   { icon: TrendingDown, label: "ব্যয়", to: "/" },
-  { icon: ArrowLeftRight, label: "লেনদেন", to: "/" },
+  { icon: ArrowLeftRight, label: "লেনদেন", to: "/transactions" },
   { icon: Clock, label: "বাজেট", to: "/" },
   { icon: Target, label: "লক্ষ্য", to: "/" },
   { icon: Users, label: "পাওনা/দেনা", to: "/" },
