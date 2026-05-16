@@ -1,5 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { TxnDialog } from "@/components/dashboard/TxnDialog";
+import { CATEGORIES, categoryColor, toBn, fmtTk, monthBounds, pctChange, BN_MONTHS } from "@/lib/finance";
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
 } from "recharts";
@@ -11,67 +15,127 @@ import { Sidebar } from "@/components/Sidebar";
 
 export const Route = createFileRoute("/_authenticated/")({ component: Dashboard });
 
-const chartData = {
-  সাপ্তাহিক: [
-    { d: "সোম", inc: 8500, exp: 5200 },
-    { d: "মঙ্গল", inc: 12000, exp: 6800 },
-    { d: "বুধ", inc: 9500, exp: 4200 },
-    { d: "বৃহঃ", inc: 15000, exp: 7500 },
-    { d: "শুক্র", inc: 11000, exp: 8800 },
-    { d: "শনি", inc: 6500, exp: 3500 },
-    { d: "রবি", inc: 3000, exp: 2800 },
-  ],
-  মাসিক: [
-    { d: "জানু", inc: 58000, exp: 34000 },
-    { d: "ফেব্রু", inc: 62500, exp: 36200 },
-    { d: "মার্চ", inc: 58300, exp: 34620 },
-    { d: "এপ্রিল", inc: 61200, exp: 37100 },
-    { d: "মে", inc: 65450, exp: 38750 },
-    { d: "জুন", inc: 67000, exp: 40000 },
-  ],
-  বার্ষিক: [
-    { d: "২০২০", inc: 520000, exp: 320000 },
-    { d: "২০২১", inc: 610000, exp: 380000 },
-    { d: "২০২২", inc: 685000, exp: 410000 },
-    { d: "২০২৩", inc: 720000, exp: 445000 },
-    { d: "২০২৪", inc: 785500, exp: 462000 },
-  ],
-};
-
-const stats = [
-  { label: "মোট আয়", value: "৳ ৬৫,৪৫০", last: "৳ ৫৮,৩০০", pct: "12.28%", color: "income", Icon: Wallet, bg: "bg-emerald-50", fg: "text-emerald-600", val: "text-emerald-600" },
-  { label: "মোট ব্যয়", value: "৳ ৩৮,৭৫০", last: "৳ ৩৪,৬২০", pct: "11.94%", color: "expense", Icon: ArrowDown, bg: "bg-rose-50", fg: "text-rose-500", val: "text-rose-500" },
-  { label: "মোট সঞ্চয়", value: "৳ ২৬,৭০০", last: "৳ ২৩,৬৮০", pct: "12.75%", color: "savings", Icon: PiggyBank, bg: "bg-blue-50", fg: "text-blue-600", val: "text-blue-600" },
-  { label: "মোট পাওনা", value: "৳ ১২,৪০০", last: "৳ ৯,৬০০", pct: "29.17%", color: "receivable", Icon: Users, bg: "bg-orange-50", fg: "text-orange-500", val: "text-orange-500" },
-  { label: "মোট দেনা", value: "৳ ৫,৮০০", last: "৳ ৭,২০০", pct: "19.44%", color: "payable", Icon: TrendingDown, bg: "bg-rose-50", fg: "text-rose-500", val: "text-rose-600" },
-];
-
-const expenses = [
-  { label: "খাবার", amount: "৳ ১২,৪৫০", pct: "32.1%", color: "#10b981", deg: 115 },
-  { label: "বাসা ভাড়া", amount: "৳ ৮,০০০", pct: "20.6%", color: "#f43f5e", deg: 74 },
-  { label: "পরিবহন", amount: "৳ ৪,৬৫০", pct: "12.0%", color: "#6366f1", deg: 43 },
-  { label: "শিক্ষা", amount: "৳ ৩,৮০০", pct: "9.8%", color: "#3b82f6", deg: 35 },
-  { label: "বিনোদন", amount: "৳ ৩,২০০", pct: "8.3%", color: "#2563eb", deg: 30 },
-  { label: "স্বাস্থ্য", amount: "৳ ২,৮০০", pct: "6.2%", color: "#f97316", deg: 22 },
-  { label: "অন্যান্য", amount: "৳ ৪,২৫০", pct: "10.9%", color: "#9ca3af", deg: 41 },
-];
-
-const transactions = [
-  { label: "বেতন", tag: "আয়", date: "৩১ মে ২০২৪", amount: "৳ ৬৫,০০০", income: true },
-  { label: "বাসা ভাড়া", tag: "ব্যয়", date: "২৮ মে ২০২৪", amount: "৳ ৮,০০০", income: false },
-  { label: "বাজার খরচ", tag: "ব্যয়", date: "২৬ মে ২০২৪", amount: "৳ ২,৮৫০", income: false },
-  { label: "বিদ্যুৎ বিল", tag: "ব্যয়", date: "২৩ মে ২০২৪", amount: "৳ ১,২৮০", income: false },
-  { label: "ফ্রিল্যান্স পেমেন্ট", tag: "আয়", date: "২০ মে ২০২৪", amount: "৳ ৫,০০০", income: true },
-];
-
 const goals = [
   { Icon: PiggyBank, label: "সঞ্চয় লক্ষ্য", current: "৳ ২৬,৭০০", target: "৳ ৩০,০০০", pct: 89, color: "bg-emerald-500", iconBg: "bg-rose-100", iconFg: "text-rose-500" },
   { Icon: BookOpen, label: "জরুরি তহবিল", current: "৳ ১২,০০০", target: "৳ ২০,০০০", pct: 60, color: "bg-blue-500", iconBg: "bg-blue-100", iconFg: "text-blue-600" },
   { Icon: House, label: "ভবিষ্যৎ ফান্ড", current: "৳ ৮,০০০", target: "৳ ১৫,০০০", pct: 53, color: "bg-orange-500", iconBg: "bg-orange-100", iconFg: "text-orange-500" },
 ];
 
+type Txn = { id: string; type: "income" | "expense"; category: string; amount: number; occurred_on: string; note: string | null };
+type Debt = { id: string; kind: "receivable" | "payable"; amount: number; settled: boolean };
+
+const BN_DAYS = ["রবি", "সোম", "মঙ্গল", "বুধ", "বৃহঃ", "শুক্র", "শনি"];
+
 function Dashboard() {
-  const [chartRange, setChartRange] = useState<keyof typeof chartData>("সাপ্তাহিক");
+  const [chartRange, setChartRange] = useState<"সাপ্তাহিক" | "মাসিক" | "বার্ষিক">("সাপ্তাহিক");
+  const [txnOpen, setTxnOpen] = useState(false);
+  const now = new Date();
+  const { startISO, endISO, prevStartISO } = useMemo(() => monthBounds(now), []);
+
+  const txnQ = useQuery({
+    queryKey: ["transactions", "all"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("id,type,category,amount,occurred_on,note")
+        .order("occurred_on", { ascending: false })
+        .limit(1000);
+      if (error) throw error;
+      return (data ?? []) as Txn[];
+    },
+  });
+
+  const debtsQ = useQuery({
+    queryKey: ["debts"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("debts")
+        .select("id,kind,amount,settled")
+        .eq("settled", false);
+      if (error) throw error;
+      return (data ?? []) as Debt[];
+    },
+  });
+
+  const all = txnQ.data ?? [];
+  const debts = debtsQ.data ?? [];
+
+  // Current vs previous month aggregations
+  const cur = all.filter((t) => t.occurred_on >= startISO && t.occurred_on < endISO);
+  const prev = all.filter((t) => t.occurred_on >= prevStartISO && t.occurred_on < startISO);
+  const sum = (arr: Txn[], type: "income" | "expense") =>
+    arr.filter((t) => t.type === type).reduce((s, t) => s + Number(t.amount), 0);
+
+  const curInc = sum(cur, "income");
+  const curExp = sum(cur, "expense");
+  const prevInc = sum(prev, "income");
+  const prevExp = sum(prev, "expense");
+  const curSav = curInc - curExp;
+  const prevSav = prevInc - prevExp;
+  const receivable = debts.filter((d) => d.kind === "receivable").reduce((s, d) => s + Number(d.amount), 0);
+  const payable = debts.filter((d) => d.kind === "payable").reduce((s, d) => s + Number(d.amount), 0);
+
+  const statCards = [
+    { label: "মোট আয়", value: fmtTk(curInc), last: fmtTk(prevInc), pct: pctChange(curInc, prevInc), Icon: Wallet, bg: "bg-emerald-50", fg: "text-emerald-600", val: "text-emerald-600" },
+    { label: "মোট ব্যয়", value: fmtTk(curExp), last: fmtTk(prevExp), pct: pctChange(curExp, prevExp), Icon: ArrowDown, bg: "bg-rose-50", fg: "text-rose-500", val: "text-rose-500" },
+    { label: "মোট সঞ্চয়", value: fmtTk(curSav), last: fmtTk(prevSav), pct: pctChange(curSav, prevSav), Icon: PiggyBank, bg: "bg-blue-50", fg: "text-blue-600", val: "text-blue-600" },
+    { label: "মোট পাওনা", value: fmtTk(receivable), last: "—", pct: { value: "", up: true }, Icon: Users, bg: "bg-orange-50", fg: "text-orange-500", val: "text-orange-500" },
+    { label: "মোট দেনা", value: fmtTk(payable), last: "—", pct: { value: "", up: false }, Icon: TrendingDown, bg: "bg-rose-50", fg: "text-rose-500", val: "text-rose-600" },
+  ];
+
+  // Donut: current month expenses by category
+  const expByCat = new Map<string, number>();
+  cur.filter((t) => t.type === "expense").forEach((t) => {
+    expByCat.set(t.category, (expByCat.get(t.category) ?? 0) + Number(t.amount));
+  });
+  const expenses = Array.from(expByCat.entries())
+    .map(([label, amount]) => ({ label, amount, color: categoryColor(label) }))
+    .sort((a, b) => b.amount - a.amount);
+  const totalExp = expenses.reduce((s, e) => s + e.amount, 0) || 1;
+  let accDeg = 0;
+  const donutSegs = expenses
+    .map((e) => {
+      const start = accDeg;
+      accDeg += (e.amount / totalExp) * 360;
+      return `${e.color} ${start}deg ${accDeg}deg`;
+    })
+    .join(", ") || "#e2e8f0 0deg 360deg";
+
+  // Area chart data
+  const chartSeries = useMemo(() => {
+    if (chartRange === "সাপ্তাহিক") {
+      const start = new Date(now);
+      start.setDate(start.getDate() - 6);
+      const days = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(start);
+        d.setDate(start.getDate() + i);
+        return { d, iso: d.toISOString().slice(0, 10), label: BN_DAYS[d.getDay()] };
+      });
+      return days.map(({ iso, label }) => {
+        const day = all.filter((t) => t.occurred_on === iso);
+        return { d: label, inc: sum(day, "income"), exp: sum(day, "expense") };
+      });
+    }
+    if (chartRange === "মাসিক") {
+      const y = now.getFullYear();
+      return BN_MONTHS.map((m, i) => {
+        const mTxns = all.filter((t) => {
+          const d = new Date(t.occurred_on);
+          return d.getFullYear() === y && d.getMonth() === i;
+        });
+        return { d: m.slice(0, 3), inc: sum(mTxns, "income"), exp: sum(mTxns, "expense") };
+      });
+    }
+    const years = Array.from(new Set(all.map((t) => new Date(t.occurred_on).getFullYear()))).sort();
+    if (years.length === 0) years.push(now.getFullYear());
+    return years.map((y) => {
+      const yt = all.filter((t) => new Date(t.occurred_on).getFullYear() === y);
+      return { d: toBn(y), inc: sum(yt, "income"), exp: sum(yt, "expense") };
+    });
+  }, [all, chartRange]);
+
+  const recent = all.slice(0, 5);
+
   type PlanTask = { id: number; task: string; date: string; amount: string; priority: "উচ্চ" | "মাঝারি" | "নিম্ন"; done: boolean };
   const [tasks, setTasks] = useState<PlanTask[]>([
     { id: 1, task: "জুন মাসের বাজেট নির্ধারণ", date: "১ জুন", amount: "৳ ৪০,০০০", priority: "উচ্চ", done: false },
@@ -145,21 +209,6 @@ function Dashboard() {
       </div>
     </div>
   );
-  // Build conic gradient
-  let acc = 0;
-  const segs = expenses.map(e => {
-    const start = acc;
-    acc += e.deg;
-    return `${e.color} ${start}deg ${acc}deg`;
-  }).join(", ");
-  // scale to 360
-  const scale = 360 / acc;
-  let acc2 = 0;
-  const segs2 = expenses.map(e => {
-    const start = acc2;
-    acc2 += e.deg * scale;
-    return `${e.color} ${start}deg ${acc2}deg`;
-  }).join(", ");
 
   return (
     <div className="h-screen flex overflow-hidden" style={{ background: "oklch(0.97 0.005 250)" }}>
@@ -194,7 +243,7 @@ function Dashboard() {
 
         {/* Stats */}
         <div className="grid grid-cols-5 gap-4 mb-6">
-          {stats.map(s => (
+          {statCards.map(s => (
             <div key={s.label} className="bg-white rounded-xl p-5 border border-slate-200">
               <div className="flex items-center gap-3 mb-3">
                 <div className={`w-11 h-11 rounded-full ${s.bg} flex items-center justify-center`}>
@@ -207,7 +256,11 @@ function Dashboard() {
               </div>
               <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs">
                 <span className="text-slate-500">গত মাস: {s.last}</span>
-                <span className="text-emerald-600 flex items-center gap-1"><ArrowUp className="w-3 h-3" />{s.pct}</span>
+                {s.pct.value && (
+                  <span className={`flex items-center gap-1 ${s.pct.up ? "text-emerald-600" : "text-rose-500"}`}>
+                    {s.pct.up ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}{s.pct.value}
+                  </span>
+                )}
               </div>
             </div>
           ))}
@@ -225,19 +278,22 @@ function Dashboard() {
             </div>
             <div className="flex items-center gap-6">
               <div className="relative w-44 h-44 flex-shrink-0">
-                <div className="w-full h-full rounded-full" style={{ background: `conic-gradient(${segs2})` }}></div>
+                <div className="w-full h-full rounded-full" style={{ background: `conic-gradient(${donutSegs})` }}></div>
                 <div className="absolute inset-6 bg-white rounded-full flex flex-col items-center justify-center">
                   <div className="text-xs text-slate-500">মোট ব্যয়</div>
-                  <div className="font-bold text-slate-800">৳ ৩৮,৭৫০</div>
+                  <div className="font-bold text-slate-800">{fmtTk(curExp)}</div>
                 </div>
               </div>
               <div className="flex-1 space-y-2.5">
+                {expenses.length === 0 && (
+                  <div className="text-sm text-slate-400">এই মাসে কোনো ব্যয় নেই</div>
+                )}
                 {expenses.map(e => (
                   <div key={e.label} className="flex items-center text-sm">
                     <span className="w-2.5 h-2.5 rounded-full mr-2" style={{ background: e.color }}></span>
                     <span className="flex-1 text-slate-700">{e.label}</span>
-                    <span className="w-20 text-right font-medium text-slate-800">{e.amount}</span>
-                    <span className="w-14 text-right text-slate-500">{e.pct}</span>
+                    <span className="w-20 text-right font-medium text-slate-800">{fmtTk(e.amount)}</span>
+                    <span className="w-14 text-right text-slate-500">{toBn(((e.amount / totalExp) * 100).toFixed(1))}%</span>
                   </div>
                 ))}
               </div>
@@ -250,7 +306,7 @@ function Dashboard() {
               <h3 className="font-bold text-slate-800">আয় / ব্যয় চার্ট</h3>
               <select
                 value={chartRange}
-                onChange={(e) => setChartRange(e.target.value as keyof typeof chartData)}
+                onChange={(e) => setChartRange(e.target.value as typeof chartRange)}
                 className="px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white text-slate-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-200"
               >
                 <option value="সাপ্তাহিক">সাপ্তাহিক</option>
@@ -260,7 +316,7 @@ function Dashboard() {
             </div>
             <div className="h-56 -ml-2">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData[chartRange]} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <AreaChart data={chartSeries} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="incGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#10b981" stopOpacity={0.4} />
@@ -296,19 +352,28 @@ function Dashboard() {
           <div className="bg-white rounded-xl p-5 border border-slate-200">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-slate-800">সাম্প্রতিক লেনদেন</h3>
-              <a className="text-sm text-indigo-600 cursor-pointer">সব দেখুন</a>
+              <button onClick={() => setTxnOpen(true)} className="flex items-center gap-1 px-2.5 py-1.5 text-xs bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                <Plus className="w-3 h-3" /> নতুন
+              </button>
             </div>
             <div className="space-y-3">
-              {transactions.map((t, i) => (
-                <div key={i} className="flex items-center gap-2 py-1">
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${t.income ? "bg-emerald-50" : "bg-rose-50"}`}>
-                    {t.income ? <ArrowUp className="w-4 h-4 text-emerald-600" /> : <ArrowDown className="w-4 h-4 text-rose-500" />}
+              {txnQ.isLoading && <div className="text-sm text-slate-400 py-4">লোড হচ্ছে...</div>}
+              {!txnQ.isLoading && recent.length === 0 && (
+                <div className="text-sm text-slate-400 py-4 text-center">কোনো লেনদেন নেই — "নতুন" এ ক্লিক করুন</div>
+              )}
+              {recent.map((t) => {
+                const income = t.type === "income";
+                return (
+                  <div key={t.id} className="flex items-center gap-2 py-1">
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${income ? "bg-emerald-50" : "bg-rose-50"}`}>
+                      {income ? <ArrowUp className="w-4 h-4 text-emerald-600" /> : <ArrowDown className="w-4 h-4 text-rose-500" />}
+                    </div>
+                    <span className="font-medium text-slate-800 flex-1 text-sm truncate">{t.note || t.category}</span>
+                    <span className="text-xs text-slate-500">{toBn(t.occurred_on)}</span>
+                    <span className={`font-bold text-sm w-24 text-right ${income ? "text-emerald-600" : "text-rose-500"}`}>{fmtTk(Number(t.amount))}</span>
                   </div>
-                  <span className="font-medium text-slate-800 flex-1 text-sm">{t.label}</span>
-                  <span className="text-xs text-slate-500">{t.date}</span>
-                  <span className={`font-bold text-sm w-20 text-right ${t.income ? "text-emerald-600" : "text-rose-500"}`}>{t.amount}</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -443,6 +508,7 @@ function Dashboard() {
           © ২০২৪ আমার হিসাব. সর্বস্বত্ব সংরক্ষিত. <span className="text-rose-500">♥</span>
         </div>
       </main>
+      <TxnDialog open={txnOpen} onOpenChange={setTxnOpen} />
     </div>
   );
 }
