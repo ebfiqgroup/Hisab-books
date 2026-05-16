@@ -14,7 +14,186 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      debts: {
+        Row: {
+          amount: number
+          created_at: string
+          due_date: string | null
+          id: string
+          kind: Database["public"]["Enums"]["debt_kind"]
+          note: string | null
+          person: string
+          settled: boolean
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["debt_kind"]
+          note?: string | null
+          person: string
+          settled?: boolean
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["debt_kind"]
+          note?: string | null
+          person?: string
+          settled?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
+      goals: {
+        Row: {
+          color: string | null
+          created_at: string
+          current: number
+          deadline: string | null
+          id: string
+          label: string
+          target: number
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          current?: number
+          deadline?: string | null
+          id?: string
+          label: string
+          target: number
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          current?: number
+          deadline?: string | null
+          id?: string
+          label?: string
+          target?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notes: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      plan_tasks: {
+        Row: {
+          amount_text: string | null
+          created_at: string
+          done: boolean
+          due_text: string | null
+          id: string
+          priority: Database["public"]["Enums"]["priority_level"]
+          task: string
+          user_id: string
+        }
+        Insert: {
+          amount_text?: string | null
+          created_at?: string
+          done?: boolean
+          due_text?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["priority_level"]
+          task: string
+          user_id: string
+        }
+        Update: {
+          amount_text?: string | null
+          created_at?: string
+          done?: boolean
+          due_text?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["priority_level"]
+          task?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          id: string
+          note: string | null
+          occurred_on: string
+          type: Database["public"]["Enums"]["txn_type"]
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          occurred_on?: string
+          type: Database["public"]["Enums"]["txn_type"]
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          occurred_on?: string
+          type?: Database["public"]["Enums"]["txn_type"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +202,9 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      debt_kind: "receivable" | "payable"
+      priority_level: "উচ্চ" | "মাঝারি" | "নিম্ন"
+      txn_type: "income" | "expense"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +331,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      debt_kind: ["receivable", "payable"],
+      priority_level: ["উচ্চ", "মাঝারি", "নিম্ন"],
+      txn_type: ["income", "expense"],
+    },
   },
 } as const
