@@ -103,7 +103,11 @@ function Dashboard() {
 
   const expByCat = new Map<string, number>();
   cur.filter((t) => t.type === "expense").forEach((t) => { expByCat.set(t.category, (expByCat.get(t.category) ?? 0) + Number(t.amount)); });
-  const expenses = Array.from(expByCat.entries()).map(([label, amount]) => ({ label, amount, color: categoryColor(label) })).sort((a, b) => b.amount - a.amount);
+  // Make sure every known expense category (built-in + custom) appears in the legend, even with 0
+  forType("expense").forEach((k) => { if (!expByCat.has(k)) expByCat.set(k, 0); });
+  const expenses = Array.from(expByCat.entries())
+    .map(([label, amount]) => ({ label, amount, color: categoryColor(label) }))
+    .sort((a, b) => b.amount - a.amount);
   const totalExp = expenses.reduce((s, e) => s + e.amount, 0) || 1;
   let accDeg = 0;
   const donutSegs = expenses.map((e) => {
