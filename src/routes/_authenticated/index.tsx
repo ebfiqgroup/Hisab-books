@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { categoryColor, toBn, fmtTk, monthBounds, pctChange, BN_MONTHS } from "@/lib/finance";
@@ -35,8 +35,8 @@ function Dashboard() {
     const v = localStorage.getItem("dashboard_donut_view");
     return v === "income" ? "income" : "expense";
   });
-  useMemo(() => {
-    if (typeof window !== "undefined") localStorage.setItem("dashboard_donut_view", donutView);
+  useEffect(() => {
+    localStorage.setItem("dashboard_donut_view", donutView);
   }, [donutView]);
   const now = new Date();
   const { startISO, endISO, prevStartISO } = useMemo(() => monthBounds(now), []);
