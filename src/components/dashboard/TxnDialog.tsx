@@ -4,28 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, X } from "lucide-react";
-
-type TxnType = "income" | "expense";
-const LS_KEY = "custom_categories_v2";
-type CustomMap = { income: string[]; expense: string[] };
-const loadCustom = (): CustomMap => {
-  try {
-    const raw = JSON.parse(localStorage.getItem(LS_KEY) || "null");
-    if (raw && Array.isArray(raw.income) && Array.isArray(raw.expense)) return raw;
-  } catch { /* ignore */ }
-  // migrate from v1 (shared list) into expense bucket
-  try {
-    const old = JSON.parse(localStorage.getItem("custom_categories_v1") || "[]");
-    if (Array.isArray(old)) return { income: [], expense: old };
-  } catch { /* ignore */ }
-  return { income: [], expense: [] };
-};
-const saveCustom = (map: CustomMap) => localStorage.setItem(LS_KEY, JSON.stringify(map));
-
-const BUILTIN: Record<TxnType, string[]> = {
-  income: ["বেতন", "ফ্রিল্যান্স", "অন্যান্য"],
-  expense: ["খাবার", "বাসা ভাড়া", "পরিবহন", "শিক্ষা", "বিনোদন", "স্বাস্থ্য", "অন্যান্য"],
-};
+import {
+  BUILTIN_CATS,
+  loadCustomCats,
+  saveCustomCats,
+  type CustomCatMap,
+  type TxnType,
+} from "@/lib/finance";
 
 export function TxnDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
   const qc = useQueryClient();
@@ -35,7 +20,7 @@ export function TxnDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
-  const [customMap, setCustomMap] = useState<CustomMap>({ income: [], expense: [] });
+  const [customMap, setCustomMap] = useState<CustomCatMap>({ income: [], expense: [] });
   const [adding, setAdding] = useState(false);
   const [newCat, setNewCat] = useState("");
 
@@ -43,13 +28,13 @@ export function TxnDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
     if (open) {
       setType("expense"); setCategory("খাবার"); setAmount(""); setNote("");
       setDate(new Date().toISOString().slice(0, 10));
-      setCustomMap(loadCustom());
+      setCustomMap(loadCustomCats());
       setAdding(false); setNewCat("");
     }
   }, [open]);
 
   const custom = customMap[type];
-  const builtIns = BUILTIN[type];
+  const builtIns = BUILTIN_CATS[type];
   const allCats = [...builtIns, ...custom];
 
   // When type switches, ensure selected category belongs to that type
@@ -64,7 +49,7 @@ export function TxnDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
     if (!name) { toast.error("ক্যাটাগরির নাম দিন"); return; }
     if (allCats.includes(name)) { toast.error("এই ক্যাটাগরি ইতিমধ্যে আছে"); return; }
     const nextMap = { ...customMap, [type]: [...custom, name] };
-    setCustomMap(nextMap); saveCustom(nextMap);
+    setCustomMap(nextMap); saveCustomCats(nextMap);
     setCategory(name);
     setNewCat(""); setAdding(false);
     toast.success("ক্যাটাগরি যুক্ত হয়েছে");
@@ -72,7 +57,7 @@ export function TxnDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
 
   const removeCustom = (name: string) => {
     const nextMap = { ...customMap, [type]: custom.filter((c) => c !== name) };
-    setCustomMap(nextMap); saveCustom(nextMap);
+    setCustomMap(nextMap); saveCustomCats(nextMap);
     if (category === name) setCategory(builtIns[0]);
   };
 
