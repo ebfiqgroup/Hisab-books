@@ -139,25 +139,66 @@ function Dashboard() {
             </div>
           </div>
 
-          {/* Recent transactions */}
+          {/* Income vs Expense chart */}
           <div className="bg-white rounded-xl p-5 border border-slate-200">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-slate-800">সাম্প্রতিক লেনদেন</h3>
-              <a className="text-sm text-indigo-600 cursor-pointer">সব দেখুন</a>
+              <h3 className="font-bold text-slate-800">আয় / ব্যয় চার্ট</h3>
+              <button className="flex items-center gap-1 px-3 py-1.5 border border-slate-200 rounded-lg text-xs">
+                সাপ্তাহিক <ChevronDown className="w-3 h-3" />
+              </button>
             </div>
-            <div className="space-y-3">
-              {transactions.map((t, i) => (
-                <div key={i} className="flex items-center gap-3 py-1">
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center ${t.income ? "bg-emerald-50" : "bg-rose-50"}`}>
-                    {t.income ? <ArrowUp className="w-4 h-4 text-emerald-600" /> : <ArrowDown className="w-4 h-4 text-rose-500" />}
+            {(() => {
+              const data = [
+                { d: "সোম", inc: 8500, exp: 5200 },
+                { d: "মঙ্গল", inc: 12000, exp: 6800 },
+                { d: "বুধ", inc: 9500, exp: 4200 },
+                { d: "বৃহঃ", inc: 15000, exp: 7500 },
+                { d: "শুক্র", inc: 11000, exp: 8800 },
+                { d: "শনি", inc: 6500, exp: 3500 },
+                { d: "রবি", inc: 3000, exp: 2800 },
+              ];
+              const max = 16000;
+              return (
+                <>
+                  <div className="flex items-end gap-3 h-48 px-1">
+                    {data.map((d) => (
+                      <div key={d.d} className="flex-1 flex flex-col items-center gap-1.5">
+                        <div className="flex items-end gap-1 h-40 w-full justify-center">
+                          <div className="w-3 bg-emerald-500 rounded-t transition-all hover:opacity-80" style={{ height: `${(d.inc / max) * 100}%` }} title={`আয়: ৳${d.inc}`}></div>
+                          <div className="w-3 bg-rose-500 rounded-t transition-all hover:opacity-80" style={{ height: `${(d.exp / max) * 100}%` }} title={`ব্যয়: ৳${d.exp}`}></div>
+                        </div>
+                        <span className="text-xs text-slate-500">{d.d}</span>
+                      </div>
+                    ))}
                   </div>
-                  <span className="font-medium text-slate-800 flex-1">{t.label}</span>
-                  <span className={`text-xs px-2.5 py-1 rounded-full ${t.income ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-600"}`}>{t.tag}</span>
-                  <span className="text-xs text-slate-500 w-24 text-right">{t.date}</span>
-                  <span className={`font-bold w-20 text-right ${t.income ? "text-emerald-600" : "text-rose-500"}`}>{t.amount}</span>
+                  <div className="flex items-center justify-center gap-6 mt-4 pt-3 border-t border-slate-100 text-xs text-slate-600">
+                    <span className="flex items-center gap-2"><span className="w-3 h-3 bg-emerald-500 rounded"></span>আয়</span>
+                    <span className="flex items-center gap-2"><span className="w-3 h-3 bg-rose-500 rounded"></span>ব্যয়</span>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        </div>
+
+        {/* Recent transactions - full width */}
+        <div className="bg-white rounded-xl p-5 border border-slate-200 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-slate-800">সাম্প্রতিক লেনদেন</h3>
+            <a className="text-sm text-indigo-600 cursor-pointer">সব দেখুন</a>
+          </div>
+          <div className="space-y-3">
+            {transactions.map((t, i) => (
+              <div key={i} className="flex items-center gap-3 py-1">
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center ${t.income ? "bg-emerald-50" : "bg-rose-50"}`}>
+                  {t.income ? <ArrowUp className="w-4 h-4 text-emerald-600" /> : <ArrowDown className="w-4 h-4 text-rose-500" />}
                 </div>
-              ))}
-            </div>
+                <span className="font-medium text-slate-800 flex-1">{t.label}</span>
+                <span className={`text-xs px-2.5 py-1 rounded-full ${t.income ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-600"}`}>{t.tag}</span>
+                <span className="text-xs text-slate-500 w-24 text-right">{t.date}</span>
+                <span className={`font-bold w-20 text-right ${t.income ? "text-emerald-600" : "text-rose-500"}`}>{t.amount}</span>
+              </div>
+            ))}
           </div>
         </div>
 
