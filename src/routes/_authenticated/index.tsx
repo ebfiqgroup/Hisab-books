@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { TxnDialog } from "@/components/dashboard/TxnDialog";
 import { CATEGORIES, categoryColor, toBn, fmtTk, monthBounds, pctChange, BN_MONTHS } from "@/lib/finance";
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
@@ -28,7 +27,6 @@ const BN_DAYS = ["রবি", "সোম", "মঙ্গল", "বুধ", "ব�
 
 function Dashboard() {
   const [chartRange, setChartRange] = useState<"সাপ্তাহিক" | "মাসিক" | "বার্ষিক">("সাপ্তাহিক");
-  const [txnOpen, setTxnOpen] = useState(false);
   const now = new Date();
   const { startISO, endISO, prevStartISO } = useMemo(() => monthBounds(now), []);
 
@@ -511,7 +509,6 @@ function Dashboard() {
           © ২০২৪ আমার হিসাব. সর্বস্বত্ব সংরক্ষিত. <span className="text-rose-500">♥</span>
         </div>
       </main>
-      <TxnDialog open={txnOpen} onOpenChange={setTxnOpen} />
     </div>
   );
 }
