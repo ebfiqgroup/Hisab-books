@@ -37,3 +37,44 @@ export const pctChange = (cur: number, prev: number): { value: string; up: boole
   const p = ((cur - prev) / prev) * 100;
   return { value: `${toBn(Math.abs(p).toFixed(1))}%`, up: p >= 0 };
 };
+
+// ---------- Custom categories (per type, persisted in localStorage) ----------
+export type TxnType = "income" | "expense";
+export type CustomCatMap = { income: string[]; expense: string[] };
+
+export const CUSTOM_CAT_LS_KEY = "custom_categories_v2";
+export const CUSTOM_CAT_EVENT = "custom_categories_changed";
+
+export const BUILTIN_CATS: Record<TxnType, string[]> = {
+  income: ["বেতন", "ফ্রিল্যান্স", "অন্যান্য"],
+  expense: ["খাবার", "বাসা ভাড়া", "পরিবহন", "শিক্ষা", "বিনোদন", "স্বাস্থ্য", "অন্যান্য"],
+};
+
+export const loadCustomCats = (): CustomCatMap => {
+  if (typeof window === "undefined") return { income: [], expense: [] };
+  try {
+    const raw = JSON.parse(localStorage.getItem(CUSTOM_CAT_LS_KEY) || "null");
+    if (raw && Array.isArray(raw.income) && Array.isArray(raw.expense)) return raw;
+  } catch { /* ignore */ }
+  try {
+    const old = JSON.parse(localStorage.getItem("custom_categories_v1") || "[]");
+    if (Array.isArray(old)) return { income: [], expense: old };
+  } catch { /* ignore */ }
+  return { income: [], expense: [] };
+};
+
+export const saveCustomCats = (map: CustomCatMap) => {
+  localStorage.setItem(CUSTOM_CAT_LS_KEY, JSON.stringify(map));
+  window.dispatchEvent(new Event(CUSTOM_CAT_EVENT));
+};
+
+export const allCatsForType = (type: TxnType, map?: CustomCatMap): string[] => {
+  const m = map ?? loadCustomCats();
+  return [...BUILTIN_CATS[type], ...m[type]];
+};
+
+export const allCatsCombined = (map?: CustomCatMap): string[] => {
+  const m = map ?? loadCustomCats();
+  const set = new Set<string>([...BUILTIN_CATS.income, ...BUILTIN_CATS.expense, ...m.income, ...m.expense]);
+  return Array.from(set);
+};
