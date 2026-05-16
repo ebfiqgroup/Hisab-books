@@ -15,6 +15,7 @@ import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedTransactionsRouteImport } from './routes/_authenticated/transactions'
 import { Route as AuthenticatedReportRouteImport } from './routes/_authenticated/report'
 import { Route as AuthenticatedIncomeRouteImport } from './routes/_authenticated/income'
+import { Route as AuthenticatedGoalsRouteImport } from './routes/_authenticated/goals'
 import { Route as AuthenticatedExpenseRouteImport } from './routes/_authenticated/expense'
 import { Route as AuthenticatedBudgetRouteImport } from './routes/_authenticated/budget'
 
@@ -48,6 +49,11 @@ const AuthenticatedIncomeRoute = AuthenticatedIncomeRouteImport.update({
   path: '/income',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedGoalsRoute = AuthenticatedGoalsRouteImport.update({
+  id: '/goals',
+  path: '/goals',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedExpenseRoute = AuthenticatedExpenseRouteImport.update({
   id: '/expense',
   path: '/expense',
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/budget': typeof AuthenticatedBudgetRoute
   '/expense': typeof AuthenticatedExpenseRoute
+  '/goals': typeof AuthenticatedGoalsRoute
   '/income': typeof AuthenticatedIncomeRoute
   '/report': typeof AuthenticatedReportRoute
   '/transactions': typeof AuthenticatedTransactionsRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/budget': typeof AuthenticatedBudgetRoute
   '/expense': typeof AuthenticatedExpenseRoute
+  '/goals': typeof AuthenticatedGoalsRoute
   '/income': typeof AuthenticatedIncomeRoute
   '/report': typeof AuthenticatedReportRoute
   '/transactions': typeof AuthenticatedTransactionsRoute
@@ -83,6 +91,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/budget': typeof AuthenticatedBudgetRoute
   '/_authenticated/expense': typeof AuthenticatedExpenseRoute
+  '/_authenticated/goals': typeof AuthenticatedGoalsRoute
   '/_authenticated/income': typeof AuthenticatedIncomeRoute
   '/_authenticated/report': typeof AuthenticatedReportRoute
   '/_authenticated/transactions': typeof AuthenticatedTransactionsRoute
@@ -95,6 +104,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/budget'
     | '/expense'
+    | '/goals'
     | '/income'
     | '/report'
     | '/transactions'
@@ -103,6 +113,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/budget'
     | '/expense'
+    | '/goals'
     | '/income'
     | '/report'
     | '/transactions'
@@ -113,6 +124,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/budget'
     | '/_authenticated/expense'
+    | '/_authenticated/goals'
     | '/_authenticated/income'
     | '/_authenticated/report'
     | '/_authenticated/transactions'
@@ -168,6 +180,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIncomeRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/goals': {
+      id: '/_authenticated/goals'
+      path: '/goals'
+      fullPath: '/goals'
+      preLoaderRoute: typeof AuthenticatedGoalsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/expense': {
       id: '/_authenticated/expense'
       path: '/expense'
@@ -188,6 +207,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteChildren {
   AuthenticatedBudgetRoute: typeof AuthenticatedBudgetRoute
   AuthenticatedExpenseRoute: typeof AuthenticatedExpenseRoute
+  AuthenticatedGoalsRoute: typeof AuthenticatedGoalsRoute
   AuthenticatedIncomeRoute: typeof AuthenticatedIncomeRoute
   AuthenticatedReportRoute: typeof AuthenticatedReportRoute
   AuthenticatedTransactionsRoute: typeof AuthenticatedTransactionsRoute
@@ -197,6 +217,7 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedBudgetRoute: AuthenticatedBudgetRoute,
   AuthenticatedExpenseRoute: AuthenticatedExpenseRoute,
+  AuthenticatedGoalsRoute: AuthenticatedGoalsRoute,
   AuthenticatedIncomeRoute: AuthenticatedIncomeRoute,
   AuthenticatedReportRoute: AuthenticatedReportRoute,
   AuthenticatedTransactionsRoute: AuthenticatedTransactionsRoute,
