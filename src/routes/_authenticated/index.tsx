@@ -30,6 +30,7 @@ function Dashboard() {
   const qc = useQueryClient();
   const [chartRange, setChartRange] = useState<"সাপ্তাহিক" | "মাসিক" | "বার্ষিক">("সাপ্তাহিক");
   const [txnOpen, setTxnOpen] = useState(false);
+  const [donutView, setDonutView] = useState<"expense" | "income">("expense");
   const now = new Date();
   const { startISO, endISO, prevStartISO } = useMemo(() => monthBounds(now), []);
 
@@ -263,29 +264,43 @@ function Dashboard() {
 
       {/* Charts */}
       <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="bg-white rounded-xl p-5 border border-slate-200">
-          <h3 className="font-bold text-slate-800 mb-4">ব্যয়ের খাতভিত্তিক বিশ্লেষণ</h3>
-          <div className="flex items-center gap-6">
-            <div className="relative w-44 h-44 flex-shrink-0">
-              <div className="w-full h-full rounded-full" style={{ background: `conic-gradient(${donutSegs})` }}></div>
-              <div className="absolute inset-6 bg-white rounded-full flex flex-col items-center justify-center">
-                <div className="text-xs text-slate-500">মোট ব্যয়</div>
-                <div className="font-bold text-slate-800">{fmtTk(curExp)}</div>
+        {(() => {
+          const isExp = donutView === "expense";
+          const items = isExp ? expenses : incomes;
+          const donut = isExp ? expDonut : incDonut;
+          const totalVal = isExp ? curExp : curInc;
+          return (
+            <div className="bg-white rounded-xl p-5 border border-slate-200">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-slate-800">{isExp ? "ব্যয়ের" : "আয়ের"} খাতভিত্তিক বিশ্লেষণ</h3>
+                <div className="flex bg-slate-100 rounded-lg p-1 text-xs">
+                  <button onClick={() => setDonutView("expense")} className={`px-3 py-1 rounded-md ${isExp ? "bg-white shadow text-slate-800" : "text-slate-500"}`}>ব্যয়</button>
+                  <button onClick={() => setDonutView("income")} className={`px-3 py-1 rounded-md ${!isExp ? "bg-white shadow text-slate-800" : "text-slate-500"}`}>আয়</button>
+                </div>
+              </div>
+              <div className="flex items-center gap-6">
+                <div className="relative w-44 h-44 flex-shrink-0">
+                  <div className="w-full h-full rounded-full" style={{ background: `conic-gradient(${donut.segs})` }}></div>
+                  <div className="absolute inset-6 bg-white rounded-full flex flex-col items-center justify-center">
+                    <div className="text-xs text-slate-500">{isExp ? "মোট ব্যয়" : "মোট আয়"}</div>
+                    <div className="font-bold text-slate-800">{fmtTk(totalVal)}</div>
+                  </div>
+                </div>
+                <div className="flex-1 space-y-2.5 max-h-44 overflow-y-auto pr-1">
+                  {items.length === 0 && <div className="text-sm text-slate-400">কোনো ক্যাটাগরি নেই</div>}
+                  {items.map((e) => (
+                    <div key={e.label} className="flex items-center text-sm">
+                      <span className="w-2.5 h-2.5 rounded-full mr-2 flex-shrink-0" style={{ background: e.color }}></span>
+                      <span className="flex-1 text-slate-700 truncate">{e.label}</span>
+                      <span className="w-20 text-right font-medium text-slate-800">{fmtTk(e.amount)}</span>
+                      <span className="w-14 text-right text-slate-500">{toBn(((e.amount / donut.total) * 100).toFixed(1))}%</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-            <div className="flex-1 space-y-2.5">
-              {expenses.length === 0 && <div className="text-sm text-slate-400">এই মাসে কোনো ব্যয় নেই</div>}
-              {expenses.map((e) => (
-                <div key={e.label} className="flex items-center text-sm">
-                  <span className="w-2.5 h-2.5 rounded-full mr-2" style={{ background: e.color }}></span>
-                  <span className="flex-1 text-slate-700">{e.label}</span>
-                  <span className="w-20 text-right font-medium text-slate-800">{fmtTk(e.amount)}</span>
-                  <span className="w-14 text-right text-slate-500">{toBn(((e.amount / totalExp) * 100).toFixed(1))}%</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+          );
+        })()}
 
         <div className="bg-white rounded-xl p-5 border border-slate-200">
           <div className="flex items-center justify-between mb-4">
