@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 import { fmtTk, toBn } from "@/lib/finance";
-import { Plus, Trash2, Check } from "lucide-react";
+import { Plus, Trash2, Check, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -15,6 +15,7 @@ type Debt = { id: string; kind: "receivable" | "payable"; amount: number; person
 function DebtsPage() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ kind: "receivable" as "receivable" | "payable", person: "", amount: "", due_date: "", note: "" });
 
   const q = useQuery({
@@ -29,18 +30,45 @@ function DebtsPage() {
   const receivable = list.filter((d) => d.kind === "receivable" && !d.settled).reduce((s, d) => s + Number(d.amount), 0);
   const payable = list.filter((d) => d.kind === "payable" && !d.settled).reduce((s, d) => s + Number(d.amount), 0);
 
+  const openNew = () => {
+    setEditingId(null);
+    setForm({ kind: "receivable", person: "", amount: "", due_date: "", note: "" });
+    setOpen(true);
+  };
+  const openEdit = (d: Debt) => {
+    setEditingId(d.id);
+    setForm({
+      kind: d.kind,
+      person: d.person,
+      amount: String(d.amount),
+      due_date: d.due_date ?? "",
+      note: d.note ?? "",
+    });
+    setOpen(true);
+  };
   const save = async () => {
     if (!form.person.trim() || !form.amount) { toast.error("ব্যক্তি ও পরিমাণ দিন"); return; }
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const { error } = await supabase.from("debts").insert({
-      user_id: user.id, kind: form.kind, person: form.person.trim(),
-      amount: parseFloat(form.amount), due_date: form.due_date || null, note: form.note || null,
-    });
-    if (error) { toast.error(error.message); return; }
-    toast.success("যোগ হয়েছে");
+    const payload = {
+      kind: form.kind,
+      person: form.person.trim(),
+      amount: parseFloat(form.amount),
+      due_date: form.due_date || null,
+      note: form.note || null,
+    };
+    if (editingId) {
+      const { error } = await supabase.from("debts").update(payload).eq("id", editingId);
+      if (error) { toast.error(error.message); return; }
+      toast.success("আপডেট হয়েছে");
+    } else {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { error } = await supabase.from("debts").insert({ user_id: user.id, ...payload });
+      if (error) { toast.error(error.message); return; }
+      toast.success("যোগ হয়েছে");
+    }
     qc.invalidateQueries({ queryKey: ["debts"] });
     setOpen(false);
+    setEditingId(null);
     setForm({ kind: "receivable", person: "", amount: "", due_date: "", note: "" });
   };
   const toggle = async (d: Debt) => {
@@ -58,7 +86,7 @@ function DebtsPage() {
 
   return (
     <AppShell title="পাওনা / দেনা" actions={
-      <button onClick={() => setOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">
+      <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">
         <Plus className="w-4 h-4" /> নতুন
       </button>
     }>
@@ -102,6 +130,7 @@ function DebtsPage() {
                 <td className="px-4 py-3 text-right">
                   <div className="flex gap-1 justify-end">
                     <button onClick={() => toggle(d)} title={d.settled ? "আবার সক্রিয়" : "পরিশোধিত"} className={`p-1.5 rounded-md hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 ${d.settled ? "text-emerald-600" : ""}`}><Check className="w-4 h-4" /></button>
+                    <button onClick={() => openEdit(d)} title="এডিট" className="p-1.5 rounded-md hover:bg-indigo-50 text-slate-400 hover:text-indigo-600"><Pencil className="w-4 h-4" /></button>
                     <button onClick={() => remove(d.id)} className="p-1.5 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </td>
@@ -111,9 +140,9 @@ function DebtsPage() {
         </table>
       </div>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditingId(null); }}>
         <DialogContent>
-          <DialogHeader><DialogTitle>নতুন পাওনা/দেনা</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editingId ? "পাওনা/দেনা এডিট" : "নতুন পাওনা/দেনা"}</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-2">
               <button onClick={() => setForm({ ...form, kind: "receivable" })} className={`py-2 rounded-lg border text-sm font-medium ${form.kind === "receivable" ? "bg-emerald-50 border-emerald-300 text-emerald-700" : "border-slate-200 text-slate-600"}`}>পাওনা</button>
