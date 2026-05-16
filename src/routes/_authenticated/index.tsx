@@ -258,7 +258,7 @@ function Dashboard() {
 
         {/* Stats */}
         <div className="grid grid-cols-5 gap-4 mb-6">
-          {stats.map(s => (
+          {statCards.map(s => (
             <div key={s.label} className="bg-white rounded-xl p-5 border border-slate-200">
               <div className="flex items-center gap-3 mb-3">
                 <div className={`w-11 h-11 rounded-full ${s.bg} flex items-center justify-center`}>
@@ -271,7 +271,11 @@ function Dashboard() {
               </div>
               <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs">
                 <span className="text-slate-500">গত মাস: {s.last}</span>
-                <span className="text-emerald-600 flex items-center gap-1"><ArrowUp className="w-3 h-3" />{s.pct}</span>
+                {s.pct.value && (
+                  <span className={`flex items-center gap-1 ${s.pct.up ? "text-emerald-600" : "text-rose-500"}`}>
+                    {s.pct.up ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}{s.pct.value}
+                  </span>
+                )}
               </div>
             </div>
           ))}
@@ -289,19 +293,22 @@ function Dashboard() {
             </div>
             <div className="flex items-center gap-6">
               <div className="relative w-44 h-44 flex-shrink-0">
-                <div className="w-full h-full rounded-full" style={{ background: `conic-gradient(${segs2})` }}></div>
+                <div className="w-full h-full rounded-full" style={{ background: `conic-gradient(${donutSegs})` }}></div>
                 <div className="absolute inset-6 bg-white rounded-full flex flex-col items-center justify-center">
                   <div className="text-xs text-slate-500">মোট ব্যয়</div>
-                  <div className="font-bold text-slate-800">৳ ৩৮,৭৫০</div>
+                  <div className="font-bold text-slate-800">{fmtTk(curExp)}</div>
                 </div>
               </div>
               <div className="flex-1 space-y-2.5">
+                {expenses.length === 0 && (
+                  <div className="text-sm text-slate-400">এই মাসে কোনো ব্যয় নেই</div>
+                )}
                 {expenses.map(e => (
                   <div key={e.label} className="flex items-center text-sm">
                     <span className="w-2.5 h-2.5 rounded-full mr-2" style={{ background: e.color }}></span>
                     <span className="flex-1 text-slate-700">{e.label}</span>
-                    <span className="w-20 text-right font-medium text-slate-800">{e.amount}</span>
-                    <span className="w-14 text-right text-slate-500">{e.pct}</span>
+                    <span className="w-20 text-right font-medium text-slate-800">{fmtTk(e.amount)}</span>
+                    <span className="w-14 text-right text-slate-500">{toBn(((e.amount / totalExp) * 100).toFixed(1))}%</span>
                   </div>
                 ))}
               </div>
@@ -314,7 +321,7 @@ function Dashboard() {
               <h3 className="font-bold text-slate-800">আয় / ব্যয় চার্ট</h3>
               <select
                 value={chartRange}
-                onChange={(e) => setChartRange(e.target.value as keyof typeof chartData)}
+                onChange={(e) => setChartRange(e.target.value as typeof chartRange)}
                 className="px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white text-slate-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-200"
               >
                 <option value="সাপ্তাহিক">সাপ্তাহিক</option>
@@ -324,7 +331,7 @@ function Dashboard() {
             </div>
             <div className="h-56 -ml-2">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData[chartRange]} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <AreaChart data={chartSeries} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="incGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#10b981" stopOpacity={0.4} />
@@ -360,19 +367,28 @@ function Dashboard() {
           <div className="bg-white rounded-xl p-5 border border-slate-200">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-slate-800">সাম্প্রতিক লেনদেন</h3>
-              <a className="text-sm text-indigo-600 cursor-pointer">সব দেখুন</a>
+              <button onClick={() => setTxnOpen(true)} className="flex items-center gap-1 px-2.5 py-1.5 text-xs bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                <Plus className="w-3 h-3" /> নতুন
+              </button>
             </div>
             <div className="space-y-3">
-              {transactions.map((t, i) => (
-                <div key={i} className="flex items-center gap-2 py-1">
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${t.income ? "bg-emerald-50" : "bg-rose-50"}`}>
-                    {t.income ? <ArrowUp className="w-4 h-4 text-emerald-600" /> : <ArrowDown className="w-4 h-4 text-rose-500" />}
+              {txnQ.isLoading && <div className="text-sm text-slate-400 py-4">লোড হচ্ছে...</div>}
+              {!txnQ.isLoading && recent.length === 0 && (
+                <div className="text-sm text-slate-400 py-4 text-center">কোনো লেনদেন নেই — "নতুন" এ ক্লিক করুন</div>
+              )}
+              {recent.map((t) => {
+                const income = t.type === "income";
+                return (
+                  <div key={t.id} className="flex items-center gap-2 py-1">
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${income ? "bg-emerald-50" : "bg-rose-50"}`}>
+                      {income ? <ArrowUp className="w-4 h-4 text-emerald-600" /> : <ArrowDown className="w-4 h-4 text-rose-500" />}
+                    </div>
+                    <span className="font-medium text-slate-800 flex-1 text-sm truncate">{t.note || t.category}</span>
+                    <span className="text-xs text-slate-500">{toBn(t.occurred_on)}</span>
+                    <span className={`font-bold text-sm w-24 text-right ${income ? "text-emerald-600" : "text-rose-500"}`}>{fmtTk(Number(t.amount))}</span>
                   </div>
-                  <span className="font-medium text-slate-800 flex-1 text-sm">{t.label}</span>
-                  <span className="text-xs text-slate-500">{t.date}</span>
-                  <span className={`font-bold text-sm w-20 text-right ${t.income ? "text-emerald-600" : "text-rose-500"}`}>{t.amount}</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
