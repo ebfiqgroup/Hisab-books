@@ -1,30 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
-  Home, Wallet, TrendingDown, ArrowLeftRight, Clock, Target,
-  Users, BarChart3, Calendar, Settings, Download, Bell, ChevronDown,
+  Wallet, Calendar, Settings, Download, Bell, ChevronDown,
   ArrowDown, ArrowUp, PiggyBank, BookOpen, House, StickyNote
 } from "lucide-react";
+import { Users, TrendingDown } from "lucide-react";
+import { Sidebar } from "@/components/Sidebar";
 
 export const Route = createFileRoute("/")({ component: Dashboard });
-
-const navItems = [
-  { icon: Home, label: "ড্যাশবোর্ড", active: true },
-  { icon: Wallet, label: "আয়" },
-  { icon: TrendingDown, label: "ব্যয়" },
-  { icon: ArrowLeftRight, label: "লেনদেন" },
-  { icon: Clock, label: "বাজেট" },
-  { icon: Target, label: "লক্ষ্য" },
-  { icon: Users, label: "পাওনা/দেনা" },
-  { icon: BarChart3, label: "রিপোর্ট" },
-  { icon: Calendar, label: "ক্যালেন্ডার" },
-  { icon: Settings, label: "সেটিংস" },
-];
 
 const stats = [
   { label: "মোট আয়", value: "৳ ৬৫,৪৫০", last: "৳ ৫৮,৩০০", pct: "12.28%", color: "income", Icon: Wallet, bg: "bg-emerald-50", fg: "text-emerald-600", val: "text-emerald-600" },
   { label: "মোট ব্যয়", value: "৳ ৩৮,৭৫০", last: "৳ ৩৪,৬২০", pct: "11.94%", color: "expense", Icon: ArrowDown, bg: "bg-rose-50", fg: "text-rose-500", val: "text-rose-500" },
   { label: "মোট সঞ্চয়", value: "৳ ২৬,৭০০", last: "৳ ২৩,৬৮০", pct: "12.75%", color: "savings", Icon: PiggyBank, bg: "bg-blue-50", fg: "text-blue-600", val: "text-blue-600" },
   { label: "মোট পাওনা", value: "৳ ১২,৪০০", last: "৳ ৯,৬০০", pct: "29.17%", color: "receivable", Icon: Users, bg: "bg-orange-50", fg: "text-orange-500", val: "text-orange-500" },
+  { label: "মোট দেনা", value: "৳ ৫,৮০০", last: "৳ ৭,২০০", pct: "19.44%", color: "payable", Icon: TrendingDown, bg: "bg-rose-50", fg: "text-rose-500", val: "text-rose-600" },
 ];
 
 const expenses = [
@@ -70,33 +59,7 @@ function Dashboard() {
 
   return (
     <div className="min-h-screen flex" style={{ background: "oklch(0.97 0.005 250)" }}>
-      {/* Sidebar */}
-      <aside className="w-64 flex flex-col text-white" style={{ background: "oklch(0.22 0.04 250)" }}>
-        <div className="p-5 flex items-center gap-3 border-b border-white/10">
-          <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-            <Wallet className="w-5 h-5 text-emerald-400" />
-          </div>
-          <div>
-            <div className="font-bold text-base">আমার হিসাব</div>
-            <div className="text-xs text-white/60">মাসিক ড্যাশবোর্ড</div>
-          </div>
-        </div>
-        <nav className="flex-1 p-3 space-y-1">
-          {navItems.map((n) => (
-            <a key={n.label} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm cursor-pointer transition ${n.active ? "bg-indigo-600 text-white" : "text-white/70 hover:bg-white/5"}`}>
-              <n.icon className="w-4 h-4" />
-              {n.label}
-            </a>
-          ))}
-        </nav>
-        <div className="m-4 p-4 rounded-lg border border-white/15 text-xs text-white/80 relative">
-          <span className="absolute -top-1 left-3 text-2xl text-white/30">"</span>
-          আর্থিক শৃঙ্খলা<br/>সফলতার চাবিকাঠি
-        </div>
-        <div className="h-32 relative overflow-hidden">
-          <div className="absolute bottom-0 left-2 text-5xl">🪴</div>
-        </div>
-      </aside>
+      <Sidebar />
 
       {/* Main */}
       <main className="flex-1 p-6">
@@ -126,7 +89,7 @@ function Dashboard() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-5 gap-4 mb-6">
           {stats.map(s => (
             <div key={s.label} className="bg-white rounded-xl p-5 border border-slate-200">
               <div className="flex items-center gap-3 mb-3">
