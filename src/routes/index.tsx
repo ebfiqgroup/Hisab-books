@@ -316,26 +316,45 @@ function Dashboard() {
           <div className="bg-white rounded-xl p-5 border border-slate-200">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-slate-800">আগামী বাজেট ও পরিকল্পনা</h3>
-              <span className="text-xs text-slate-500">পরবর্তী ৬ মাস</span>
+              <button
+                onClick={startAdd}
+                className="flex items-center gap-1 px-2.5 py-1.5 text-xs bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+              >
+                <Plus className="w-3 h-3" /> নতুন
+              </button>
             </div>
-            <div className="space-y-2.5">
-              {[
-                { task: "জুন মাসের বাজেট নির্ধারণ", date: "১ জুন", amount: "৳ ৪০,০০০", priority: "উচ্চ", pColor: "bg-rose-50 text-rose-600" },
-                { task: "জরুরি তহবিলে জমা", date: "৫ জুন", amount: "৳ ৫,০০০", priority: "উচ্চ", pColor: "bg-rose-50 text-rose-600" },
-                { task: "ল্যাপটপ সঞ্চয় শুরু", date: "১০ জুন", amount: "৳ ৩,০০০", priority: "মাঝারি", pColor: "bg-amber-50 text-amber-600" },
-                { task: "বিদ্যুৎ ও গ্যাস বিল", date: "১৫ জুন", amount: "৳ ২,৫০০", priority: "উচ্চ", pColor: "bg-rose-50 text-rose-600" },
-                { task: "পরিবারের জন্য কেনাকাটা", date: "২০ জুন", amount: "৳ ৪,৫০০", priority: "মাঝারি", pColor: "bg-amber-50 text-amber-600" },
-                { task: "ভবিষ্যৎ ফান্ডে অবদান", date: "২৫ জুন", amount: "৳ ৬,০০০", priority: "নিম্ন", pColor: "bg-emerald-50 text-emerald-600" },
-              ].map((t, i) => (
-                <label key={i} className="flex items-center gap-3 p-2.5 rounded-lg border border-slate-100 hover:bg-slate-50 cursor-pointer transition">
-                  <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-slate-800 truncate">{t.task}</div>
-                    <div className="text-xs text-slate-500 mt-0.5">{t.date} · {t.amount}</div>
+            <div className="space-y-2.5 max-h-80 overflow-y-auto pr-1">
+              {adding && <DraftForm />}
+              {tasks.map((t) =>
+                editingId === t.id ? (
+                  <DraftForm key={t.id} />
+                ) : (
+                  <div key={t.id} className="group flex items-center gap-3 p-2.5 rounded-lg border border-slate-100 hover:bg-slate-50 transition">
+                    <input
+                      type="checkbox"
+                      checked={t.done}
+                      onChange={() => toggle(t.id)}
+                      className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 flex-shrink-0 cursor-pointer"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className={`text-sm font-medium truncate ${t.done ? "text-slate-400 line-through" : "text-slate-800"}`}>{t.task}</div>
+                      <div className="text-xs text-slate-500 mt-0.5">{t.date} · {t.amount}</div>
+                    </div>
+                    <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${priColor(t.priority)}`}>{t.priority}</span>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
+                      <button onClick={() => startEdit(t)} className="p-1.5 rounded-md hover:bg-indigo-50 text-slate-500 hover:text-indigo-600" title="এডিট">
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button onClick={() => remove(t.id)} className="p-1.5 rounded-md hover:bg-rose-50 text-slate-500 hover:text-rose-600" title="মুছুন">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
-                  <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${t.pColor}`}>{t.priority}</span>
-                </label>
-              ))}
+                )
+              )}
+              {tasks.length === 0 && !adding && (
+                <div className="text-center text-sm text-slate-400 py-6">কোনো পরিকল্পনা নেই</div>
+              )}
             </div>
           </div>
         </div>
