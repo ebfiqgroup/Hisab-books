@@ -1,0 +1,137 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { AppShell } from "@/components/AppShell";
+import { fmtTk, toBn } from "@/lib/finance";
+import { Plus, Trash2, Target, Pencil } from "lucide-react";
+import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
+export const Route = createFileRoute("/_authenticated/goals")({ component: GoalsPage });
+
+type Goal = { id: string; label: string; target: number; current: number; deadline: string | null; color: string };
+
+const COLORS = [
+  { key: "emerald", bg: "bg-emerald-500", text: "text-emerald-600", soft: "bg-emerald-50" },
+  { key: "blue", bg: "bg-blue-500", text: "text-blue-600", soft: "bg-blue-50" },
+  { key: "orange", bg: "bg-orange-500", text: "text-orange-600", soft: "bg-orange-50" },
+  { key: "rose", bg: "bg-rose-500", text: "text-rose-600", soft: "bg-rose-50" },
+  { key: "indigo", bg: "bg-indigo-500", text: "text-indigo-600", soft: "bg-indigo-50" },
+];
+const colorOf = (k: string) => COLORS.find((c) => c.key === k) ?? COLORS[0];
+
+function GoalsPage() {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [edit, setEdit] = useState<Goal | null>(null);
+  const [form, setForm] = useState({ label: "", target: "", current: "", deadline: "", color: "emerald" });
+
+  const q = useQuery({
+    queryKey: ["goals"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("goals").select("id,label,target,current,deadline,color").order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as Goal[];
+    },
+  });
+
+  const openNew = () => { setEdit(null); setForm({ label: "", target: "", current: "", deadline: "", color: "emerald" }); setOpen(true); };
+  const openEdit = (g: Goal) => { setEdit(g); setForm({ label: g.label, target: String(g.target), current: String(g.current), deadline: g.deadline ?? "", color: g.color }); setOpen(true); };
+
+  const save = async () => {
+    if (!form.label.trim() || !form.target) { toast.error("নাম ও লক্ষ্য পরিমাণ দিন"); return; }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const payload = {
+      label: form.label.trim(),
+      target: parseFloat(form.target),
+      current: parseFloat(form.current || "0"),
+      deadline: form.deadline || null,
+      color: form.color,
+    };
+    const { error } = edit
+      ? await supabase.from("goals").update(payload).eq("id", edit.id)
+      : await supabase.from("goals").insert({ ...payload, user_id: user.id });
+    if (error) { toast.error(error.message); return; }
+    toast.success("সংরক্ষিত");
+    qc.invalidateQueries({ queryKey: ["goals"] });
+    setOpen(false);
+  };
+  const remove = async (id: string) => {
+    if (!confirm("লক্ষ্যটি মুছে ফেলবেন?")) return;
+    const { error } = await supabase.from("goals").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("মুছে ফেলা হয়েছে");
+    qc.invalidateQueries({ queryKey: ["goals"] });
+  };
+
+  const list = q.data ?? [];
+
+  return (
+    <AppShell title="সঞ্চয় লক্ষ্য" actions={
+      <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">
+        <Plus className="w-4 h-4" /> নতুন লক্ষ্য
+      </button>
+    }>
+      {q.isLoading && <div className="text-slate-400">লোড হচ্ছে...</div>}
+      {!q.isLoading && list.length === 0 && (
+        <div className="bg-white rounded-xl border border-slate-200 p-12 text-center text-slate-500">
+          <Target className="w-10 h-10 mx-auto mb-3 text-slate-300" />
+          এখনো কোনো লক্ষ্য নেই। "নতুন লক্ষ্য" দিয়ে শুরু করুন।
+        </div>
+      )}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        {list.map((g) => {
+          const c = colorOf(g.color);
+          const pct = g.target > 0 ? Math.min(100, (Number(g.current) / Number(g.target)) * 100) : 0;
+          return (
+            <div key={g.id} className="bg-white rounded-xl p-5 border border-slate-200">
+              <div className="flex items-start justify-between mb-3">
+                <div className={`w-10 h-10 rounded-full ${c.soft} flex items-center justify-center`}>
+                  <Target className={`w-5 h-5 ${c.text}`} />
+                </div>
+                <div className="flex gap-1">
+                  <button onClick={() => openEdit(g)} className="p-1.5 rounded-md hover:bg-slate-50 text-slate-400 hover:text-slate-700"><Pencil className="w-4 h-4" /></button>
+                  <button onClick={() => remove(g.id)} className="p-1.5 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              </div>
+              <div className="font-bold text-slate-800 mb-1">{g.label}</div>
+              <div className="text-xs text-slate-500 mb-3">{fmtTk(Number(g.current))} / {fmtTk(Number(g.target))}</div>
+              <div className="h-2 bg-slate-100 rounded-full overflow-hidden mb-1">
+                <div className={`h-full ${c.bg}`} style={{ width: `${pct}%` }}></div>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className={c.text}>{toBn(pct.toFixed(0))}%</span>
+                {g.deadline && <span className="text-slate-400">শেষ: {toBn(g.deadline)}</span>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>{edit ? "লক্ষ্য এডিট" : "নতুন লক্ষ্য"}</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <input value={form.label} onChange={(e) => setForm({ ...form, label: e.target.value })} placeholder="লক্ষ্যের নাম" className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+            <div className="grid grid-cols-2 gap-2">
+              <input type="number" value={form.target} onChange={(e) => setForm({ ...form, target: e.target.value })} placeholder="লক্ষ্য ৳" className="px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+              <input type="number" value={form.current} onChange={(e) => setForm({ ...form, current: e.target.value })} placeholder="বর্তমান ৳" className="px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+            </div>
+            <input type="date" value={form.deadline} onChange={(e) => setForm({ ...form, deadline: e.target.value })} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+            <div className="flex gap-2">
+              {COLORS.map((c) => (
+                <button key={c.key} onClick={() => setForm({ ...form, color: c.key })} className={`w-8 h-8 rounded-full ${c.bg} ${form.color === c.key ? "ring-2 ring-offset-2 ring-slate-400" : ""}`}></button>
+              ))}
+            </div>
+            <div className="flex gap-2 pt-2">
+              <button onClick={() => setOpen(false)} className="flex-1 py-2 border border-slate-200 rounded-lg text-sm">বাতিল</button>
+              <button onClick={save} className="flex-1 py-2 bg-indigo-600 text-white rounded-lg text-sm">সেভ</button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </AppShell>
+  );
+}
