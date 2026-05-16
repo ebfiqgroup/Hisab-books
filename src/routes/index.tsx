@@ -4,7 +4,7 @@ import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
 } from "recharts";
 import {
-  Wallet, Calendar, Download, Bell, Users, TrendingDown,
+  Wallet, Calendar, Download, Bell, ChevronDown, Users, TrendingDown,
   ArrowDown, ArrowUp, PiggyBank, BookOpen, House, StickyNote
 } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
