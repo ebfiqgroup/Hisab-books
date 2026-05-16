@@ -3,24 +3,39 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CATEGORIES } from "@/lib/finance";
 import { Plus, X } from "lucide-react";
 
-const LS_KEY = "custom_categories_v1";
-const loadCustom = (): string[] => {
-  try { return JSON.parse(localStorage.getItem(LS_KEY) || "[]"); } catch { return []; }
+type TxnType = "income" | "expense";
+const LS_KEY = "custom_categories_v2";
+type CustomMap = { income: string[]; expense: string[] };
+const loadCustom = (): CustomMap => {
+  try {
+    const raw = JSON.parse(localStorage.getItem(LS_KEY) || "null");
+    if (raw && Array.isArray(raw.income) && Array.isArray(raw.expense)) return raw;
+  } catch { /* ignore */ }
+  // migrate from v1 (shared list) into expense bucket
+  try {
+    const old = JSON.parse(localStorage.getItem("custom_categories_v1") || "[]");
+    if (Array.isArray(old)) return { income: [], expense: old };
+  } catch { /* ignore */ }
+  return { income: [], expense: [] };
 };
-const saveCustom = (list: string[]) => localStorage.setItem(LS_KEY, JSON.stringify(list));
+const saveCustom = (map: CustomMap) => localStorage.setItem(LS_KEY, JSON.stringify(map));
+
+const BUILTIN: Record<TxnType, string[]> = {
+  income: ["বেতন", "ফ্রিল্যান্স", "অন্যান্য"],
+  expense: ["খাবার", "বাসা ভাড়া", "পরিবহন", "শিক্ষা", "বিনোদন", "স্বাস্থ্য", "অন্যান্য"],
+};
 
 export function TxnDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
   const qc = useQueryClient();
-  const [type, setType] = useState<"income" | "expense">("expense");
+  const [type, setType] = useState<TxnType>("expense");
   const [category, setCategory] = useState("খাবার");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
-  const [custom, setCustom] = useState<string[]>([]);
+  const [customMap, setCustomMap] = useState<CustomMap>({ income: [], expense: [] });
   const [adding, setAdding] = useState(false);
   const [newCat, setNewCat] = useState("");
 
@@ -28,28 +43,37 @@ export function TxnDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
     if (open) {
       setType("expense"); setCategory("খাবার"); setAmount(""); setNote("");
       setDate(new Date().toISOString().slice(0, 10));
-      setCustom(loadCustom());
+      setCustomMap(loadCustom());
       setAdding(false); setNewCat("");
     }
   }, [open]);
 
-  const allCats = [...CATEGORIES.map((c) => c.key), ...custom];
+  const custom = customMap[type];
+  const builtIns = BUILTIN[type];
+  const allCats = [...builtIns, ...custom];
+
+  // When type switches, ensure selected category belongs to that type
+  useEffect(() => {
+    if (!allCats.includes(category)) setCategory(builtIns[0]);
+    setAdding(false); setNewCat("");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [type]);
 
   const addCategory = () => {
     const name = newCat.trim();
     if (!name) { toast.error("ক্যাটাগরির নাম দিন"); return; }
     if (allCats.includes(name)) { toast.error("এই ক্যাটাগরি ইতিমধ্যে আছে"); return; }
-    const next = [...custom, name];
-    setCustom(next); saveCustom(next);
+    const nextMap = { ...customMap, [type]: [...custom, name] };
+    setCustomMap(nextMap); saveCustom(nextMap);
     setCategory(name);
     setNewCat(""); setAdding(false);
     toast.success("ক্যাটাগরি যুক্ত হয়েছে");
   };
 
   const removeCustom = (name: string) => {
-    const next = custom.filter((c) => c !== name);
-    setCustom(next); saveCustom(next);
-    if (category === name) setCategory("খাবার");
+    const nextMap = { ...customMap, [type]: custom.filter((c) => c !== name) };
+    setCustomMap(nextMap); saveCustom(nextMap);
+    if (category === name) setCategory(builtIns[0]);
   };
 
   const save = async () => {
@@ -85,7 +109,7 @@ export function TxnDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
               </button>
             </div>
             <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
-              {CATEGORIES.map((c) => <option key={c.key} value={c.key}>{c.key}</option>)}
+              {builtIns.map((k) => <option key={k} value={k}>{k}</option>)}
               {custom.length > 0 && <optgroup label="আমার ক্যাটাগরি">
                 {custom.map((c) => <option key={c} value={c}>{c}</option>)}
               </optgroup>}
