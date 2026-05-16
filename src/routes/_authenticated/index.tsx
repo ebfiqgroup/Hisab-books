@@ -1,8 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { TxnDialog } from "@/components/dashboard/TxnDialog";
 import { CATEGORIES, categoryColor, toBn, fmtTk, monthBounds, pctChange, BN_MONTHS } from "@/lib/finance";
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
@@ -28,7 +27,6 @@ const BN_DAYS = ["রবি", "সোম", "মঙ্গল", "বুধ", "ব�
 
 function Dashboard() {
   const [chartRange, setChartRange] = useState<"সাপ্তাহিক" | "মাসিক" | "বার্ষিক">("সাপ্তাহিক");
-  const [txnOpen, setTxnOpen] = useState(false);
   const now = new Date();
   const { startISO, endISO, prevStartISO } = useMemo(() => monthBounds(now), []);
 
@@ -352,9 +350,12 @@ function Dashboard() {
           <div className="bg-white rounded-xl p-5 border border-slate-200">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-slate-800">সাম্প্রতিক লেনদেন</h3>
-              <button onClick={() => setTxnOpen(true)} className="flex items-center gap-1 px-2.5 py-1.5 text-xs bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
-                <Plus className="w-3 h-3" /> নতুন
-              </button>
+              <div className="flex items-center gap-2">
+                <Link to="/transactions" className="text-sm text-indigo-600 hover:underline">সব দেখুন</Link>
+                <Link to="/transactions" className="flex items-center gap-1 px-2.5 py-1.5 text-xs bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                  <Plus className="w-3 h-3" /> নতুন
+                </Link>
+              </div>
             </div>
             <div className="space-y-3">
               {txnQ.isLoading && <div className="text-sm text-slate-400 py-4">লোড হচ্ছে...</div>}
@@ -508,7 +509,6 @@ function Dashboard() {
           © ২০২৪ আমার হিসাব. সর্বস্বত্ব সংরক্ষিত. <span className="text-rose-500">♥</span>
         </div>
       </main>
-      <TxnDialog open={txnOpen} onOpenChange={setTxnOpen} />
     </div>
   );
 }
