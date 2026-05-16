@@ -4,8 +4,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 import { TxnDialog, type EditTxn } from "@/components/dashboard/TxnDialog";
+import { CategoryManager } from "@/components/dashboard/CategoryManager";
 import { fmtTk, toBn } from "@/lib/finance";
-import { Plus, Trash2, Wallet, Pencil } from "lucide-react";
+import { Plus, Trash2, Wallet, Pencil, Tags } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/income")({ component: IncomePage });
@@ -16,6 +17,7 @@ function IncomePage() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<EditTxn | null>(null);
+  const [catOpen, setCatOpen] = useState(false);
   const q = useQuery({
     queryKey: ["transactions", "income"],
     queryFn: async () => {
@@ -41,9 +43,14 @@ function IncomePage() {
 
   return (
     <AppShell title="আয়" actions={
-      <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700">
-        <Plus className="w-4 h-4" /> নতুন আয়
-      </button>
+      <div className="flex items-center gap-2">
+        <button onClick={() => setCatOpen(true)} className="flex items-center gap-2 px-3 py-2 border border-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50">
+          <Tags className="w-4 h-4" /> ক্যাটাগরি
+        </button>
+        <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700">
+          <Plus className="w-4 h-4" /> নতুন আয়
+        </button>
+      </div>
     }>
       <div className="bg-white rounded-xl p-5 border border-slate-200 mb-4 flex items-center gap-4">
         <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center">
@@ -90,6 +97,7 @@ function IncomePage() {
         </table>
       </div>
       <TxnDialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }} editTxn={editing} />
+      <CategoryManager open={catOpen} onOpenChange={setCatOpen} type="income" />
     </AppShell>
   );
 }
