@@ -3,7 +3,8 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
-import { CATEGORIES, fmtTk, toBn, monthBounds, categoryColor } from "@/lib/finance";
+import { fmtTk, toBn, monthBounds, categoryColor } from "@/lib/finance";
+import { useCustomCategories } from "@/hooks/useCustomCategories";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/budget")({ component: BudgetPage });
@@ -13,6 +14,7 @@ type Txn = { type: "income" | "expense"; category: string; amount: number; occur
 
 function BudgetPage() {
   const qc = useQueryClient();
+  const { forType } = useCustomCategories();
   const { startISO, endISO } = monthBounds();
   const [drafts, setDrafts] = useState<Record<string, string>>({});
 
@@ -67,7 +69,8 @@ function BudgetPage() {
             </tr>
           </thead>
           <tbody>
-            {CATEGORIES.map((c) => {
+            {forType("expense").map((key) => {
+              const c = { key };
               const b = budgetMap.get(c.key);
               const limit = b?.monthly_limit ?? 0;
               const spent = spentMap.get(c.key) ?? 0;
