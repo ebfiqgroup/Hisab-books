@@ -11,12 +11,16 @@ export function useIsAdmin() {
     if (loading) { setIsAdmin(null); return; }
     if (!user) { setIsAdmin(false); return; }
     (async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", user.id)
         .eq("role", "admin")
         .maybeSingle();
+      if (error) {
+        if (!cancel) setIsAdmin(false);
+        return;
+      }
       if (!cancel) setIsAdmin(!!data);
     })();
     return () => { cancel = true; };
