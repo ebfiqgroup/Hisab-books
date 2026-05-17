@@ -35,6 +35,7 @@ function Landing() {
 
   return (
     <div className="min-h-screen" style={{ background: "var(--gradient-page)" }}>
+      <PaymentTestModeBanner />
       {/* Nav */}
       <header className="sticky top-0 z-30 backdrop-blur-md" style={{ background: "color-mix(in oklab, var(--brand-ivory) 80%, transparent)", borderBottom: "1px solid var(--brand-line)" }}>
         <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
