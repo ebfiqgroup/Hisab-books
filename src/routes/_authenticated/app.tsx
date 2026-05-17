@@ -16,7 +16,7 @@ import { TxnDialog, type EditTxn } from "@/components/dashboard/TxnDialog";
 import { AiSuggestions } from "@/components/dashboard/AiSuggestions";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/")({ component: Dashboard });
+export const Route = createFileRoute("/_authenticated/app")({ component: Dashboard });
 
 type Txn = { id: string; type: "income" | "expense"; category: string; amount: number; occurred_on: string; note: string | null };
 type Debt = { id: string; kind: "receivable" | "payable"; amount: number; settled: boolean };

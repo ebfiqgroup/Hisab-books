@@ -6,7 +6,7 @@ import {
 import { useIsAdmin } from "@/hooks/useRole";
 
 const navItems = [
-  { icon: Home, label: "ড্যাশবোর্ড", to: "/" },
+  { icon: Home, label: "ড্যাশবোর্ড", to: "/app" },
   { icon: Wallet, label: "আয়", to: "/income" },
   { icon: TrendingDown, label: "ব্যয়", to: "/expense" },
   { icon: ArrowLeftRight, label: "লেনদেন", to: "/transactions" },

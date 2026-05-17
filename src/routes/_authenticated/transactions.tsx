@@ -96,7 +96,7 @@ function TransactionsPage() {
       <main className="flex-1 p-6 overflow-y-auto h-screen">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <Link to="/" className="p-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50">
+            <Link to="/app" className="p-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50">
               <ArrowLeft className="w-4 h-4 text-slate-600" />
             </Link>
             <h1 className="text-2xl font-bold text-slate-800">সব লেনদেন</h1>

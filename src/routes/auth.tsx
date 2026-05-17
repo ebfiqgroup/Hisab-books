@@ -21,7 +21,7 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/" });
+      if (data.session) navigate({ to: "/app" });
     });
   }, [navigate]);
 
@@ -44,12 +44,12 @@ function AuthPage() {
         });
         if (error) throw error;
         toast.success("সাইনআপ সফল! ড্যাশবোর্ডে নিয়ে যাচ্ছি...");
-        navigate({ to: "/" });
+        navigate({ to: "/app" });
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("স্বাগতম!");
-        navigate({ to: "/" });
+        navigate({ to: "/app" });
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "ত্রুটি হয়েছে";
