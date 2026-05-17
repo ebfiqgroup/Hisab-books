@@ -6,7 +6,6 @@ import { AppShell } from "@/components/AppShell";
 import { fmtTk, toBn, BN_MONTHS } from "@/lib/finance";
 import { Download, BarChart3, TrendingUp, TrendingDown, PiggyBank, Calendar, ChevronDown, Printer } from "lucide-react";
 import { toast } from "sonner";
-import * as XLSX from "xlsx";
 
 export const Route = createFileRoute("/_authenticated/report")({
   head: () => ({
@@ -135,7 +134,8 @@ function ReportPage() {
     toast.success("রিপোর্ট ডাউনলোড হয়েছে");
   };
 
-  const downloadXlsx = () => {
+  const downloadXlsx = async () => {
+    const XLSX = await import("xlsx");
     const data = [
       [colHeader, "আয়", "ব্যয়", "অবশিষ্ট"],
       ...rows.map((r) => [r.label, Math.round(r.income), Math.round(r.expense), Math.round(r.saving)]),
