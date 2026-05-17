@@ -296,19 +296,19 @@ function SupportPage() {
 
   const createTicket = async () => {
     if (!uid || !newSubj.trim() || !newBody.trim()) return;
-    const { data: t, error } = await supabase
+    const { data: tk, error } = await supabase
       .from("support_tickets")
       .insert({ user_id: uid, subject: newSubj.trim(), priority: newPri })
       .select()
       .single();
     if (error) { toast.error(error.message); return; }
     await supabase.from("support_messages").insert({
-      ticket_id: t.id, sender_id: uid, is_admin: false, body: newBody.trim(),
+      ticket_id: tk.id, sender_id: uid, is_admin: false, body: newBody.trim(),
     });
     toast.success(t("টিকেট তৈরি হয়েছে", "Ticket created"));
     setShowNew(false); setNewSubj(""); setNewBody(""); setNewPri("normal");
     await load();
-    setSelected(t.id);
+    setSelected(tk.id);
   };
 
   const sendReply = async () => {
