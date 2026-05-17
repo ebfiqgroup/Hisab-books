@@ -90,6 +90,14 @@ function Dashboard() {
       return (data ?? []) as PlanTask[];
     },
   });
+  const budgetsQ = useQuery({
+    queryKey: ["budgets", "ai"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("budgets").select("category,monthly_limit");
+      if (error) throw error;
+      return (data ?? []) as { category: string; monthly_limit: number }[];
+    },
+  });
 
   const expAllowedSet = useMemo(() => new Set(forType("expense")), [forType]);
   const incAllowedSet = useMemo(() => new Set(forType("income")), [forType]);
@@ -503,6 +511,10 @@ function Dashboard() {
         expenseByCategory={expenses.filter((e) => e.amount > 0).map((e) => ({ category: e.label, amount: e.amount }))}
         incomeByCategory={incomes.filter((e) => e.amount > 0).map((e) => ({ category: e.label, amount: e.amount }))}
         goals={goals.map((g) => ({ label: g.label, target: Number(g.target), current: Number(g.current) }))}
+        budgets={(budgetsQ.data ?? []).map((b) => {
+          const spent = expenses.find((e) => e.label === b.category)?.amount ?? 0;
+          return { category: b.category, limit: Number(b.monthly_limit), spent };
+        })}
         monthLabel={`${BN_MONTHS[now.getMonth()]} ${toBn(now.getFullYear())}`}
       />
 
