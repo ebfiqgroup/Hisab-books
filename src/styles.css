@@ -154,3 +154,72 @@
   --savings: oklch(0.6 0.2 255);
   --receivable: oklch(0.72 0.17 60);
 }
+
+/* ──────────────────────────────────────────────────────────────
+   Brand: "Emerald Prestige"
+   Deep emerald + warm gold on warm ivory. Editorial serif headings.
+   ────────────────────────────────────────────────────────────── */
+:root {
+  --brand-emerald-900: oklch(0.28 0.07 160);
+  --brand-emerald-800: oklch(0.34 0.09 160);
+  --brand-emerald-700: oklch(0.44 0.12 160);
+  --brand-emerald-600: oklch(0.55 0.13 160);
+  --brand-emerald-500: oklch(0.65 0.13 160);
+  --brand-gold-600:    oklch(0.72 0.14 80);
+  --brand-gold-500:    oklch(0.80 0.13 85);
+  --brand-gold-300:    oklch(0.90 0.09 88);
+  --brand-ivory:       oklch(0.985 0.012 90);
+  --brand-cream:       oklch(0.965 0.018 85);
+  --brand-ink:         oklch(0.22 0.02 160);
+  --brand-ink-soft:    oklch(0.40 0.02 160);
+  --brand-line:        oklch(0.92 0.015 90);
+
+  /* Override the legacy chrome tokens used by Sidebar / AppShell */
+  --sidebar-bg: var(--brand-emerald-900);
+  --sidebar-fg: var(--brand-ivory);
+  --sidebar-active: var(--brand-gold-500);
+  --page-bg: var(--brand-cream);
+
+  --gradient-brand: linear-gradient(135deg,
+    var(--brand-emerald-900) 0%,
+    var(--brand-emerald-700) 55%,
+    color-mix(in oklab, var(--brand-gold-600) 40%, var(--brand-emerald-700)) 100%);
+  --gradient-sidebar: linear-gradient(180deg,
+    var(--brand-emerald-900) 0%,
+    color-mix(in oklab, var(--brand-emerald-900) 80%, black) 100%);
+  --gradient-page: radial-gradient(1200px 600px at 100% -10%,
+      color-mix(in oklab, var(--brand-gold-300) 40%, transparent) 0%, transparent 60%),
+    linear-gradient(180deg, var(--brand-ivory) 0%, var(--brand-cream) 100%);
+
+  --shadow-elegant: 0 10px 30px -12px color-mix(in oklab, var(--brand-emerald-900) 35%, transparent);
+  --shadow-soft:    0 4px 14px -6px color-mix(in oklab, var(--brand-emerald-900) 18%, transparent);
+
+  --font-display: "Instrument Serif", "Cormorant Garamond", "Hind Siliguri", serif;
+  --font-body:    "Work Sans", "Hind Siliguri", "Noto Sans Bengali", system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    background: var(--gradient-page);
+    background-attachment: fixed;
+    color: var(--brand-ink);
+    font-family: var(--font-body);
+    font-feature-settings: "ss01", "cv11";
+  }
+  h1, h2, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Subtle gold accent utility */
+.brand-accent {
+  background: var(--gradient-brand);
+  color: var(--brand-ivory);
+}
+.brand-card {
+  background: white;
+  border: 1px solid var(--brand-line);
+  box-shadow: var(--shadow-soft);
+  border-radius: 1rem;
+}
