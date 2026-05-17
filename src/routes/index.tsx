@@ -7,6 +7,8 @@ import {
   Mail, Send, Loader2, Crown, Star,
 } from "lucide-react";
 import { toast } from "sonner";
+import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -33,6 +35,7 @@ function Landing() {
 
   return (
     <div className="min-h-screen" style={{ background: "var(--gradient-page)" }}>
+      <PaymentTestModeBanner />
       {/* Nav */}
       <header className="sticky top-0 z-30 backdrop-blur-md" style={{ background: "color-mix(in oklab, var(--brand-ivory) 80%, transparent)", borderBottom: "1px solid var(--brand-line)" }}>
         <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
@@ -254,6 +257,8 @@ type Tier = {
   cta: string;
   highlight?: boolean;
   Icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
+  monthlyPriceId?: string;
+  yearlyPriceId?: string;
 };
 
 const TIERS: Tier[] = [
@@ -275,6 +280,8 @@ const TIERS: Tier[] = [
     cta: "প্রো নিন",
     highlight: true,
     Icon: Sparkles,
+    monthlyPriceId: "pro_monthly",
+    yearlyPriceId: "pro_yearly",
   },
   {
     name: "প্রিমিয়াম",
@@ -284,11 +291,37 @@ const TIERS: Tier[] = [
     features: ["প্রো-এর সব ফিচার", "৫টি পর্যন্ত সদস্য", "কাস্টম ক্যাটাগরি ও ট্যাগ", "API অ্যাক্সেস", "ডেডিকেটেড ম্যানেজার"],
     cta: "প্রিমিয়াম নিন",
     Icon: Crown,
+    monthlyPriceId: "premium_monthly",
+    yearlyPriceId: "premium_yearly",
   },
 ];
 
 function PricingSection({ primaryTo }: { primaryTo: string }) {
   const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
+  const { openCheckout, loading } = usePaddleCheckout();
+
+  const handlePurchase = async (tier: Tier) => {
+    const priceId = billing === "yearly" ? tier.yearlyPriceId : tier.monthlyPriceId;
+    if (!priceId) {
+      window.location.href = primaryTo;
+      return;
+    }
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      window.location.href = "/auth";
+      return;
+    }
+    try {
+      await openCheckout({
+        priceId,
+        customerEmail: session.user.email ?? undefined,
+        customData: { userId: session.user.id },
+        successUrl: `${window.location.origin}/checkout/success`,
+      });
+    } catch (err: any) {
+      toast.error(err?.message || "চেকআউট খোলা যায়নি");
+    }
+  };
 
   return (
     <section id="pricing" className="max-w-6xl mx-auto px-5 py-20">
@@ -368,17 +401,29 @@ function PricingSection({ primaryTo }: { primaryTo: string }) {
                   </li>
                 ))}
               </ul>
-              <Link
-                to={primaryTo}
-                className="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium"
-                style={
-                  t.highlight
-                    ? { background: "var(--gradient-brand)", color: "white" }
-                    : { background: "white", color: "var(--brand-emerald-800)", border: "1px solid var(--brand-line)" }
-                }
-              >
-                {t.cta} <ArrowRight className="w-4 h-4" />
-              </Link>
+              {t.monthlyPriceId ? (
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => handlePurchase(t)}
+                  className="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium disabled:opacity-60"
+                  style={
+                    t.highlight
+                      ? { background: "var(--gradient-brand)", color: "white" }
+                      : { background: "white", color: "var(--brand-emerald-800)", border: "1px solid var(--brand-line)" }
+                  }
+                >
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>{t.cta} <ArrowRight className="w-4 h-4" /></>}
+                </button>
+              ) : (
+                <Link
+                  to={primaryTo}
+                  className="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium"
+                  style={{ background: "white", color: "var(--brand-emerald-800)", border: "1px solid var(--brand-line)" }}
+                >
+                  {t.cta} <ArrowRight className="w-4 h-4" />
+                </Link>
+              )}
             </div>
           );
         })}
