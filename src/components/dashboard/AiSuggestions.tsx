@@ -197,6 +197,21 @@ export function AiSuggestions(props: Props) {
                       <h4 className="font-semibold text-slate-800 text-sm">{s.title}</h4>
                     </div>
                     <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">{s.detail}</p>
+                    {s.reason && (
+                      <div className={`mt-2 text-xs rounded-md px-2 py-1.5 ${style.bg} ${style.fg}`}>
+                        <span className="font-semibold">কারণ: </span>{s.reason}
+                      </div>
+                    )}
+                    {Array.isArray(s.steps) && s.steps.length > 0 && (
+                      <div className="mt-2">
+                        <div className="text-[11px] font-semibold text-slate-700 mb-1">কীভাবে ঠিক করবেন:</div>
+                        <ol className="list-decimal list-inside space-y-0.5 text-xs text-slate-700">
+                          {s.steps.slice(0, 5).map((step, idx) => (
+                            <li key={idx} className="leading-snug">{step}</li>
+                          ))}
+                        </ol>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
