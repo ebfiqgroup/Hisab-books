@@ -8,8 +8,9 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { toast } from "sonner";
 import {
   LogOut, User as UserIcon, KeyRound, SlidersHorizontal, Sparkles,
-  Download, Upload, Trash2, AlertTriangle, Save, ImagePlus, Languages,
+  Download, Upload, Trash2, AlertTriangle, Save, ImagePlus, Languages, Coins,
 } from "lucide-react";
+import { getFinanceSymbol, setFinanceSymbol, fmtTk } from "@/lib/finance";
 
 export const Route = createFileRoute("/_authenticated/settings")({ component: SettingsPage });
 
@@ -71,8 +72,34 @@ function SettingsPage() {
   const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
   const [ai, setAi] = useState<AiCfg>(DEFAULT_AI);
   const [confirmDelete, setConfirmDelete] = useState("");
+  const [currency, setCurrency] = useState<string>("৳");
+  const [customCurrency, setCustomCurrency] = useState<string>("");
 
-  useEffect(() => { setPrefs(loadPrefs()); setAi(loadAi()); }, []);
+  useEffect(() => {
+    setPrefs(loadPrefs());
+    setAi(loadAi());
+    setCurrency(getFinanceSymbol());
+  }, []);
+
+  const CURRENCY_PRESETS: { sym: string; name: string }[] = [
+    { sym: "৳", name: t("টাকা", "Taka") },
+    { sym: "$", name: t("ডলার", "Dollar") },
+    { sym: "€", name: t("ইউরো", "Euro") },
+    { sym: "£", name: t("পাউন্ড", "Pound") },
+    { sym: "₹", name: t("রুপি", "Rupee") },
+    { sym: "¥", name: t("ইয়েন", "Yen") },
+    { sym: "﷼", name: t("রিয়াল", "Riyal") },
+    { sym: "د.إ", name: t("দিরহাম", "Dirham") },
+  ];
+
+  const applyCurrency = (sym: string) => {
+    const s = sym.trim().slice(0, 4);
+    if (!s) { toast.error(t("চিহ্ন দিন", "Enter a symbol")); return; }
+    setFinanceSymbol(s);
+    setCurrency(s);
+    toast.success(t("মুদ্রা চিহ্ন আপডেট হয়েছে", "Currency symbol updated"));
+    setTimeout(() => window.location.reload(), 200);
+  };
 
   const q = useQuery({
     queryKey: ["profile", user?.id],
