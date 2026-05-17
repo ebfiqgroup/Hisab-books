@@ -1,6 +1,6 @@
 import { ReactNode, useState, useRef, useEffect } from "react";
 import { Sidebar } from "./Sidebar";
-import { Bell, ChevronDown, LogOut, User as UserIcon, Settings as SettingsIcon, LifeBuoy } from "lucide-react";
+import { Bell, ChevronDown, LogOut, User as UserIcon, Settings as SettingsIcon, LifeBuoy, Menu } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { RefCodeBadge } from "./RefCodeBadge";
@@ -12,6 +12,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
   const { lang, toggle, t } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -31,14 +32,22 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
 
   return (
     <div className="h-screen flex overflow-hidden" style={{ background: "var(--gradient-page)" }}>
-      <Sidebar />
-      <main className="flex-1 p-6 overflow-y-auto h-screen">
-        <div className="flex items-center justify-between mb-6" ref={ref}>
-          <div className="flex items-center gap-3">
+      <Sidebar mobileOpen={navOpen} onClose={() => setNavOpen(false)} />
+      <main className="flex-1 p-4 md:p-6 overflow-y-auto h-screen w-full min-w-0">
+        <div className="flex items-center justify-between gap-2 mb-6 flex-wrap" ref={ref}>
+          <div className="flex items-center gap-2 md:gap-3 min-w-0">
+            <button
+              onClick={() => setNavOpen(true)}
+              className="lg:hidden p-2 bg-white rounded-lg border hover:shadow-sm transition shrink-0"
+              style={{ borderColor: "var(--brand-line)" }}
+              aria-label="Open menu"
+            >
+              <Menu className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
+            </button>
             <span className="hidden md:block h-7 w-1 rounded-full" style={{ background: "var(--gradient-brand)" }} />
-            <h1 className="text-3xl tracking-tight" style={{ fontFamily: "var(--font-display)", color: "var(--brand-ink)" }}>{title}</h1>
+            <h1 className="text-xl md:text-2xl lg:text-3xl tracking-tight truncate" style={{ fontFamily: "var(--font-display)", color: "var(--brand-ink)" }}>{title}</h1>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3 flex-wrap">
             {actions}
             <Link
               to="/support"
@@ -74,7 +83,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                 <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: "var(--gradient-brand)" }}>
                   {name.charAt(0).toUpperCase()}
                 </div>
-                <span className="text-sm">{name}</span>
+                <span className="text-sm hidden sm:inline max-w-[120px] truncate">{name}</span>
                 <ChevronDown className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
               </button>
               {menuOpen && (
