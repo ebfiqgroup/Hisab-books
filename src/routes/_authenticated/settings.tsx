@@ -7,7 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import {
   LogOut, User as UserIcon, KeyRound, SlidersHorizontal, Sparkles,
-  Download, Upload, Trash2, AlertTriangle, Save,
+  Download, Upload, Trash2, AlertTriangle, Save, ImagePlus,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({ component: SettingsPage });
@@ -207,6 +207,28 @@ function SettingsPage() {
   };
 
   const doSignOut = async () => { await signOut(); navigate({ to: "/auth" }); };
+
+  const uploadAvatar = async (file: File) => {
+    if (!user) return;
+    if (!file.type.startsWith("image/")) { toast.error("শুধু ছবি ফাইল আপলোড করুন"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("ছবির আকার ৫ MB এর কম হতে হবে"); return; }
+    setBusy(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+      const url = pub.publicUrl;
+      setAvatar(url);
+      const { error: updErr } = await supabase.from("profiles").update({ avatar_url: url }).eq("id", user.id);
+      if (updErr) throw updErr;
+      toast.success("ছবি আপলোড হয়েছে");
+      qc.invalidateQueries({ queryKey: ["profile"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "ছবি আপলোড ব্যর্থ");
+    } finally { setBusy(false); }
+  };
 
   return (
     <AppShell title="সেটিংস">
