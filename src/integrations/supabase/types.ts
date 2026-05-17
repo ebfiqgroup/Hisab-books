@@ -215,6 +215,7 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          status: string
           updated_at: string
         }
         Insert: {
@@ -222,6 +223,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id: string
+          status?: string
           updated_at?: string
         }
         Update: {
@@ -229,6 +231,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          status?: string
           updated_at?: string
         }
         Relationships: []
@@ -305,6 +308,10 @@ export type Database = {
     }
     Functions: {
       admin_delete_user: { Args: { _user_id: string }; Returns: boolean }
+      admin_set_user_status: {
+        Args: { _status: string; _user_id: string }
+        Returns: boolean
+      }
       claim_admin_if_none: { Args: never; Returns: boolean }
       has_role: {
         Args: {
