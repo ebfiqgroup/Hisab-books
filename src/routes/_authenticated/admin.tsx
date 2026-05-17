@@ -208,7 +208,7 @@ function AdminPage() {
             <input
               value={q}
               onChange={e => setQ(e.target.value)}
-              placeholder="নাম, রেফারেন্স বা ID…"
+              placeholder="নাম, রেফারেন্স বা আইডি…"
               className="px-3 py-2 rounded-lg border text-sm w-full md:w-56"
               style={{ borderColor: "var(--brand-line)" }}
             />
