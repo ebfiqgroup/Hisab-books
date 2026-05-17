@@ -12,6 +12,12 @@ const InputSchema = z.object({
   incomeByCategory: z.array(z.object({ category: z.string(), amount: z.number() })).max(30),
   goals: z.array(z.object({ label: z.string(), target: z.number(), current: z.number() })).max(10),
   monthLabel: z.string().max(64),
+  config: z.object({
+    types: z.array(z.enum(["alert", "tip", "invest"])).min(1),
+    expenseRatioPct: z.number().min(10).max(200),
+    lowCashTk: z.number().min(0).max(10_000_000),
+    goalLagPct: z.number().min(0).max(100),
+  }).optional(),
 });
 
 export type AiSuggestion = {
@@ -37,9 +43,33 @@ export const getAiSuggestions = createServerFn({ method: "POST" })
       লক্ষ্যসমূহ: data.goals,
     };
 
+    const cfg = data.config ?? { types: ["alert", "tip", "invest"], expenseRatioPct: 80, lowCashTk: 5000, goalLagPct: 20 };
+    const typeList = cfg.types.join(", ");
+    const rules: string[] = [];
+    if (cfg.types.includes("alert")) {
+      rules.push(`- ব্যয় আয়ের ${cfg.expenseRatioPct}% এর বেশি হলে "alert" দাও।`);
+      rules.push(`- অবশিষ্ট নগদ ৳${cfg.lowCashTk} এর কম হলে "alert" দাও।`);
+    }
+    if (cfg.types.includes("tip")) {
+      rules.push(`- যে খাতে অস্বাভাবিক বেশি ব্যয় হয়েছে সেখানে সাশ্রয়ের "tip" দাও।`);
+    }
+    if (cfg.types.includes("invest")) {
+      rules.push(`- লক্ষ্যের অগ্রগতি প্রত্যাশার চেয়ে ${cfg.goalLagPct}% পিছিয়ে থাকলে "alert" বা "invest" দাও।`);
+      rules.push(`- পর্যাপ্ত অবশিষ্ট থাকলে বিনিয়োগের "invest" পরামর্শ দাও।`);
+    }
+
     const system = `তুমি একজন বাংলাভাষী আর্থিক পরামর্শক। ব্যবহারকারীর মাসিক হিসাব বিশ্লেষণ করে ৪-৬টি সুনির্দিষ্ট, কার্যকর পরামর্শ দাও।
+
+শুধুমাত্র এই type-গুলো ব্যবহার করো: ${typeList}
+- "alert" = সমস্যা/অতিরিক্ত ব্যয়/নগদ সংকট/লক্ষ্য পিছিয়ে
+- "tip" = সাশ্রয়/বাজেট পরামর্শ
+- "invest" = সঞ্চয়/বিনিয়োগ পরামর্শ
+
+ব্যবহারকারীর কনফিগার করা থ্রেশহোল্ড অনুসরণ করো:
+${rules.join("\n")}
+
 প্রতিটি পরামর্শে থাকবে:
-- type: "alert" (সমস্যা/অতিরিক্ত ব্যয়), "tip" (সাশ্রয়/বাজেট পরামর্শ), অথবা "invest" (সঞ্চয়/বিনিয়োগ পরামর্শ)
+- type: উপরের অনুমোদিত list থেকে একটি
 - title: সংক্ষিপ্ত শিরোনাম (সর্বোচ্চ ৮ শব্দ)
 - detail: ১-২ বাক্যে বিস্তারিত, সংখ্যা/খাতের নাম উল্লেখ করে
 
@@ -70,6 +100,9 @@ export const getAiSuggestions = createServerFn({ method: "POST" })
     const content: string = json?.choices?.[0]?.message?.content ?? "{}";
     let parsed: { suggestions?: AiSuggestion[] } = {};
     try { parsed = JSON.parse(content); } catch { parsed = {}; }
-    const suggestions = Array.isArray(parsed.suggestions) ? parsed.suggestions.slice(0, 8) : [];
+    const allowed = new Set(cfg.types);
+    const suggestions = Array.isArray(parsed.suggestions)
+      ? parsed.suggestions.filter((s) => s && allowed.has(s.type)).slice(0, 8)
+      : [];
     return { suggestions };
   });
