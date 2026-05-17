@@ -26,7 +26,17 @@ const BN_DIGITS = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮"
 export const toBn = (s: string | number) =>
   String(s).replace(/[0-9]/g, (d) => BN_DIGITS[+d]);
 
-export const fmtTk = (n: number) => `৳ ${toBn(Math.round(n).toLocaleString("en-US"))}`;
+// Global language signal for currency formatting. Updated by LanguageProvider.
+let _currentLang: "bn" | "en" = "bn";
+export const setFinanceLang = (l: "bn" | "en") => { _currentLang = l; };
+export const getFinanceLang = (): "bn" | "en" => _currentLang;
+
+// Language-aware currency formatter. Bengali: "৳ ১,২৩৪"; English: "৳ 1,234".
+export const fmtTk = (n: number, lang?: "bn" | "en") => {
+  const l = lang ?? _currentLang;
+  const num = Math.round(n).toLocaleString("en-US");
+  return l === "bn" ? `৳ ${toBn(num)}` : `৳ ${num}`;
+};
 
 export const monthBounds = (d = new Date()) => {
   const start = new Date(d.getFullYear(), d.getMonth(), 1);
