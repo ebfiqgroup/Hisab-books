@@ -9,6 +9,8 @@ import {
 } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
 import { LanguageProvider } from "@/hooks/useLanguage";
+import { useEffect } from "react";
+import { attachPerfTracker } from "@/lib/perf-tracker";
 
 import appCss from "../styles.css?url";
 
@@ -124,6 +126,11 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+
+  useEffect(() => {
+    attachPerfTracker(router);
+  }, [router]);
 
   return (
     <QueryClientProvider client={queryClient}>
