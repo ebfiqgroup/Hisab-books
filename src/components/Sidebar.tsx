@@ -4,6 +4,7 @@ import {
   Users, BarChart3, Calendar, Settings, ShieldCheck, Activity, LifeBuoy,
 } from "lucide-react";
 import { useIsAdmin } from "@/hooks/useRole";
+import { RefCodeBadge } from "./RefCodeBadge";
 
 const navItems = [
   { icon: Home, label: "ড্যাশবোর্ড", to: "/app" },
@@ -58,6 +59,7 @@ export function Sidebar() {
           );
         })}
       </nav>
+      <RefCodeBadge variant="sidebar" />
       <div className="mx-4 mb-4 p-4 rounded-xl relative overflow-hidden" style={{ background: "color-mix(in oklab, var(--brand-gold-500) 10%, transparent)", border: "1px solid color-mix(in oklab, var(--brand-gold-500) 25%, transparent)" }}>
         <span className="absolute -top-2 left-3 text-4xl leading-none" style={{ color: "color-mix(in oklab, var(--brand-gold-500) 60%, transparent)", fontFamily: "var(--font-display)" }}>"</span>
         <p className="text-xs text-white/85 leading-relaxed pt-2" style={{ fontFamily: "var(--font-display)", fontStyle: "italic", fontSize: "0.95rem" }}>
