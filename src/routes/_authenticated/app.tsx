@@ -229,22 +229,6 @@ function Dashboard() {
     qc.invalidateQueries({ queryKey: ["notes"] });
   };
 
-  // CSV export
-  const downloadReport = () => {
-    const isBn = lang === "bn";
-    const rows = [isBn
-      ? ["ধরন", "ক্যাটাগরি", "পরিমাণ", "তারিখ", "নোট"]
-      : ["Type", "Category", "Amount", "Date", "Note"]];
-    cur.forEach((tx) => rows.push([tx.type === "income" ? (isBn ? "আয়" : "Income") : (isBn ? "ব্যয়" : "Expense"), tx.category, String(tx.amount), tx.occurred_on, tx.note ?? ""]));
-    const csv = "\ufeff" + rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = `report-${startISO}.csv`; a.click();
-    URL.revokeObjectURL(url);
-    toast.success(t("রিপোর্ট ডাউনলোড হয়েছে", "Report downloaded"));
-  };
-
   const renderDraft = () => (
     <div className="p-3 rounded-lg border border-indigo-200 bg-indigo-50/40 space-y-2">
       <input autoFocus value={draft.task} onChange={(e) => setDraft({ ...draft, task: e.target.value })} placeholder={t("কাজের নাম", "Task name")} className="w-full px-2.5 py-1.5 text-sm border border-slate-200 rounded-md bg-white" />
