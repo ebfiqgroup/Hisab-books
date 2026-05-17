@@ -221,7 +221,9 @@ export function CategoryManager({
           <div>
             <div className="text-xs text-slate-500 mb-2">বিল্ট-ইন ক্যাটাগরি</div>
             <ul className="divide-y divide-slate-100 border border-slate-200 rounded-lg">
-              {builtInsRaw.map((raw) => {
+              {builtInsRaw
+                .filter((raw) => !(map.hidden?.[type] ?? []).includes(raw))
+                .map((raw) => {
                 const cur = effective(raw);
                 const isEditing = editingName === `builtin:${raw}`;
                 const isHidden = (map.hidden?.[type] ?? []).includes(raw);
