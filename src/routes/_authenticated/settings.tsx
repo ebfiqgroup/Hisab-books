@@ -96,18 +96,18 @@ function SettingsPage() {
     const { error } = await supabase.from("profiles").update({ full_name: name, avatar_url: avatar || null }).eq("id", user.id);
     setBusy(false);
     if (error) { toast.error(error.message); return; }
-    toast.success("প্রোফাইল আপডেট হয়েছে");
+    toast.success(t("প্রোফাইল আপডেট হয়েছে", "Profile updated"));
     qc.invalidateQueries({ queryKey: ["profile"] });
   };
 
   const changePwd = async () => {
-    if (newPwd.length < 6) { toast.error("পাসওয়ার্ড অন্তত ৬ অক্ষরের হতে হবে"); return; }
-    if (newPwd !== confirmPwd) { toast.error("পাসওয়ার্ড মিলছে না"); return; }
+    if (newPwd.length < 6) { toast.error(t("পাসওয়ার্ড অন্তত ৬ অক্ষরের হতে হবে", "Password must be at least 6 characters")); return; }
+    if (newPwd !== confirmPwd) { toast.error(t("পাসওয়ার্ড মিলছে না", "Passwords do not match")); return; }
     setBusy(true);
     const { error } = await supabase.auth.updateUser({ password: newPwd });
     setBusy(false);
     if (error) { toast.error(error.message); return; }
-    toast.success("পাসওয়ার্ড পরিবর্তিত");
+    toast.success(t("পাসওয়ার্ড পরিবর্তিত", "Password changed"));
     setNewPwd(""); setConfirmPwd("");
   };
 
@@ -119,13 +119,13 @@ function SettingsPage() {
       localStorage.setItem("dashboard_chart_range", next.chartRange);
       localStorage.setItem("dashboard_donut_view", next.donutView);
     } catch { /* noop */ }
-    toast.success("প্রেফারেন্স সংরক্ষিত");
+    toast.success(t("প্রেফারেন্স সংরক্ষিত", "Preferences saved"));
   };
 
   const saveAi = (next: AiCfg) => {
     setAi(next);
     try { localStorage.setItem(AI_KEY, JSON.stringify(next)); } catch { /* noop */ }
-    toast.success("AI সেটিংস সংরক্ষিত");
+    toast.success(t("AI সেটিংস সংরক্ষিত", "AI settings saved"));
   };
 
   const toggleAiType = (kind: "alert" | "tip" | "invest") => {
@@ -149,9 +149,9 @@ function SettingsPage() {
       const a = document.createElement("a");
       a.href = url; a.download = `my-finance-backup-${new Date().toISOString().slice(0, 10)}.json`; a.click();
       URL.revokeObjectURL(url);
-      toast.success("ডেটা ডাউনলোড হয়েছে");
+      toast.success(t("ডেটা ডাউনলোড হয়েছে", "Data downloaded"));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "এক্সপোর্ট ব্যর্থ");
+      toast.error(e instanceof Error ? e.message : t("এক্সপোর্ট ব্যর্থ", "Export failed"));
     } finally { setBusy(false); }
   };
 
@@ -173,27 +173,27 @@ function SettingsPage() {
         if (error) throw new Error(`${tbl}: ${error.message}`);
         total += clean.length;
       }
-      toast.success(`${total} টি রেকর্ড আমদানি হয়েছে`);
+      toast.success(t(`${total} টি রেকর্ড আমদানি হয়েছে`, `Imported ${total} records`));
       qc.invalidateQueries();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "আমদানি ব্যর্থ");
+      toast.error(e instanceof Error ? e.message : t("আমদানি ব্যর্থ", "Import failed"));
     } finally { setBusy(false); }
   };
 
   const wipeAllData = async () => {
     if (!user) return;
-    if (confirmDelete !== "DELETE") { toast.error('নিশ্চিত হতে "DELETE" লিখুন'); return; }
+    if (confirmDelete !== "DELETE") { toast.error(t('নিশ্চিত হতে "DELETE" লিখুন', 'Type "DELETE" to confirm')); return; }
     setBusy(true);
     try {
       for (const tbl of TABLES) {
         const { error } = await supabase.from(tbl).delete().eq("user_id", user.id);
         if (error) throw error;
       }
-      toast.success("সকল ডেটা মুছে ফেলা হয়েছে");
+      toast.success(t("সকল ডেটা মুছে ফেলা হয়েছে", "All data deleted"));
       setConfirmDelete("");
       qc.invalidateQueries();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "ব্যর্থ");
+      toast.error(e instanceof Error ? e.message : t("ব্যর্থ", "Failed"));
     } finally { setBusy(false); }
   };
 
@@ -205,15 +205,15 @@ function SettingsPage() {
       localStorage.removeItem("dashboard_donut_view");
     } catch { /* noop */ }
     setPrefs(DEFAULT_PREFS); setAi(DEFAULT_AI);
-    toast.success("লোকাল সেটিংস রিসেট হয়েছে");
+    toast.success(t("লোকাল সেটিংস রিসেট হয়েছে", "Local settings reset"));
   };
 
   const doSignOut = async () => { await signOut(); navigate({ to: "/auth" }); };
 
   const uploadAvatar = async (file: File) => {
     if (!user) return;
-    if (!file.type.startsWith("image/")) { toast.error("শুধু ছবি ফাইল আপলোড করুন"); return; }
-    if (file.size > 5 * 1024 * 1024) { toast.error("ছবির আকার ৫ MB এর কম হতে হবে"); return; }
+    if (!file.type.startsWith("image/")) { toast.error(t("শুধু ছবি ফাইল আপলোড করুন", "Please upload an image file")); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error(t("ছবির আকার ৫ MB এর কম হতে হবে", "Image must be under 5 MB")); return; }
     setBusy(true);
     try {
       const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
@@ -225,79 +225,79 @@ function SettingsPage() {
       setAvatar(url);
       const { error: updErr } = await supabase.from("profiles").update({ avatar_url: url }).eq("id", user.id);
       if (updErr) throw updErr;
-      toast.success("ছবি আপলোড হয়েছে");
+      toast.success(t("ছবি আপলোড হয়েছে", "Image uploaded"));
       qc.invalidateQueries({ queryKey: ["profile"] });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "ছবি আপলোড ব্যর্থ");
+      toast.error(e instanceof Error ? e.message : t("ছবি আপলোড ব্যর্থ", "Image upload failed"));
     } finally { setBusy(false); }
   };
 
   return (
-    <AppShell title="সেটিংস">
+    <AppShell title={t("সেটিংস", "Settings")}>
       <div className="max-w-3xl space-y-4">
         {/* Profile */}
-        <Section icon={<UserIcon className="w-4 h-4 text-indigo-600" />} title="প্রোফাইল">
+        <Section icon={<UserIcon className="w-4 h-4 text-indigo-600" />} title={t("প্রোফাইল", "Profile")}>
           <div className="flex items-center gap-4 mb-4">
             <div className="w-16 h-16 rounded-full overflow-hidden bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-white text-2xl font-bold">
               {avatar ? <img src={avatar} alt="" className="w-full h-full object-cover" /> : (name || user?.email || "U").charAt(0).toUpperCase()}
             </div>
-            <div className="text-sm text-slate-500">আপনার ছবি ও নাম অ্যাপ জুড়ে দেখা যাবে।</div>
+            <div className="text-sm text-slate-500">{t("আপনার ছবি ও নাম অ্যাপ জুড়ে দেখা যাবে।", "Your photo and name appear throughout the app.")}</div>
           </div>
           {q.data?.ref_code && (
             <div className="flex items-center justify-between mb-3 p-3 rounded-lg border bg-slate-50">
               <div>
-                <div className="text-xs text-slate-500">আপনার রেফারেন্স নম্বর</div>
+                <div className="text-xs text-slate-500">{t("আপনার রেফারেন্স নম্বর", "Your reference number")}</div>
                 <div className="font-mono font-semibold text-lg tracking-wider">{q.data.ref_code}</div>
               </div>
               <button
                 type="button"
-                onClick={() => { navigator.clipboard.writeText(q.data!.ref_code!); toast.success("কপি হয়েছে"); }}
+                onClick={() => { navigator.clipboard.writeText(q.data!.ref_code!); toast.success(t("কপি হয়েছে", "Copied")); }}
                 className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg hover:bg-white"
               >
-                কপি
+                {t("কপি", "Copy")}
               </button>
             </div>
           )}
-          <Field label="ইমেইল">
+          <Field label={t("ইমেইল", "Email")}>
             <input value={user?.email ?? ""} disabled className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-500" />
           </Field>
-          <Field label="পূর্ণ নাম">
+          <Field label={t("পূর্ণ নাম", "Full Name")}>
             <input value={name} onChange={(e) => setName(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
           </Field>
-          <Field label="ছবির লিংক (URL)">
+          <Field label={t("ছবির লিংক (URL)", "Image URL")}>
             <input value={avatar} onChange={(e) => setAvatar(e.target.value)} placeholder="https://..." className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
           </Field>
-          <Field label="অথবা সরাসরি ছবি আপলোড">
+          <Field label={t("অথবা সরাসরি ছবি আপলোড", "Or upload an image")}>
             <div className="flex flex-wrap gap-2 items-center">
               <label className="flex items-center gap-2 px-3 py-2 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg text-sm font-medium hover:bg-indigo-100 cursor-pointer">
-                <ImagePlus className="w-4 h-4" /> ছবি বাছাই করুন
+                <ImagePlus className="w-4 h-4" /> {t("ছবি বাছাই করুন", "Choose image")}
                 <input type="file" accept="image/*" className="hidden" disabled={busy}
                   onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadAvatar(f); e.target.value = ""; }} />
               </label>
               {avatar && (
                 <button type="button" onClick={() => setAvatar("")} className="px-3 py-2 text-sm text-rose-600 border border-rose-200 rounded-lg hover:bg-rose-50">
-                  সরান
+                  {t("সরান", "Remove")}
                 </button>
               )}
-              <span className="text-xs text-slate-500">JPG/PNG, সর্বোচ্চ ৫ MB</span>
+              <span className="text-xs text-slate-500">{t("JPG/PNG, সর্বোচ্চ ৫ MB", "JPG/PNG, max 5 MB")}</span>
             </div>
           </Field>
-          <PrimaryBtn onClick={saveProfile} disabled={busy}><Save className="w-4 h-4" /> সংরক্ষণ</PrimaryBtn>
+          <PrimaryBtn onClick={saveProfile} disabled={busy}><Save className="w-4 h-4" /> {t("সংরক্ষণ", "Save")}</PrimaryBtn>
         </Section>
 
         {/* Password */}
-        <Section icon={<KeyRound className="w-4 h-4 text-indigo-600" />} title="পাসওয়ার্ড পরিবর্তন">
-          <Field label="নতুন পাসওয়ার্ড">
+        <Section icon={<KeyRound className="w-4 h-4 text-indigo-600" />} title={t("পাসওয়ার্ড পরিবর্তন", "Change Password")}>
+          <Field label={t("নতুন পাসওয়ার্ড", "New password")}>
             <input type="password" value={newPwd} onChange={(e) => setNewPwd(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
           </Field>
-          <Field label="পুনরায় টাইপ করুন">
+          <Field label={t("পুনরায় টাইপ করুন", "Re-type password")}>
             <input type="password" value={confirmPwd} onChange={(e) => setConfirmPwd(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
           </Field>
-          <PrimaryBtn onClick={changePwd} disabled={busy || !newPwd}>পরিবর্তন</PrimaryBtn>
+          <PrimaryBtn onClick={changePwd} disabled={busy || !newPwd}>{t("পরিবর্তন", "Change")}</PrimaryBtn>
         </Section>
 
         {/* App preferences */}
-        <Section icon={<SlidersHorizontal className="w-4 h-4 text-indigo-600" />} title="অ্যাপ প্রেফারেন্স">
+        <Section icon={<SlidersHorizontal className="w-4 h-4 text-indigo-600" />} title={t("অ্যাপ প্রেফারেন্স", "App Preferences")}>
           <Field label={t("ভাষা", "Language")}>
             <div className="flex gap-2">
               {([["bn", "বাংলা"], ["en", "English"]] as const).map(([v, l]) => (
@@ -314,7 +314,7 @@ function SettingsPage() {
               ))}
             </div>
           </Field>
-          <Field label="ড্যাশবোর্ড চার্ট রেঞ্জ">
+          <Field label={t("ড্যাশবোর্ড চার্ট রেঞ্জ", "Dashboard chart range")}>
             <div className="flex gap-2">
               {(["সাপ্তাহিক", "মাসিক", "বার্ষিক"] as const).map((r) => (
                 <button key={r} onClick={() => savePrefs({ ...prefs, chartRange: r })}
@@ -324,9 +324,9 @@ function SettingsPage() {
               ))}
             </div>
           </Field>
-          <Field label="ডোনাট চার্ট ডিফল্ট ভিউ">
+          <Field label={t("ডোনাট চার্ট ডিফল্ট ভিউ", "Donut chart default view")}>
             <div className="flex gap-2">
-              {([["expense", "ব্যয়"], ["income", "আয়"]] as const).map(([v, l]) => (
+              {([["expense", t("ব্যয়", "Expense")], ["income", t("আয়", "Income")]] as const).map(([v, l]) => (
                 <button key={v} onClick={() => savePrefs({ ...prefs, donutView: v })}
                   className={`px-3 py-1.5 rounded-lg text-sm border ${prefs.donutView === v ? "bg-indigo-600 text-white border-indigo-600" : "bg-white border-slate-200 text-slate-700"}`}>
                   {l}
@@ -337,10 +337,10 @@ function SettingsPage() {
         </Section>
 
         {/* AI settings */}
-        <Section icon={<Sparkles className="w-4 h-4 text-indigo-600" />} title="AI সাজেশন সেটিংস">
-          <Field label="অ্যালার্টের ধরন">
+        <Section icon={<Sparkles className="w-4 h-4 text-indigo-600" />} title={t("AI সাজেশন সেটিংস", "AI Suggestion Settings")}>
+          <Field label={t("অ্যালার্টের ধরন", "Alert types")}>
             <div className="flex flex-wrap gap-2">
-              {([["alert", "সতর্কতা"], ["tip", "পরামর্শ"], ["invest", "বিনিয়োগ"]] as const).map(([v, l]) => {
+              {([["alert", t("সতর্কতা", "Alert")], ["tip", t("পরামর্শ", "Tip")], ["invest", t("বিনিয়োগ", "Invest")]] as const).map(([v, l]) => {
                 const on = ai.types.includes(v);
                 return (
                   <button key={v} onClick={() => toggleAiType(v)}
@@ -351,28 +351,28 @@ function SettingsPage() {
               })}
             </div>
           </Field>
-          <Field label={`বেশি খরচ থ্রেশহোল্ড — ${ai.expenseRatioPct}% আয়ের`}>
+          <Field label={t(`বেশি খরচ থ্রেশহোল্ড — ${ai.expenseRatioPct}% আয়ের`, `High expense threshold — ${ai.expenseRatioPct}% of income`)}>
             <input type="range" min={20} max={150} step={5} value={ai.expenseRatioPct}
               onChange={(e) => setAi({ ...ai, expenseRatioPct: Number(e.target.value) })}
               className="w-full accent-indigo-600" />
           </Field>
-          <Field label="নগদ কম থ্রেশহোল্ড (৳)">
+          <Field label={t("নগদ কম থ্রেশহোল্ড (৳)", "Low cash threshold (৳)")}>
             <input type="number" min={0} step={500} value={ai.lowCashTk}
               onChange={(e) => setAi({ ...ai, lowCashTk: Math.max(0, Number(e.target.value) || 0) })}
               className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
           </Field>
-          <Field label={`লক্ষ্য পিছিয়ে থ্রেশহোল্ড — ${ai.goalLagPct}%`}>
+          <Field label={t(`লক্ষ্য পিছিয়ে থ্রেশহোল্ড — ${ai.goalLagPct}%`, `Goal lag threshold — ${ai.goalLagPct}%`)}>
             <input type="range" min={5} max={60} step={5} value={ai.goalLagPct}
               onChange={(e) => setAi({ ...ai, goalLagPct: Number(e.target.value) })}
               className="w-full accent-indigo-600" />
           </Field>
-          <Field label="অটো-বিশ্লেষণ">
+          <Field label={t("অটো-বিশ্লেষণ", "Auto-analysis")}>
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={ai.autoRun} onChange={(e) => setAi({ ...ai, autoRun: e.target.checked })} className="w-4 h-4 accent-emerald-600" />
-              ড্যাশবোর্ড খুললে নিজে থেকেই বিশ্লেষণ
+              {t("ড্যাশবোর্ড খুললে নিজে থেকেই বিশ্লেষণ", "Auto-analyze on dashboard open")}
             </label>
           </Field>
-          <Field label={`রিফ্রেশ ইন্টারভাল — ${ai.autoIntervalMin} মিনিট`}>
+          <Field label={t(`রিফ্রেশ ইন্টারভাল — ${ai.autoIntervalMin} মিনিট`, `Refresh interval — ${ai.autoIntervalMin} min`)}>
             <input type="range" min={5} max={120} step={5} value={ai.autoIntervalMin} disabled={!ai.autoRun}
               onChange={(e) => setAi({ ...ai, autoIntervalMin: Number(e.target.value) })}
               className="w-full accent-indigo-600 disabled:opacity-50" />
@@ -381,19 +381,19 @@ function SettingsPage() {
         </Section>
 
         {/* Data management */}
-        <Section icon={<Download className="w-4 h-4 text-indigo-600" />} title="ডেটা ব্যবস্থাপনা">
-          <p className="text-xs text-slate-500 mb-3">সকল লেনদেন, বাজেট, লক্ষ্য, নোট ইত্যাদির ব্যাকআপ ডাউনলোড বা পুনরুদ্ধার করুন।</p>
+        <Section icon={<Download className="w-4 h-4 text-indigo-600" />} title={t("ডেটা ব্যবস্থাপনা", "Data Management")}>
+          <p className="text-xs text-slate-500 mb-3">{t("সকল লেনদেন, বাজেট, লক্ষ্য, নোট ইত্যাদির ব্যাকআপ ডাউনলোড বা পুনরুদ্ধার করুন।", "Download or restore a backup of all transactions, budgets, goals, notes, etc.")}</p>
           <div className="flex flex-wrap gap-2">
             <button onClick={exportData} disabled={busy} className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50 disabled:opacity-50">
-              <Download className="w-4 h-4" /> JSON এক্সপোর্ট
+              <Download className="w-4 h-4" /> {t("JSON এক্সপোর্ট", "Export JSON")}
             </button>
             <label className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50 cursor-pointer">
-              <Upload className="w-4 h-4" /> JSON ইম্পোর্ট
+              <Upload className="w-4 h-4" /> {t("JSON ইম্পোর্ট", "Import JSON")}
               <input type="file" accept="application/json" className="hidden"
                 onChange={(e) => { const f = e.target.files?.[0]; if (f) importData(f); e.target.value = ""; }} />
             </label>
             <button onClick={clearLocalPrefs} className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50">
-              লোকাল সেটিংস রিসেট
+              {t("লোকাল সেটিংস রিসেট", "Reset local settings")}
             </button>
           </div>
         </Section>
@@ -402,23 +402,23 @@ function SettingsPage() {
         <div className="bg-white rounded-xl p-5 border-2 border-rose-200">
           <div className="flex items-center gap-2 mb-3">
             <AlertTriangle className="w-4 h-4 text-rose-600" />
-            <h2 className="font-bold text-rose-700">বিপদ অঞ্চল</h2>
+            <h2 className="font-bold text-rose-700">{t("বিপদ অঞ্চল", "Danger Zone")}</h2>
           </div>
-          <p className="text-xs text-slate-600 mb-3">সকল ডেটা মুছে ফেলতে নিচে <span className="font-mono font-bold">DELETE</span> লিখুন। এই কাজ ফিরিয়ে আনা যাবে না।</p>
+          <p className="text-xs text-slate-600 mb-3">{t("সকল ডেটা মুছে ফেলতে নিচে ", "To delete all data, type ")}<span className="font-mono font-bold">DELETE</span>{t(" লিখুন। এই কাজ ফিরিয়ে আনা যাবে না।", " below. This action cannot be undone.")}</p>
           <div className="flex flex-wrap gap-2 items-center">
             <input value={confirmDelete} onChange={(e) => setConfirmDelete(e.target.value)} placeholder="DELETE"
               className="px-3 py-2 border border-rose-200 rounded-lg text-sm font-mono" />
             <button onClick={wipeAllData} disabled={busy || confirmDelete !== "DELETE"}
               className="flex items-center gap-2 px-3 py-2 bg-rose-600 text-white rounded-lg text-sm font-medium hover:bg-rose-700 disabled:opacity-50">
-              <Trash2 className="w-4 h-4" /> সকল ডেটা মুছুন
+              <Trash2 className="w-4 h-4" /> {t("সকল ডেটা মুছুন", "Delete all data")}
             </button>
           </div>
         </div>
 
         {/* Account */}
-        <Section icon={<LogOut className="w-4 h-4 text-slate-600" />} title="অ্যাকাউন্ট">
+        <Section icon={<LogOut className="w-4 h-4 text-slate-600" />} title={t("অ্যাকাউন্ট", "Account")}>
           <button onClick={doSignOut} className="flex items-center gap-2 px-4 py-2 bg-rose-50 text-rose-600 border border-rose-200 rounded-lg text-sm font-medium hover:bg-rose-100">
-            <LogOut className="w-4 h-4" /> সাইন আউট
+            <LogOut className="w-4 h-4" /> {t("সাইন আউট", "Sign out")}
           </button>
         </Section>
       </div>
