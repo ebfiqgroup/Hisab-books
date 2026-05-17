@@ -235,17 +235,272 @@ function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t" style={{ borderColor: "var(--brand-line)" }}>
-        <div className="max-w-6xl mx-auto px-5 py-8 flex flex-col md:flex-row items-center justify-between gap-3 text-sm" style={{ color: "var(--brand-ink-soft)" }}>
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white" style={{ background: "var(--gradient-brand)" }}>
-              <Wallet className="w-3.5 h-3.5" />
-            </div>
-            <span style={{ fontFamily: "var(--font-display)" }}>আমার হিসাব</span>
-          </div>
-          <div>© {new Date().getFullYear()} — যত্নে তৈরি, বাংলায়।</div>
-        </div>
-      </footer>
+      <Footer />
     </div>
+  );
+}
+
+/* ───────────── Pricing ───────────── */
+
+type Tier = {
+  name: string;
+  price: string;
+  period: string;
+  tagline: string;
+  features: string[];
+  cta: string;
+  highlight?: boolean;
+  Icon: React.ComponentType<{ className?: string }>;
+};
+
+const TIERS: Tier[] = [
+  {
+    name: "ফ্রি",
+    price: "৳ ০",
+    period: "/চিরকাল",
+    tagline: "শুরুর জন্য পারফেক্ট",
+    features: ["মাসিক ৫০টি লেনদেন", "মৌলিক বাজেট ও লক্ষ্য", "১টি অ্যাকাউন্ট", "মোবাইল ও ওয়েব"],
+    cta: "বিনামূল্যে শুরু",
+    Icon: Star,
+  },
+  {
+    name: "প্রো",
+    price: "৳ ১৯৯",
+    period: "/মাস",
+    tagline: "সিরিয়াস ব্যবহারকারীদের জন্য",
+    features: ["আনলিমিটেড লেনদেন", "AI পরামর্শ ও ইনসাইট", "অ্যাডভান্সড রিপোর্ট ও PDF", "দেনা-পাওনা রিমাইন্ডার", "অগ্রাধিকার সাপোর্ট"],
+    cta: "প্রো নিন",
+    highlight: true,
+    Icon: Sparkles,
+  },
+  {
+    name: "প্রিমিয়াম",
+    price: "৳ ৪৯৯",
+    period: "/মাস",
+    tagline: "পরিবার ও ছোট ব্যবসার জন্য",
+    features: ["প্রো-এর সব ফিচার", "৫টি পর্যন্ত সদস্য", "কাস্টম ক্যাটাগরি ও ট্যাগ", "API অ্যাক্সেস", "ডেডিকেটেড ম্যানেজার"],
+    cta: "প্রিমিয়াম নিন",
+    Icon: Crown,
+  },
+];
+
+function PricingSection({ primaryTo }: { primaryTo: string }) {
+  const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
+
+  return (
+    <section id="pricing" className="max-w-6xl mx-auto px-5 py-20">
+      <div className="text-center max-w-2xl mx-auto">
+        <div className="text-xs uppercase tracking-[0.2em]" style={{ color: "var(--brand-gold-600)" }}>সাবস্ক্রিপশন</div>
+        <h2 className="text-3xl md:text-4xl mt-2" style={{ fontFamily: "var(--font-display)" }}>
+          সরল মূল্য, স্বচ্ছ পরিকল্পনা
+        </h2>
+        <p className="mt-3" style={{ color: "var(--brand-ink-soft)" }}>
+          যেকোনো সময় আপগ্রেড বা বাতিল — কোনো লুকানো ফি নেই।
+        </p>
+
+        <div className="mt-6 inline-flex p-1 rounded-full border bg-white" style={{ borderColor: "var(--brand-line)" }}>
+          {(["monthly", "yearly"] as const).map((b) => (
+            <button
+              key={b}
+              onClick={() => setBilling(b)}
+              className="px-4 py-1.5 rounded-full text-sm transition-colors"
+              style={{
+                background: billing === b ? "var(--brand-emerald-700)" : "transparent",
+                color: billing === b ? "white" : "var(--brand-ink-soft)",
+              }}
+            >
+              {b === "monthly" ? "মাসিক" : "বার্ষিক"}
+              {b === "yearly" && (
+                <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded" style={{ background: "var(--brand-gold-300)", color: "var(--brand-emerald-900)" }}>
+                  ২০% ছাড়
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-10 grid md:grid-cols-3 gap-5">
+        {TIERS.map((t) => {
+          const isYearly = billing === "yearly" && t.price !== "৳ ০";
+          const numeric = Number(t.price.replace(/[^\d]/g, ""));
+          const displayPrice = isYearly
+            ? `৳ ${Math.round(numeric * 12 * 0.8).toLocaleString("bn-BD")}`
+            : t.price;
+          const displayPeriod = isYearly ? "/বছর" : t.period;
+
+          return (
+            <div
+              key={t.name}
+              className="relative brand-card p-7 flex flex-col"
+              style={
+                t.highlight
+                  ? {
+                      borderColor: "var(--brand-gold-500)",
+                      boxShadow: "var(--shadow-elegant)",
+                      transform: "translateY(-4px)",
+                    }
+                  : undefined
+              }
+            >
+              {t.highlight && (
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[11px] font-medium text-white shadow-sm" style={{ background: "var(--gradient-brand)" }}>
+                  সর্বাধিক জনপ্রিয়
+                </span>
+              )}
+              <div className="flex items-center gap-2 mb-1">
+                <t.Icon className="w-4 h-4" style={{ color: "var(--brand-gold-600)" }} />
+                <span className="text-sm font-semibold" style={{ color: "var(--brand-emerald-700)" }}>{t.name}</span>
+              </div>
+              <div className="text-xs" style={{ color: "var(--brand-ink-soft)" }}>{t.tagline}</div>
+              <div className="mt-4 flex items-baseline gap-1">
+                <span className="text-4xl" style={{ fontFamily: "var(--font-display)", color: "var(--brand-ink)" }}>{displayPrice}</span>
+                <span className="text-sm" style={{ color: "var(--brand-ink-soft)" }}>{displayPeriod}</span>
+              </div>
+              <ul className="mt-5 space-y-2.5 text-sm flex-1">
+                {t.features.map((f) => (
+                  <li key={f} className="flex items-start gap-2">
+                    <Check className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: "var(--brand-emerald-700)" }} />
+                    <span style={{ color: "var(--brand-ink)" }}>{f}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                to={primaryTo}
+                className="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium"
+                style={
+                  t.highlight
+                    ? { background: "var(--gradient-brand)", color: "white" }
+                    : { background: "white", color: "var(--brand-emerald-800)", border: "1px solid var(--brand-line)" }
+                }
+              >
+                {t.cta} <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          );
+        })}
+      </div>
+
+      <p className="mt-6 text-center text-xs" style={{ color: "var(--brand-ink-soft)" }}>
+        সকল পরিকল্পনায় ১৪ দিনের ফ্রি ট্রায়াল • যেকোনো সময় বাতিল
+      </p>
+    </section>
+  );
+}
+
+/* ───────────── Footer with lead capture ───────────── */
+
+function Footer() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim() || !/^\S+@\S+\.\S+$/.test(email)) {
+      toast.error("সঠিক ইমেইল দিন");
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.from("leads").insert({
+      name: name.trim() || null,
+      email: email.trim(),
+      message: message.trim() || null,
+      source: "landing_footer",
+    });
+    setLoading(false);
+    if (error) {
+      toast.error("জমা দেওয়া যায়নি, আবার চেষ্টা করুন");
+      return;
+    }
+    toast.success("ধন্যবাদ! শীঘ্রই যোগাযোগ করব।");
+    setName(""); setEmail(""); setMessage("");
+  };
+
+  return (
+    <footer className="border-t" style={{ borderColor: "var(--brand-line)", background: "color-mix(in oklab, var(--brand-cream) 60%, white)" }}>
+      <div className="max-w-6xl mx-auto px-5 py-14 grid md:grid-cols-2 gap-10">
+        {/* Brand + nav */}
+        <div>
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white" style={{ background: "var(--gradient-brand)" }}>
+              <Wallet className="w-4 h-4" />
+            </div>
+            <span className="text-xl" style={{ fontFamily: "var(--font-display)" }}>আমার হিসাব</span>
+          </div>
+          <p className="mt-3 max-w-sm text-sm" style={{ color: "var(--brand-ink-soft)" }}>
+            বাংলায় সাজানো আপনার ব্যক্তিগত আর্থিক জার্নাল। যত্নে তৈরি, প্রতিদিনের জন্য।
+          </p>
+          <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm" style={{ color: "var(--brand-ink-soft)" }}>
+            <a href="#features" className="hover:text-emerald-800">ফিচার</a>
+            <a href="#how" className="hover:text-emerald-800">কীভাবে কাজ করে</a>
+            <a href="#pricing" className="hover:text-emerald-800">মূল্য</a>
+            <a href="#voices" className="hover:text-emerald-800">ব্যবহারকারী</a>
+            <Link to="/auth" className="hover:text-emerald-800">লগইন</Link>
+          </div>
+        </div>
+
+        {/* Lead form */}
+        <div className="brand-card p-6">
+          <div className="flex items-center gap-2 mb-1">
+            <Mail className="w-4 h-4" style={{ color: "var(--brand-emerald-700)" }} />
+            <span className="text-xs uppercase tracking-[0.2em]" style={{ color: "var(--brand-gold-600)" }}>যোগাযোগ</span>
+          </div>
+          <h3 className="text-xl mb-1" style={{ fontFamily: "var(--font-display)" }}>আপডেট ও অফার পেতে চান?</h3>
+          <p className="text-sm mb-4" style={{ color: "var(--brand-ink-soft)" }}>
+            ইমেইল রেখে যান — নতুন ফিচার ও বিশেষ অফারের খবর সরাসরি পাবেন।
+          </p>
+          <form onSubmit={submit} className="space-y-2.5">
+            <div className="grid sm:grid-cols-2 gap-2.5">
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="আপনার নাম (ঐচ্ছিক)"
+                className="px-3 py-2.5 rounded-lg border text-sm bg-white outline-none focus:border-emerald-600"
+                style={{ borderColor: "var(--brand-line)" }}
+              />
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="ইমেইল ঠিকানা"
+                className="px-3 py-2.5 rounded-lg border text-sm bg-white outline-none focus:border-emerald-600"
+                style={{ borderColor: "var(--brand-line)" }}
+              />
+            </div>
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="মন্তব্য বা প্রশ্ন (ঐচ্ছিক)"
+              rows={3}
+              className="w-full px-3 py-2.5 rounded-lg border text-sm bg-white outline-none focus:border-emerald-600 resize-none"
+              style={{ borderColor: "var(--brand-line)" }}
+            />
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-white text-sm font-medium disabled:opacity-60"
+              style={{ background: "var(--gradient-brand)" }}
+            >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              {loading ? "পাঠানো হচ্ছে…" : "পাঠিয়ে দিন"}
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div className="border-t" style={{ borderColor: "var(--brand-line)" }}>
+        <div className="max-w-6xl mx-auto px-5 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs" style={{ color: "var(--brand-ink-soft)" }}>
+          <div>© {new Date().getFullYear()} আমার হিসাব — যত্নে তৈরি, বাংলায়।</div>
+          <div className="flex gap-4">
+            <span>প্রাইভেসি</span>
+            <span>শর্তাবলি</span>
+          </div>
+        </div>
+      </div>
+    </footer>
   );
 }
