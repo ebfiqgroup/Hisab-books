@@ -11,6 +11,7 @@ import {
   type CustomCatMap,
   type TxnType,
 } from "@/lib/finance";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export type EditTxn = {
   id: string;
@@ -30,6 +31,7 @@ export function TxnDialog({
   onOpenChange: (v: boolean) => void;
   editTxn?: EditTxn | null;
 }) {
+  const { t } = useLanguage();
   const qc = useQueryClient();
   const [type, setType] = useState<TxnType>("expense");
   const [category, setCategory] = useState("");
@@ -73,13 +75,13 @@ export function TxnDialog({
 
   const addCategory = () => {
     const name = newCat.trim();
-    if (!name) { toast.error("ক্যাটাগরির নাম দিন"); return; }
-    if (allCats.includes(name)) { toast.error("এই ক্যাটাগরি ইতিমধ্যে আছে"); return; }
+    if (!name) { toast.error(t("ক্যাটাগরির নাম দিন", "Enter category name")); return; }
+    if (allCats.includes(name)) { toast.error(t("এই ক্যাটাগরি ইতিমধ্যে আছে", "Category already exists")); return; }
     const nextMap = { ...customMap, [type]: [...custom, name] };
     setCustomMap(nextMap); saveCustomCats(nextMap);
     setCategory(name);
     setNewCat(""); setAdding(false);
-    toast.success("ক্যাটাগরি যুক্ত হয়েছে");
+    toast.success(t("ক্যাটাগরি যুক্ত হয়েছে", "Category added"));
   };
 
   const removeCustom = (name: string) => {
@@ -90,19 +92,19 @@ export function TxnDialog({
 
   const save = async () => {
     if (busy) return;
-    if (!category) { toast.error("ক্যাটাগরি দিন"); return; }
+    if (!category) { toast.error(t("ক্যাটাগরি দিন", "Select category")); return; }
     const amt = parseFloat(amount);
-    if (!amt || amt <= 0) { toast.error("সঠিক পরিমাণ দিন"); return; }
+    if (!amt || amt <= 0) { toast.error(t("সঠিক পরিমাণ দিন", "Enter a valid amount")); return; }
     setBusy(true);
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { toast.error("লগইন প্রয়োজন"); setBusy(false); return; }
+    if (!user) { toast.error(t("লগইন প্রয়োজন", "Sign-in required")); setBusy(false); return; }
     const payload = { type, category, amount: amt, occurred_on: date, note: note || null };
     const { error } = editTxn
       ? await supabase.from("transactions").update(payload).eq("id", editTxn.id)
       : await supabase.from("transactions").insert({ user_id: user.id, ...payload });
     setBusy(false);
     if (error) { toast.error(error.message); return; }
-    toast.success(editTxn ? "আপডেট হয়েছে" : "লেনদেন যুক্ত হয়েছে");
+    toast.success(editTxn ? t("আপডেট হয়েছে", "Updated") : t("লেনদেন যুক্ত হয়েছে", "Transaction added"));
     qc.invalidateQueries({ queryKey: ["transactions"] });
     onOpenChange(false);
   };
@@ -110,22 +112,22 @@ export function TxnDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
-        <DialogHeader><DialogTitle>{editTxn ? "লেনদেন এডিট" : "নতুন লেনদেন"}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{editTxn ? t("লেনদেন এডিট", "Edit transaction") : t("নতুন লেনদেন", "New transaction")}</DialogTitle></DialogHeader>
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-2">
-            <button onClick={() => setType("income")} className={`py-2 rounded-lg border text-sm font-medium ${type === "income" ? "bg-emerald-50 border-emerald-300 text-emerald-700" : "border-slate-200 text-slate-600"}`}>আয়</button>
-            <button onClick={() => setType("expense")} className={`py-2 rounded-lg border text-sm font-medium ${type === "expense" ? "bg-rose-50 border-rose-300 text-rose-700" : "border-slate-200 text-slate-600"}`}>ব্যয়</button>
+            <button onClick={() => setType("income")} className={`py-2 rounded-lg border text-sm font-medium ${type === "income" ? "bg-emerald-50 border-emerald-300 text-emerald-700" : "border-slate-200 text-slate-600"}`}>{t("আয়", "Income")}</button>
+            <button onClick={() => setType("expense")} className={`py-2 rounded-lg border text-sm font-medium ${type === "expense" ? "bg-rose-50 border-rose-300 text-rose-700" : "border-slate-200 text-slate-600"}`}>{t("ব্যয়", "Expense")}</button>
           </div>
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="text-xs text-slate-600">ক্যাটাগরি</label>
+              <label className="text-xs text-slate-600">{t("ক্যাটাগরি", "Category")}</label>
               <button type="button" onClick={() => setAdding((v) => !v)} className="text-xs text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
-                <Plus className="w-3 h-3" /> নতুন ক্যাটাগরি
+                <Plus className="w-3 h-3" /> {t("নতুন ক্যাটাগরি", "New category")}
               </button>
             </div>
             <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
               {builtIns.map((k) => <option key={k} value={k}>{k}</option>)}
-              {custom.length > 0 && <optgroup label="আমার ক্যাটাগরি">
+              {custom.length > 0 && <optgroup label={t("আমার ক্যাটাগরি", "My categories")}>
                 {custom.map((c) => <option key={c} value={c}>{c}</option>)}
               </optgroup>}
             </select>
@@ -136,10 +138,10 @@ export function TxnDialog({
                   value={newCat}
                   onChange={(e) => setNewCat(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCategory(); } }}
-                  placeholder="যেমন: যাতায়াত"
+                  placeholder={t("যেমন: যাতায়াত", "e.g. Transport")}
                   className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm"
                 />
-                <button type="button" onClick={addCategory} className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm">যোগ</button>
+                <button type="button" onClick={addCategory} className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm">{t("যোগ", "Add")}</button>
               </div>
             )}
             {custom.length > 0 && (
@@ -156,22 +158,22 @@ export function TxnDialog({
             )}
           </div>
           <div>
-            <label className="text-xs text-slate-600 mb-1 block">পরিমাণ (৳)</label>
+            <label className="text-xs text-slate-600 mb-1 block">{t("পরিমাণ (৳)", "Amount (৳)")}</label>
             <input type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" placeholder="0.00" />
           </div>
           <div>
-            <label className="text-xs text-slate-600 mb-1 block">তারিখ</label>
+            <label className="text-xs text-slate-600 mb-1 block">{t("তারিখ", "Date")}</label>
             <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
           </div>
           <div>
-            <label className="text-xs text-slate-600 mb-1 block">নোট (ঐচ্ছিক)</label>
+            <label className="text-xs text-slate-600 mb-1 block">{t("নোট (ঐচ্ছিক)", "Note (optional)")}</label>
             <input type="text" value={note} onChange={(e) => setNote(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
           </div>
           <div className="flex gap-2 pt-2">
-            <button onClick={() => onOpenChange(false)} disabled={busy} className="flex-1 py-2 border border-slate-200 rounded-lg text-sm disabled:opacity-50">বাতিল</button>
+            <button onClick={() => onOpenChange(false)} disabled={busy} className="flex-1 py-2 border border-slate-200 rounded-lg text-sm disabled:opacity-50">{t("বাতিল", "Cancel")}</button>
             <button onClick={save} disabled={busy} className="flex-1 py-2 bg-indigo-600 text-white rounded-lg text-sm disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
               {busy && <Loader2 className="w-4 h-4 animate-spin" />}
-              {busy ? "সেভ হচ্ছে..." : "সেভ"}
+              {busy ? t("সেভ হচ্ছে...", "Saving...") : t("সেভ", "Save")}
             </button>
           </div>
         </div>

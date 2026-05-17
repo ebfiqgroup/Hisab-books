@@ -60,7 +60,17 @@ const dict = {
 
 export type TKey = keyof typeof dict["bn"];
 
-type Ctx = { lang: Lang; setLang: (l: Lang) => void; toggle: () => void; t: (k: TKey) => string };
+type Ctx = {
+  lang: Lang;
+  setLang: (l: Lang) => void;
+  toggle: () => void;
+  /**
+   * Translate. Two usages:
+   *   t("nav.dashboard")           // looks up in central dict (TKey)
+   *   t("বাংলা টেক্সট", "English text")  // inline bilingual pair
+   */
+  t: (bnOrKey: string, en?: string) => string;
+};
 const LanguageContext = createContext<Ctx | null>(null);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
@@ -81,7 +91,14 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   const toggle = useCallback(() => setLang(lang === "bn" ? "en" : "bn"), [lang, setLang]);
 
-  const t = useCallback((k: TKey) => dict[lang][k] ?? dict.bn[k] ?? k, [lang]);
+  const t = useCallback(
+    (bnOrKey: string, en?: string) => {
+      if (typeof en === "string") return lang === "bn" ? bnOrKey : en;
+      const k = bnOrKey as TKey;
+      return (dict[lang] as Record<string, string>)[k] ?? (dict.bn as Record<string, string>)[k] ?? bnOrKey;
+    },
+    [lang],
+  );
 
   return (
     <LanguageContext.Provider value={{ lang, setLang, toggle, t }}>

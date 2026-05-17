@@ -7,6 +7,7 @@ import { fmtTk, toBn } from "@/lib/finance";
 import { Plus, Trash2, Target, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export const Route = createFileRoute("/_authenticated/goals")({ component: GoalsPage });
 
@@ -22,6 +23,7 @@ const COLORS = [
 const colorOf = (k: string) => COLORS.find((c) => c.key === k) ?? COLORS[0];
 
 function GoalsPage() {
+  const { t } = useLanguage();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [edit, setEdit] = useState<Goal | null>(null);
@@ -40,7 +42,7 @@ function GoalsPage() {
   const openEdit = (g: Goal) => { setEdit(g); setForm({ label: g.label, target: String(g.target), current: String(g.current), deadline: g.deadline ?? "", color: g.color }); setOpen(true); };
 
   const save = async () => {
-    if (!form.label.trim() || !form.target) { toast.error("নাম ও লক্ষ্য পরিমাণ দিন"); return; }
+    if (!form.label.trim() || !form.target) { toast.error(t("নাম ও লক্ষ্য পরিমাণ দিন", "Enter name and target amount")); return; }
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     const payload = {
@@ -54,31 +56,31 @@ function GoalsPage() {
       ? await supabase.from("goals").update(payload).eq("id", edit.id)
       : await supabase.from("goals").insert({ ...payload, user_id: user.id });
     if (error) { toast.error(error.message); return; }
-    toast.success("সংরক্ষিত");
+    toast.success(t("সংরক্ষিত", "Saved"));
     qc.invalidateQueries({ queryKey: ["goals"] });
     setOpen(false);
   };
   const remove = async (id: string) => {
-    if (!confirm("লক্ষ্যটি মুছে ফেলবেন?")) return;
+    if (!confirm(t("লক্ষ্যটি মুছে ফেলবেন?", "Delete this goal?"))) return;
     const { error } = await supabase.from("goals").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
-    toast.success("মুছে ফেলা হয়েছে");
+    toast.success(t("মুছে ফেলা হয়েছে", "Deleted"));
     qc.invalidateQueries({ queryKey: ["goals"] });
   };
 
   const list = q.data ?? [];
 
   return (
-    <AppShell title="সঞ্চয় লক্ষ্য" actions={
+    <AppShell title={t("সঞ্চয় লক্ষ্য", "Savings goals")} actions={
       <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">
-        <Plus className="w-4 h-4" /> নতুন লক্ষ্য
+        <Plus className="w-4 h-4" /> {t("নতুন লক্ষ্য", "New goal")}
       </button>
     }>
-      {q.isLoading && <div className="text-slate-400">লোড হচ্ছে...</div>}
+      {q.isLoading && <div className="text-slate-400">{t("লোড হচ্ছে...", "Loading...")}</div>}
       {!q.isLoading && list.length === 0 && (
         <div className="bg-white rounded-xl border border-slate-200 p-12 text-center text-slate-500">
           <Target className="w-10 h-10 mx-auto mb-3 text-slate-300" />
-          এখনো কোনো লক্ষ্য নেই। "নতুন লক্ষ্য" দিয়ে শুরু করুন।
+          {t('এখনো কোনো লক্ষ্য নেই। "নতুন লক্ষ্য" দিয়ে শুরু করুন।', 'No goals yet. Start with "New goal".')}
         </div>
       )}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
@@ -103,7 +105,7 @@ function GoalsPage() {
               </div>
               <div className="flex items-center justify-between text-xs">
                 <span className={c.text}>{toBn(pct.toFixed(0))}%</span>
-                {g.deadline && <span className="text-slate-400">শেষ: {toBn(g.deadline)}</span>}
+                {g.deadline && <span className="text-slate-400">{t("শেষ", "Due")}: {toBn(g.deadline)}</span>}
               </div>
             </div>
           );
@@ -112,12 +114,12 @@ function GoalsPage() {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
-          <DialogHeader><DialogTitle>{edit ? "লক্ষ্য এডিট" : "নতুন লক্ষ্য"}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{edit ? t("লক্ষ্য এডিট", "Edit goal") : t("নতুন লক্ষ্য", "New goal")}</DialogTitle></DialogHeader>
           <div className="space-y-3">
-            <input value={form.label} onChange={(e) => setForm({ ...form, label: e.target.value })} placeholder="লক্ষ্যের নাম" className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+            <input value={form.label} onChange={(e) => setForm({ ...form, label: e.target.value })} placeholder={t("লক্ষ্যের নাম", "Goal name")} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
             <div className="grid grid-cols-2 gap-2">
-              <input type="number" value={form.target} onChange={(e) => setForm({ ...form, target: e.target.value })} placeholder="লক্ষ্য ৳" className="px-3 py-2 border border-slate-200 rounded-lg text-sm" />
-              <input type="number" value={form.current} onChange={(e) => setForm({ ...form, current: e.target.value })} placeholder="বর্তমান ৳" className="px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+              <input type="number" value={form.target} onChange={(e) => setForm({ ...form, target: e.target.value })} placeholder={t("লক্ষ্য ৳", "Target ৳")} className="px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+              <input type="number" value={form.current} onChange={(e) => setForm({ ...form, current: e.target.value })} placeholder={t("বর্তমান ৳", "Current ৳")} className="px-3 py-2 border border-slate-200 rounded-lg text-sm" />
             </div>
             <input type="date" value={form.deadline} onChange={(e) => setForm({ ...form, deadline: e.target.value })} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
             <div className="flex gap-2">
@@ -126,8 +128,8 @@ function GoalsPage() {
               ))}
             </div>
             <div className="flex gap-2 pt-2">
-              <button onClick={() => setOpen(false)} className="flex-1 py-2 border border-slate-200 rounded-lg text-sm">বাতিল</button>
-              <button onClick={save} className="flex-1 py-2 bg-indigo-600 text-white rounded-lg text-sm">সেভ</button>
+              <button onClick={() => setOpen(false)} className="flex-1 py-2 border border-slate-200 rounded-lg text-sm">{t("বাতিল", "Cancel")}</button>
+              <button onClick={save} className="flex-1 py-2 bg-indigo-600 text-white rounded-lg text-sm">{t("সেভ", "Save")}</button>
             </div>
           </div>
         </DialogContent>

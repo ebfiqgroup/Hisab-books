@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
@@ -12,6 +13,7 @@ export const Route = createFileRoute("/reset-password")({
 });
 
 function ResetPasswordPage() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [ready, setReady] = useState(false);
   const [password, setPassword] = useState("");
@@ -30,16 +32,16 @@ function ResetPasswordPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) { toast.error("অন্তত ৬ অক্ষর"); return; }
-    if (password !== confirm) { toast.error("পাসওয়ার্ড মিলছে না"); return; }
+    if (password.length < 6) { toast.error(t("অন্তত ৬ অক্ষর", "At least 6 characters")); return; }
+    if (password !== confirm) { toast.error(t("পাসওয়ার্ড মিলছে না", "Passwords do not match")); return; }
     setBusy(true);
     try {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
-      toast.success("পাসওয়ার্ড পরিবর্তিত হয়েছে");
+      toast.success(t("পাসওয়ার্ড পরিবর্তিত হয়েছে", "Password changed"));
       navigate({ to: "/app" });
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "ত্রুটি হয়েছে");
+      toast.error(err instanceof Error ? err.message : t("ত্রুটি হয়েছে", "Something went wrong"));
     } finally { setBusy(false); }
   };
 
@@ -51,20 +53,20 @@ function ResetPasswordPage() {
             <Wallet className="w-6 h-6" style={{ color: "var(--brand-emerald-700)" }} />
           </div>
           <div>
-            <h1 className="text-2xl" style={{ fontFamily: "var(--font-display)", color: "var(--brand-ink)" }}>নতুন পাসওয়ার্ড</h1>
-            <p className="text-xs text-slate-500">নতুন পাসওয়ার্ড সেট করুন</p>
+            <h1 className="text-2xl" style={{ fontFamily: "var(--font-display)", color: "var(--brand-ink)" }}>{t("নতুন পাসওয়ার্ড", "New password")}</h1>
+            <p className="text-xs text-slate-500">{t("নতুন পাসওয়ার্ড সেট করুন", "Set a new password")}</p>
           </div>
         </div>
 
         {!ready ? (
           <div className="text-center py-6 text-sm text-slate-500">
-            রিসেট লিংক যাচাই করা হচ্ছে…
-            <p className="text-xs mt-3">যদি না খুলে, ইমেইলের লিংক আবার ক্লিক করুন।</p>
+            {t("রিসেট লিংক যাচাই করা হচ্ছে…", "Verifying reset link…")}
+            <p className="text-xs mt-3">{t("যদি না খুলে, ইমেইলের লিংক আবার ক্লিক করুন।", "If it does not open, click the email link again.")}</p>
           </div>
         ) : (
           <form onSubmit={submit} className="space-y-4">
             <div>
-              <label className="text-xs font-medium text-slate-600 mb-1 block">নতুন পাসওয়ার্ড</label>
+              <label className="text-xs font-medium text-slate-600 mb-1 block">{t("নতুন পাসওয়ার্ড", "New password")}</label>
               <input
                 type="password" required minLength={6}
                 value={password} onChange={(e) => setPassword(e.target.value)}
@@ -73,7 +75,7 @@ function ResetPasswordPage() {
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-600 mb-1 block">পুনরায় টাইপ করুন</label>
+              <label className="text-xs font-medium text-slate-600 mb-1 block">{t("পুনরায় টাইপ করুন", "Type again")}</label>
               <input
                 type="password" required minLength={6}
                 value={confirm} onChange={(e) => setConfirm(e.target.value)}
@@ -86,13 +88,13 @@ function ResetPasswordPage() {
               className="w-full py-2.5 text-white rounded-lg font-medium text-sm shadow-md hover:opacity-95 transition disabled:opacity-50"
               style={{ background: "var(--gradient-brand)" }}
             >
-              {busy ? "অপেক্ষা করুন..." : "পাসওয়ার্ড পরিবর্তন"}
+              {busy ? t("অপেক্ষা করুন...", "Please wait...") : t("পাসওয়ার্ড পরিবর্তন", "Change password")}
             </button>
           </form>
         )}
 
         <p className="text-center text-xs text-slate-400 mt-4">
-          <Link to="/auth" className="hover:text-slate-600">লগইনে ফিরে যান</Link>
+          <Link to="/auth" className="hover:text-slate-600">{t("লগইনে ফিরে যান", "Back to sign in")}</Link>
         </p>
       </div>
     </div>
