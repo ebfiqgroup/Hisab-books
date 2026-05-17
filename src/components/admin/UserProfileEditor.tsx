@@ -24,6 +24,7 @@ export function UserProfileEditor({ userId, open, onOpenChange, onSaved }: Props
   const [busy, setBusy] = useState(false);
   const [fullName, setFullName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [refCode, setRefCode] = useState<string>("");
   const [email, setEmail] = useState("");
   const [newPwd, setNewPwd] = useState("");
 
@@ -33,11 +34,12 @@ export function UserProfileEditor({ userId, open, onOpenChange, onSaved }: Props
     (async () => {
       const { data: prof } = await supabase
         .from("profiles")
-        .select("full_name, avatar_url")
+        .select("full_name, avatar_url, ref_code")
         .eq("id", userId)
         .maybeSingle();
       setFullName(prof?.full_name ?? "");
       setAvatarUrl(prof?.avatar_url ?? "");
+      setRefCode(prof?.ref_code ?? "");
       setEmail("");
       setNewPwd("");
       setLoading(false);
