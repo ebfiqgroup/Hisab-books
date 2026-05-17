@@ -37,7 +37,7 @@ function ResetPasswordPage() {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
       toast.success("পাসওয়ার্ড পরিবর্তিত হয়েছে");
-      navigate({ to: "/" });
+      navigate({ to: "/app" });
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "ত্রুটি হয়েছে");
     } finally { setBusy(false); }
