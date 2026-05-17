@@ -15,6 +15,7 @@ import { AppShell } from "@/components/AppShell";
 import { TxnDialog, type EditTxn } from "@/components/dashboard/TxnDialog";
 import { AiSuggestions } from "@/components/dashboard/AiSuggestions";
 import { toast } from "sonner";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export const Route = createFileRoute("/_authenticated/app")({ component: Dashboard });
 
@@ -27,6 +28,7 @@ type PlanTask = { id: string; task: string; due_text: string | null; amount_text
 const BN_DAYS = ["রবি", "সোম", "মঙ্গল", "বুধ", "বৃহঃ", "শুক্র", "শনি"];
 
 function Dashboard() {
+  const { t, lang } = useLanguage();
   const { forType } = useCustomCategories();
   const qc = useQueryClient();
   const [chartRange, setChartRange] = useState<"সাপ্তাহিক" | "মাসিক" | "বার্ষিক">(() => {
@@ -123,11 +125,11 @@ function Dashboard() {
   const payable = debts.filter((d) => d.kind === "payable").reduce((s, d) => s + Number(d.amount), 0);
 
   const statCards = [
-    { label: "মোট আয়", value: fmtTk(curInc), last: fmtTk(prevInc), pct: pctChange(curInc, prevInc), Icon: Wallet, bg: "bg-emerald-50", fg: "text-emerald-600", val: "text-emerald-600" },
-    { label: "মোট ব্যয়", value: fmtTk(curExp), last: fmtTk(prevExp), pct: pctChange(curExp, prevExp), Icon: ArrowDown, bg: "bg-rose-50", fg: "text-rose-500", val: "text-rose-500" },
-    { label: "অবশিষ্ট", value: fmtTk(curSav), last: fmtTk(prevSav), pct: pctChange(curSav, prevSav), Icon: PiggyBank, bg: "bg-blue-50", fg: "text-blue-600", val: "text-blue-600" },
-    { label: "মোট পাওনা", value: fmtTk(receivable), last: "—", pct: { value: "", up: true }, Icon: Users, bg: "bg-orange-50", fg: "text-orange-500", val: "text-orange-500" },
-    { label: "মোট দেনা", value: fmtTk(payable), last: "—", pct: { value: "", up: false }, Icon: TrendingDown, bg: "bg-rose-50", fg: "text-rose-500", val: "text-rose-600" },
+    { label: t("মোট আয়", "Total income"), value: fmtTk(curInc), last: fmtTk(prevInc), pct: pctChange(curInc, prevInc), Icon: Wallet, bg: "bg-emerald-50", fg: "text-emerald-600", val: "text-emerald-600" },
+    { label: t("মোট ব্যয়", "Total expense"), value: fmtTk(curExp), last: fmtTk(prevExp), pct: pctChange(curExp, prevExp), Icon: ArrowDown, bg: "bg-rose-50", fg: "text-rose-500", val: "text-rose-500" },
+    { label: t("অবশিষ্ট", "Remaining"), value: fmtTk(curSav), last: fmtTk(prevSav), pct: pctChange(curSav, prevSav), Icon: PiggyBank, bg: "bg-blue-50", fg: "text-blue-600", val: "text-blue-600" },
+    { label: t("মোট পাওনা", "Total receivable"), value: fmtTk(receivable), last: "—", pct: { value: "", up: true }, Icon: Users, bg: "bg-orange-50", fg: "text-orange-500", val: "text-orange-500" },
+    { label: t("মোট দেনা", "Total payable"), value: fmtTk(payable), last: "—", pct: { value: "", up: false }, Icon: TrendingDown, bg: "bg-rose-50", fg: "text-rose-500", val: "text-rose-600" },
   ];
 
   const expCats = forType("expense");
@@ -229,44 +231,47 @@ function Dashboard() {
 
   // CSV export
   const downloadReport = () => {
-    const rows = [["ধরন", "ক্যাটাগরি", "পরিমাণ", "তারিখ", "নোট"]];
-    cur.forEach((t) => rows.push([t.type === "income" ? "আয়" : "ব্যয়", t.category, String(t.amount), t.occurred_on, t.note ?? ""]));
+    const isBn = lang === "bn";
+    const rows = [isBn
+      ? ["ধরন", "ক্যাটাগরি", "পরিমাণ", "তারিখ", "নোট"]
+      : ["Type", "Category", "Amount", "Date", "Note"]];
+    cur.forEach((tx) => rows.push([tx.type === "income" ? (isBn ? "আয়" : "Income") : (isBn ? "ব্যয়" : "Expense"), tx.category, String(tx.amount), tx.occurred_on, tx.note ?? ""]));
     const csv = "\ufeff" + rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url; a.download = `report-${startISO}.csv`; a.click();
     URL.revokeObjectURL(url);
-    toast.success("রিপোর্ট ডাউনলোড হয়েছে");
+    toast.success(t("রিপোর্ট ডাউনলোড হয়েছে", "Report downloaded"));
   };
 
   const renderDraft = () => (
     <div className="p-3 rounded-lg border border-indigo-200 bg-indigo-50/40 space-y-2">
-      <input autoFocus value={draft.task} onChange={(e) => setDraft({ ...draft, task: e.target.value })} placeholder="কাজের নাম" className="w-full px-2.5 py-1.5 text-sm border border-slate-200 rounded-md bg-white" />
+      <input autoFocus value={draft.task} onChange={(e) => setDraft({ ...draft, task: e.target.value })} placeholder={t("কাজের নাম", "Task name")} className="w-full px-2.5 py-1.5 text-sm border border-slate-200 rounded-md bg-white" />
       <div className="grid grid-cols-3 gap-2">
-        <input value={draft.due_text} onChange={(e) => setDraft({ ...draft, due_text: e.target.value })} placeholder="তারিখ" className="px-2.5 py-1.5 text-xs border border-slate-200 rounded-md bg-white" />
-        <input value={draft.amount_text} onChange={(e) => setDraft({ ...draft, amount_text: e.target.value })} placeholder="৳ পরিমাণ" className="px-2.5 py-1.5 text-xs border border-slate-200 rounded-md bg-white" />
+        <input value={draft.due_text} onChange={(e) => setDraft({ ...draft, due_text: e.target.value })} placeholder={t("তারিখ", "Date")} className="px-2.5 py-1.5 text-xs border border-slate-200 rounded-md bg-white" />
+        <input value={draft.amount_text} onChange={(e) => setDraft({ ...draft, amount_text: e.target.value })} placeholder={t("৳ পরিমাণ", "৳ Amount")} className="px-2.5 py-1.5 text-xs border border-slate-200 rounded-md bg-white" />
         <select value={draft.priority} onChange={(e) => setDraft({ ...draft, priority: e.target.value as PlanTask["priority"] })} className="px-2 py-1.5 text-xs border border-slate-200 rounded-md bg-white">
           <option value="উচ্চ">উচ্চ</option><option value="মাঝারি">মাঝারি</option><option value="নিম্ন">নিম্ন</option>
         </select>
       </div>
       <div className="flex justify-end gap-2 pt-1">
-        <button onClick={cancel} className="flex items-center gap-1 px-3 py-1.5 text-xs border border-slate-200 rounded-md bg-white"><X className="w-3 h-3" /> বাতিল</button>
-        <button onClick={saveTask} className="flex items-center gap-1 px-3 py-1.5 text-xs bg-indigo-600 text-white rounded-md"><Check className="w-3 h-3" /> সেভ</button>
+        <button onClick={cancel} className="flex items-center gap-1 px-3 py-1.5 text-xs border border-slate-200 rounded-md bg-white"><X className="w-3 h-3" /> {t("বাতিল", "Cancel")}</button>
+        <button onClick={saveTask} className="flex items-center gap-1 px-3 py-1.5 text-xs bg-indigo-600 text-white rounded-md"><Check className="w-3 h-3" /> {t("সেভ", "Save")}</button>
       </div>
     </div>
   );
 
   return (
     <AppShell
-      title="মাসিক ড্যাশবোর্ড"
+      title={t("মাসিক ড্যাশবোর্ড", "Monthly dashboard")}
       actions={
         <>
           <button onClick={downloadReport} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">
-            রিপোর্ট ডাউনলোড <Download className="w-4 h-4" />
+            {t("রিপোর্ট ডাউনলোড", "Download report")} <Download className="w-4 h-4" />
           </button>
           <button onClick={() => { setEditingTxn(null); setTxnOpen(true); }} className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700">
-            <Plus className="w-4 h-4" /> লেনদেন
+            <Plus className="w-4 h-4" /> {t("লেনদেন", "Transaction")}
           </button>
         </>
       }
@@ -283,7 +288,7 @@ function Dashboard() {
               </div>
             </div>
             <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs">
-              <span className="text-slate-500">গত মাস: {s.last}</span>
+              <span className="text-slate-500">{t("গত মাস", "Last month")}: {s.last}</span>
               {s.pct.value && (
                 <span className={`flex items-center gap-1 ${s.pct.up ? "text-emerald-600" : "text-rose-500"}`}>
                   {s.pct.up ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}{s.pct.value}
@@ -304,22 +309,22 @@ function Dashboard() {
           return (
             <div className="bg-white rounded-xl p-5 border border-slate-200">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-slate-800">{isExp ? "ব্যয়ের" : "আয়ের"} খাতভিত্তিক বিশ্লেষণ</h3>
+                <h3 className="font-bold text-slate-800">{isExp ? t("ব্যয়ের খাতভিত্তিক বিশ্লেষণ", "Expense breakdown by category") : t("আয়ের খাতভিত্তিক বিশ্লেষণ", "Income breakdown by category")}</h3>
                 <div className="flex bg-slate-100 rounded-lg p-1 text-xs">
-                  <button onClick={() => setDonutView("expense")} className={`px-3 py-1 rounded-md ${isExp ? "bg-white shadow text-slate-800" : "text-slate-500"}`}>ব্যয়</button>
-                  <button onClick={() => setDonutView("income")} className={`px-3 py-1 rounded-md ${!isExp ? "bg-white shadow text-slate-800" : "text-slate-500"}`}>আয়</button>
+                  <button onClick={() => setDonutView("expense")} className={`px-3 py-1 rounded-md ${isExp ? "bg-white shadow text-slate-800" : "text-slate-500"}`}>{t("ব্যয়", "Expense")}</button>
+                  <button onClick={() => setDonutView("income")} className={`px-3 py-1 rounded-md ${!isExp ? "bg-white shadow text-slate-800" : "text-slate-500"}`}>{t("আয়", "Income")}</button>
                 </div>
               </div>
               <div className="flex items-center gap-6">
                 <div className="relative w-44 h-44 flex-shrink-0">
                   <div className="w-full h-full rounded-full" style={{ background: `conic-gradient(${donut.segs})` }}></div>
                   <div className="absolute inset-6 bg-white rounded-full flex flex-col items-center justify-center">
-                    <div className="text-xs text-slate-500">{isExp ? "মোট ব্যয়" : "মোট আয়"}</div>
+                    <div className="text-xs text-slate-500">{isExp ? t("মোট ব্যয়", "Total expense") : t("মোট আয়", "Total income")}</div>
                     <div className="font-bold text-slate-800">{fmtTk(totalVal)}</div>
                   </div>
                 </div>
                 <div className="flex-1 space-y-2.5 max-h-44 overflow-y-auto pr-1">
-                  {items.length === 0 && <div className="text-sm text-slate-400">কোনো ক্যাটাগরি নেই</div>}
+                  {items.length === 0 && <div className="text-sm text-slate-400">{t("কোনো ক্যাটাগরি নেই", "No categories")}</div>}
                   {items.map((e) => (
                     <div key={e.label} className="flex items-center text-sm">
                       <span className="w-2.5 h-2.5 rounded-full mr-2 flex-shrink-0" style={{ background: e.color }}></span>
@@ -336,17 +341,20 @@ function Dashboard() {
 
         <div className="bg-white rounded-xl p-5 border border-slate-200">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-slate-800">আয় / ব্যয় চার্ট</h3>
+            <h3 className="font-bold text-slate-800">{t("আয় / ব্যয় চার্ট", "Income / Expense chart")}</h3>
             <div className="flex bg-slate-100 rounded-lg p-1 text-xs">
-              {(["সাপ্তাহিক", "মাসিক", "বার্ষিক"] as const).map((r) => (
+              {(["সাপ্তাহিক", "মাসিক", "বার্ষিক"] as const).map((r) => {
+                const lbl = r === "সাপ্তাহিক" ? t("সাপ্তাহিক", "Weekly") : r === "মাসিক" ? t("মাসিক", "Monthly") : t("বার্ষিক", "Yearly");
+                return (
                 <button
                   key={r}
                   onClick={() => setChartRange(r)}
                   className={`px-3 py-1 rounded-md transition ${chartRange === r ? "bg-white shadow text-slate-800 font-medium" : "text-slate-500 hover:text-slate-700"}`}
                 >
-                  {r}
+                  {lbl}
                 </button>
-              ))}
+                );
+              })}
             </div>
           </div>
           <div className="h-56 -ml-2">
@@ -359,8 +367,8 @@ function Dashboard() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                 <XAxis dataKey="d" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
                 <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
-                <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12 }} formatter={(v: number, name: string) => [`৳ ${v.toLocaleString()}`, name === "inc" ? "আয়" : "ব্যয়"]} />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: 12, paddingTop: 8 }} formatter={(v) => (v === "inc" ? "আয়" : "ব্যয়")} />
+                <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12 }} formatter={(v: number, name: string) => [`৳ ${v.toLocaleString()}`, name === "inc" ? (lang === "bn" ? "আয়" : "Income") : (lang === "bn" ? "ব্যয়" : "Expense")]} />
+                <Legend iconType="circle" wrapperStyle={{ fontSize: 12, paddingTop: 8 }} formatter={(v) => (v === "inc" ? (lang === "bn" ? "আয়" : "Income") : (lang === "bn" ? "ব্যয়" : "Expense"))} />
                 <Area type="monotone" dataKey="inc" stroke="#10b981" strokeWidth={2} fill="url(#incGrad)" />
                 <Area type="monotone" dataKey="exp" stroke="#f43f5e" strokeWidth={2} fill="url(#expGrad)" />
               </AreaChart>
@@ -373,17 +381,17 @@ function Dashboard() {
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="bg-white rounded-xl p-5 border border-slate-200">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-slate-800">সাম্প্রতিক লেনদেন</h3>
+            <h3 className="font-bold text-slate-800">{t("সাম্প্রতিক লেনদেন", "Recent transactions")}</h3>
             <div className="flex items-center gap-2">
-              <Link to="/transactions" className="text-sm text-indigo-600 hover:underline">সব দেখুন</Link>
+              <Link to="/transactions" className="text-sm text-indigo-600 hover:underline">{t("সব দেখুন", "View all")}</Link>
               <button onClick={() => { setEditingTxn(null); setTxnOpen(true); }} className="flex items-center gap-1 px-2.5 py-1.5 text-xs bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
-                <Plus className="w-3 h-3" /> নতুন
+                <Plus className="w-3 h-3" /> {t("নতুন", "New")}
               </button>
             </div>
           </div>
           <div className="space-y-3">
-            {txnQ.isLoading && <div className="text-sm text-slate-400 py-4">লোড হচ্ছে...</div>}
-            {!txnQ.isLoading && recent.length === 0 && <div className="text-sm text-slate-400 py-4 text-center">কোনো লেনদেন নেই</div>}
+            {txnQ.isLoading && <div className="text-sm text-slate-400 py-4">{t("লোড হচ্ছে...", "Loading...")}</div>}
+            {!txnQ.isLoading && recent.length === 0 && <div className="text-sm text-slate-400 py-4 text-center">{t("কোনো লেনদেন নেই", "No transactions")}</div>}
             {recent.map((t) => {
               const income = t.type === "income";
               return (
@@ -391,7 +399,7 @@ function Dashboard() {
                   key={t.id}
                   onClick={() => { setEditingTxn({ id: t.id, type: t.type, category: t.category, amount: Number(t.amount), occurred_on: t.occurred_on, note: t.note }); setTxnOpen(true); }}
                   className="flex items-center gap-2 py-1 cursor-pointer hover:bg-slate-50 rounded-md px-1 -mx-1"
-                  title="এডিট করতে ক্লিক করুন"
+                  title="Click to edit"
                 >
                   <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${income ? "bg-emerald-50" : "bg-rose-50"}`}>
                     {income ? <ArrowUp className="w-4 h-4 text-emerald-600" /> : <ArrowDown className="w-4 h-4 text-rose-500" />}
@@ -407,9 +415,9 @@ function Dashboard() {
 
         <div className="bg-white rounded-xl p-5 border border-slate-200">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-slate-800">আগামী বাজেট ও পরিকল্পনা</h3>
+            <h3 className="font-bold text-slate-800">{t("আগামী বাজেট ও পরিকল্পনা", "Upcoming budget & plans")}</h3>
             <button onClick={startAdd} className="flex items-center gap-1 px-2.5 py-1.5 text-xs bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
-              <Plus className="w-3 h-3" /> নতুন
+              <Plus className="w-3 h-3" /> {t("নতুন", "New")}
             </button>
           </div>
           <div className="space-y-2.5 max-h-80 overflow-y-auto pr-1">
@@ -430,7 +438,7 @@ function Dashboard() {
                 </div>
               </div>
             ))}
-            {tasks.length === 0 && !adding && <div className="text-center text-sm text-slate-400 py-6">কোনো পরিকল্পনা নেই</div>}
+            {tasks.length === 0 && !adding && <div className="text-center text-sm text-slate-400 py-6">{t("কোনো পরিকল্পনা নেই", "No plans")}</div>}
           </div>
         </div>
       </div>
@@ -439,11 +447,11 @@ function Dashboard() {
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-white rounded-xl p-5 border border-slate-200">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-slate-800">সঞ্চয় লক্ষ্য</h3>
-            <Link to="/goals" className="text-sm text-indigo-600">সব দেখুন →</Link>
+            <h3 className="font-bold text-slate-800">{t("সঞ্চয় লক্ষ্য", "Savings goals")}</h3>
+            <Link to="/goals" className="text-sm text-indigo-600">{t("সব দেখুন →", "View all →")}</Link>
           </div>
           <div className="space-y-4">
-            {goals.length === 0 && <div className="text-sm text-slate-400 text-center py-4">কোনো লক্ষ্য নেই</div>}
+            {goals.length === 0 && <div className="text-sm text-slate-400 text-center py-4">{t("কোনো লক্ষ্য নেই", "No goals")}</div>}
             {goals.map((g) => {
               const pct = g.target > 0 ? Math.min(100, (Number(g.current) / Number(g.target)) * 100) : 0;
               return (
@@ -467,25 +475,25 @@ function Dashboard() {
 
         <div className="bg-white rounded-xl p-5 border border-slate-200">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-slate-800">পাওনা / দেনা সারাংশ</h3>
-            <Link to="/debts" className="text-sm text-indigo-600">বিস্তারিত →</Link>
+            <h3 className="font-bold text-slate-800">{t("পাওনা / দেনা সারাংশ", "Receivable / Payable summary")}</h3>
+            <Link to="/debts" className="text-sm text-indigo-600">{t("বিস্তারিত →", "Details →")}</Link>
           </div>
           <div className="space-y-3">
             <div className="p-4 rounded-lg bg-emerald-50/60 border border-emerald-100 flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center"><Users className="w-5 h-5 text-emerald-600" /></div>
-              <div><div className="text-xs text-slate-600">মোট পাওনা</div><div className="font-bold text-emerald-700">{fmtTk(receivable)}</div></div>
+              <div><div className="text-xs text-slate-600">{t("মোট পাওনা", "Total receivable")}</div><div className="font-bold text-emerald-700">{fmtTk(receivable)}</div></div>
             </div>
             <div className="p-4 rounded-lg bg-rose-50/60 border border-rose-100 flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center"><Users className="w-5 h-5 text-rose-500" /></div>
-              <div><div className="text-xs text-slate-600">মোট দেনা</div><div className="font-bold text-rose-600">{fmtTk(payable)}</div></div>
+              <div><div className="text-xs text-slate-600">{t("মোট দেনা", "Total payable")}</div><div className="font-bold text-rose-600">{fmtTk(payable)}</div></div>
             </div>
           </div>
         </div>
 
         <div className="bg-white rounded-xl p-5 border border-slate-200">
-          <div className="flex items-center gap-2 mb-4"><StickyNote className="w-5 h-5 text-amber-500" /><h3 className="font-bold text-slate-800">দ্রুত নোট</h3></div>
+          <div className="flex items-center gap-2 mb-4"><StickyNote className="w-5 h-5 text-amber-500" /><h3 className="font-bold text-slate-800">{t("দ্রুত নোট", "Quick notes")}</h3></div>
           <div className="space-y-2 mb-3 max-h-40 overflow-y-auto">
-            {notes.length === 0 && <div className="text-xs text-slate-400 text-center py-3">কোনো নোট নেই</div>}
+            {notes.length === 0 && <div className="text-xs text-slate-400 text-center py-3">{t("কোনো নোট নেই", "No notes")}</div>}
             {notes.map((n) => (
               <div key={n.id} className="group flex items-start gap-2 bg-amber-50 border border-amber-100 rounded-lg p-2 text-xs text-slate-700">
                 <span className="flex-1">{n.body}</span>
@@ -494,8 +502,8 @@ function Dashboard() {
             ))}
           </div>
           <div className="flex gap-2">
-            <input value={noteInput} onChange={(e) => setNoteInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && saveNote()} className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm" placeholder="নোট লিখুন..." />
-            <button onClick={saveNote} className="px-4 py-2 bg-emerald-500 text-white rounded-lg text-sm font-medium hover:bg-emerald-600">সেভ</button>
+            <input value={noteInput} onChange={(e) => setNoteInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && saveNote()} className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm" placeholder={t("নোট লিখুন...", "Write a note...")} />
+            <button onClick={saveNote} className="px-4 py-2 bg-emerald-500 text-white rounded-lg text-sm font-medium hover:bg-emerald-600">{t("সেভ", "Save")}</button>
           </div>
         </div>
       </div>
@@ -518,7 +526,7 @@ function Dashboard() {
         monthLabel={`${BN_MONTHS[now.getMonth()]} ${toBn(now.getFullYear())}`}
       />
 
-      <div className="text-center text-xs text-slate-500 mt-6">© {toBn(now.getFullYear())} আমার হিসাব <span className="text-rose-500">♥</span></div>
+      <div className="text-center text-xs text-slate-500 mt-6">© {toBn(now.getFullYear())} {t("আমার হিসাব", "My Finance")} <span className="text-rose-500">♥</span></div>
 
       <TxnDialog open={txnOpen} onOpenChange={(v) => { setTxnOpen(v); if (!v) setEditingTxn(null); }} editTxn={editingTxn} />
     </AppShell>
