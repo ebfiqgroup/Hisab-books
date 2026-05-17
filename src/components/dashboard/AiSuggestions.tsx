@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Sparkles, AlertTriangle, Lightbulb, TrendingUp, RefreshCw, Loader2 } from "lucide-react";
+import { Sparkles, AlertTriangle, Lightbulb, TrendingUp, RefreshCw, Loader2, Settings2, X } from "lucide-react";
 import { toast } from "sonner";
 import { getAiSuggestions, type AiSuggestion } from "@/lib/ai-suggestions.functions";
 
@@ -23,15 +23,54 @@ const styles = {
   invest: { icon: TrendingUp, ring: "border-emerald-200", bg: "bg-emerald-50", fg: "text-emerald-600", chip: "bg-emerald-100 text-emerald-700", label: "বিনিয়োগ" },
 } as const;
 
+type AlertType = "alert" | "tip" | "invest";
+type AiConfig = {
+  types: AlertType[];
+  expenseRatioPct: number;
+  lowCashTk: number;
+  goalLagPct: number;
+};
+
+const DEFAULT_CFG: AiConfig = {
+  types: ["alert", "tip", "invest"],
+  expenseRatioPct: 80,
+  lowCashTk: 5000,
+  goalLagPct: 20,
+};
+const STORAGE_KEY = "ai_alert_config_v1";
+
+function loadCfg(): AiConfig {
+  if (typeof window === "undefined") return DEFAULT_CFG;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return DEFAULT_CFG;
+    const p = JSON.parse(raw);
+    return {
+      types: Array.isArray(p.types) && p.types.length > 0 ? p.types : DEFAULT_CFG.types,
+      expenseRatioPct: Number.isFinite(p.expenseRatioPct) ? p.expenseRatioPct : DEFAULT_CFG.expenseRatioPct,
+      lowCashTk: Number.isFinite(p.lowCashTk) ? p.lowCashTk : DEFAULT_CFG.lowCashTk,
+      goalLagPct: Number.isFinite(p.goalLagPct) ? p.goalLagPct : DEFAULT_CFG.goalLagPct,
+    };
+  } catch { return DEFAULT_CFG; }
+}
+
 export function AiSuggestions(props: Props) {
   const callAi = useServerFn(getAiSuggestions);
   const [items, setItems] = useState<AiSuggestion[] | null>(null);
   const [loading, setLoading] = useState(false);
+  const [cfg, setCfg] = useState<AiConfig>(DEFAULT_CFG);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  useEffect(() => { setCfg(loadCfg()); }, []);
 
   const run = async () => {
+    if (cfg.types.length === 0) {
+      toast.error("অন্তত একটি অ্যালার্ট ধরন নির্বাচন করুন");
+      return;
+    }
     setLoading(true);
     try {
-      const res = await callAi({ data: props });
+      const res = await callAi({ data: { ...props, config: cfg } });
       setItems(res.suggestions);
       if (res.suggestions.length === 0) toast.message("কোনো সাজেশন পাওয়া যায়নি");
     } catch (e) {
@@ -40,6 +79,18 @@ export function AiSuggestions(props: Props) {
       setLoading(false);
     }
   };
+
+  const toggleType = (t: AlertType) => {
+    setCfg((c) => ({ ...c, types: c.types.includes(t) ? c.types.filter((x) => x !== t) : [...c.types, t] }));
+  };
+
+  const saveCfg = () => {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg)); } catch { /* noop */ }
+    setSettingsOpen(false);
+    toast.success("সেটিংস সংরক্ষিত হয়েছে");
+  };
+
+  const resetCfg = () => setCfg(DEFAULT_CFG);
 
   return (
     <div className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 rounded-xl p-4 sm:p-5 border border-indigo-200 mb-4 sm:mb-6">
@@ -53,14 +104,23 @@ export function AiSuggestions(props: Props) {
             <p className="text-xs text-slate-500">আপনার লেনদেন বিশ্লেষণ করে সতর্কতা ও পরামর্শ</p>
           </div>
         </div>
-        <button
-          onClick={run}
-          disabled={loading}
-          className="flex items-center gap-2 px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-60"
-        >
-          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : items ? <RefreshCw className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
-          {loading ? "বিশ্লেষণ চলছে..." : items ? "আবার বিশ্লেষণ" : "AI বিশ্লেষণ করুন"}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setSettingsOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-2 bg-white border border-indigo-200 text-indigo-700 rounded-lg text-sm font-medium hover:bg-indigo-50"
+            title="অ্যালার্ট সেটিংস"
+          >
+            <Settings2 className="w-4 h-4" /> সেটিংস
+          </button>
+          <button
+            onClick={run}
+            disabled={loading}
+            className="flex items-center gap-2 px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-60"
+          >
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : items ? <RefreshCw className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
+            {loading ? "বিশ্লেষণ চলছে..." : items ? "আবার বিশ্লেষণ" : "AI বিশ্লেষণ করুন"}
+          </button>
+        </div>
       </div>
 
       {!items && !loading && (
@@ -99,6 +159,75 @@ export function AiSuggestions(props: Props) {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {settingsOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setSettingsOpen(false)}>
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-5" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-bold text-slate-800 flex items-center gap-2"><Settings2 className="w-4 h-4 text-indigo-600" /> AI অ্যালার্ট সেটিংস</h4>
+              <button onClick={() => setSettingsOpen(false)} className="p-1 rounded hover:bg-slate-100"><X className="w-4 h-4 text-slate-500" /></button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <div className="text-sm font-medium text-slate-700 mb-2">কোন ধরনের সমস্যা দেখাবে</div>
+                <div className="space-y-2">
+                  {(["alert", "tip", "invest"] as AlertType[]).map((t) => {
+                    const st = styles[t];
+                    const checked = cfg.types.includes(t);
+                    const desc = t === "alert" ? "অতিরিক্ত খরচ, নগদ কম, লক্ষ্য পিছিয়ে" : t === "tip" ? "সাশ্রয় ও বাজেট পরামর্শ" : "সঞ্চয় ও বিনিয়োগ পরামর্শ";
+                    return (
+                      <label key={t} className={`flex items-start gap-2 p-2 rounded-lg border cursor-pointer ${checked ? st.ring + " " + st.bg : "border-slate-200 bg-white"}`}>
+                        <input type="checkbox" checked={checked} onChange={() => toggleType(t)} className="mt-1" />
+                        <div className="flex-1">
+                          <div className={`text-sm font-semibold ${st.fg}`}>{st.label}</div>
+                          <div className="text-xs text-slate-500">{desc}</div>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-slate-700 flex justify-between mb-1">
+                  <span>বেশি খরচ থ্রেশহোল্ড</span>
+                  <span className="text-indigo-600 font-semibold">{cfg.expenseRatioPct}% আয়ের</span>
+                </label>
+                <input type="range" min={20} max={150} step={5} value={cfg.expenseRatioPct}
+                  onChange={(e) => setCfg({ ...cfg, expenseRatioPct: Number(e.target.value) })}
+                  className="w-full accent-indigo-600" />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-slate-700 block mb-1">নগদ কম থ্রেশহোল্ড (৳)</label>
+                <input type="number" min={0} step={500} value={cfg.lowCashTk}
+                  onChange={(e) => setCfg({ ...cfg, lowCashTk: Math.max(0, Number(e.target.value) || 0) })}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+                <p className="text-xs text-slate-500 mt-1">অবশিষ্ট এর কম হলে অ্যালার্ট</p>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-slate-700 flex justify-between mb-1">
+                  <span>লক্ষ্য পিছিয়ে থ্রেশহোল্ড</span>
+                  <span className="text-indigo-600 font-semibold">{cfg.goalLagPct}%</span>
+                </label>
+                <input type="range" min={5} max={60} step={5} value={cfg.goalLagPct}
+                  onChange={(e) => setCfg({ ...cfg, goalLagPct: Number(e.target.value) })}
+                  className="w-full accent-indigo-600" />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-2 mt-5 pt-4 border-t border-slate-100">
+              <button onClick={resetCfg} className="text-xs text-slate-500 hover:text-slate-700 underline">ডিফল্টে ফিরান</button>
+              <div className="flex gap-2">
+                <button onClick={() => setSettingsOpen(false)} className="px-3 py-2 text-sm border border-slate-200 rounded-lg">বাতিল</button>
+                <button onClick={saveCfg} className="px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">সংরক্ষণ</button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
