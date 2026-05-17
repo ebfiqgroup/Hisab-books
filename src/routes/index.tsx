@@ -218,6 +218,9 @@ function Landing() {
         </div>
       </section>
 
+      {/* Pricing */}
+      <PricingSection primaryTo={primaryTo} />
+
       {/* CTA banner */}
       <section className="max-w-6xl mx-auto px-5 pb-20">
         <div className="relative overflow-hidden rounded-3xl p-10 md:p-14 text-white text-center" style={{ background: "var(--gradient-brand)" }}>
