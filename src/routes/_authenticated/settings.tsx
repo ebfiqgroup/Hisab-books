@@ -12,7 +12,7 @@ import {
 
 export const Route = createFileRoute("/_authenticated/settings")({ component: SettingsPage });
 
-type Profile = { id: string; full_name: string | null; avatar_url: string | null };
+type Profile = { id: string; full_name: string | null; avatar_url: string | null; ref_code: string | null };
 
 type Prefs = {
   chartRange: "সাপ্তাহিক" | "মাসিক" | "বার্ষিক";
@@ -76,7 +76,7 @@ function SettingsPage() {
     queryKey: ["profile", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select("id,full_name,avatar_url").eq("id", user!.id).maybeSingle();
+      const { data, error } = await supabase.from("profiles").select("id,full_name,avatar_url,ref_code").eq("id", user!.id).maybeSingle();
       if (error) throw error;
       return data as Profile | null;
     },
@@ -241,6 +241,21 @@ function SettingsPage() {
             </div>
             <div className="text-sm text-slate-500">আপনার ছবি ও নাম অ্যাপ জুড়ে দেখা যাবে।</div>
           </div>
+          {q.data?.ref_code && (
+            <div className="flex items-center justify-between mb-3 p-3 rounded-lg border bg-slate-50">
+              <div>
+                <div className="text-xs text-slate-500">আপনার রেফারেন্স নম্বর</div>
+                <div className="font-mono font-semibold text-lg tracking-wider">{q.data.ref_code}</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => { navigator.clipboard.writeText(q.data!.ref_code!); toast.success("কপি হয়েছে"); }}
+                className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg hover:bg-white"
+              >
+                কপি
+              </button>
+            </div>
+          )}
           <Field label="ইমেইল">
             <input value={user?.email ?? ""} disabled className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-500" />
           </Field>
