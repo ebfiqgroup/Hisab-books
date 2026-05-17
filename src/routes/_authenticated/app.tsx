@@ -29,6 +29,7 @@ const BN_DAYS = ["রবি", "সোম", "মঙ্গল", "বুধ", "ব�
 
 function Dashboard() {
   const { t, lang } = useLanguage();
+  const tr = t;
   const { forType } = useCustomCategories();
   const qc = useQueryClient();
   const [chartRange, setChartRange] = useState<"সাপ্তাহিক" | "মাসিক" | "বার্ষিক">(() => {
