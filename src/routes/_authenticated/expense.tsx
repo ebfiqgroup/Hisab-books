@@ -6,6 +6,8 @@ import { AppShell } from "@/components/AppShell";
 import { TxnDialog, type EditTxn } from "@/components/dashboard/TxnDialog";
 import { CategoryManager } from "@/components/dashboard/CategoryManager";
 import { fmtTk, toBn } from "@/lib/finance";
+import { useCustomCategories } from "@/hooks/useCustomCategories";
+import { useMemo } from "react";
 import { Plus, Trash2, TrendingDown, Pencil, Tags } from "lucide-react";
 import { toast } from "sonner";
 
@@ -18,6 +20,7 @@ function ExpensePage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<EditTxn | null>(null);
   const [catOpen, setCatOpen] = useState(false);
+  const { forType } = useCustomCategories();
   const q = useQuery({
     queryKey: ["transactions", "expense"],
     queryFn: async () => {
@@ -26,7 +29,11 @@ function ExpensePage() {
       return (data ?? []) as Txn[];
     },
   });
-  const list = q.data ?? [];
+  const allowed = useMemo(() => new Set(forType("expense")), [forType]);
+  const list = useMemo(
+    () => (q.data ?? []).filter((t) => allowed.has(t.category)),
+    [q.data, allowed],
+  );
   const total = list.reduce((s, t) => s + Number(t.amount), 0);
   const remove = async (id: string) => {
     if (!confirm("মুছে ফেলবেন?")) return;
