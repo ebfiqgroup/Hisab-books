@@ -316,10 +316,14 @@ function SettingsPage() {
           </Field>
           <Field label={t("ড্যাশবোর্ড চার্ট রেঞ্জ", "Dashboard chart range")}>
             <div className="flex gap-2">
-              {(["সাপ্তাহিক", "মাসিক", "বার্ষিক"] as const).map((r) => (
-                <button key={r} onClick={() => savePrefs({ ...prefs, chartRange: r })}
+              {([
+                ["সাপ্তাহিক", t("সাপ্তাহিক", "Weekly")],
+                ["মাসিক", t("মাসিক", "Monthly")],
+                ["বার্ষিক", t("বার্ষিক", "Yearly")],
+              ] as const).map(([r, label]) => (
+                <button key={r} onClick={() => savePrefs({ ...prefs, chartRange: r as Prefs["chartRange"] })}
                   className={`px-3 py-1.5 rounded-lg text-sm border ${prefs.chartRange === r ? "bg-indigo-600 text-white border-indigo-600" : "bg-white border-slate-200 text-slate-700"}`}>
-                  {r}
+                  {label}
                 </button>
               ))}
             </div>
@@ -377,7 +381,7 @@ function SettingsPage() {
               onChange={(e) => setAi({ ...ai, autoIntervalMin: Number(e.target.value) })}
               className="w-full accent-indigo-600 disabled:opacity-50" />
           </Field>
-          <PrimaryBtn onClick={() => saveAi(ai)}><Save className="w-4 h-4" /> সংরক্ষণ</PrimaryBtn>
+          <PrimaryBtn onClick={() => saveAi(ai)}><Save className="w-4 h-4" /> {t("সংরক্ষণ", "Save")}</PrimaryBtn>
         </Section>
 
         {/* Data management */}
