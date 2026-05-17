@@ -38,22 +38,30 @@ type Feedback = {
   created_at: string;
 };
 
-const STATUS_LABEL: Record<string, string> = {
-  open: "খোলা", in_progress: "চলমান", resolved: "সমাধান", closed: "বন্ধ",
-};
+const STATUS_KEYS = ["open", "in_progress", "resolved", "closed"] as const;
 const STATUS_COLOR: Record<string, string> = {
   open: "bg-amber-100 text-amber-700",
   in_progress: "bg-blue-100 text-blue-700",
   resolved: "bg-emerald-100 text-emerald-700",
   closed: "bg-slate-200 text-slate-600",
 };
-const PRIORITY_LABEL: Record<string, string> = {
-  low: "নিম্ন", normal: "সাধারণ", high: "উচ্চ", urgent: "জরুরি",
-};
+const PRIORITY_KEYS = ["low", "normal", "high", "urgent"] as const;
 
 function SupportPage() {
   const isAdmin = useIsAdmin();
   const { t } = useLanguage();
+  const statusLabel = (s: string) => (({
+    open: t("খোলা", "Open"),
+    in_progress: t("চলমান", "In progress"),
+    resolved: t("সমাধান", "Resolved"),
+    closed: t("বন্ধ", "Closed"),
+  } as Record<string, string>)[s] || s);
+  const priorityLabel = (p: string) => (({
+    low: t("নিম্ন", "Low"),
+    normal: t("সাধারণ", "Normal"),
+    high: t("উচ্চ", "High"),
+    urgent: t("জরুরি", "Urgent"),
+  } as Record<string, string>)[p] || p);
   const [uid, setUid] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string>("");
   const [userName, setUserName] = useState<string>("");
@@ -288,19 +296,19 @@ function SupportPage() {
 
   const createTicket = async () => {
     if (!uid || !newSubj.trim() || !newBody.trim()) return;
-    const { data: t, error } = await supabase
+    const { data: tk, error } = await supabase
       .from("support_tickets")
       .insert({ user_id: uid, subject: newSubj.trim(), priority: newPri })
       .select()
       .single();
     if (error) { toast.error(error.message); return; }
     await supabase.from("support_messages").insert({
-      ticket_id: t.id, sender_id: uid, is_admin: false, body: newBody.trim(),
+      ticket_id: tk.id, sender_id: uid, is_admin: false, body: newBody.trim(),
     });
-    toast.success("টিকেট তৈরি হয়েছে");
+    toast.success(t("টিকেট তৈরি হয়েছে", "Ticket created"));
     setShowNew(false); setNewSubj(""); setNewBody(""); setNewPri("normal");
     await load();
-    setSelected(t.id);
+    setSelected(tk.id);
   };
 
   const sendReply = async () => {
@@ -318,12 +326,12 @@ function SupportPage() {
     if (!selected) return;
     const { error } = await supabase.from("support_tickets").update({ status: s }).eq("id", selected);
     if (error) { toast.error(error.message); return; }
-    toast.success("স্ট্যাটাস আপডেট হয়েছে");
+    toast.success(t("স্ট্যাটাস আপডেট হয়েছে", "Status updated"));
     await load();
   };
 
   const deleteTicket = async (id: string) => {
-    if (!confirm("টিকেট ডিলিট করবেন?")) return;
+    if (!confirm(t("টিকেট ডিলিট করবেন?", "Delete this ticket?"))) return;
     const { error } = await supabase.from("support_tickets").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
     if (selected === id) setSelected(null);
@@ -332,15 +340,15 @@ function SupportPage() {
 
   return (
     <AppShell
-      title="সাপোর্ট"
+      title={t("সাপোর্ট", "Support")}
       actions={
         <div className="flex gap-2">
           <button onClick={() => { load(); if (isAdmin) loadFeedback(); }} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border text-sm hover:shadow-sm" style={{ borderColor: "var(--brand-line)" }}>
-            <RefreshCw className="w-4 h-4" /> রিফ্রেশ
+            <RefreshCw className="w-4 h-4" /> {t("রিফ্রেশ", "Refresh")}
           </button>
           {!isAdmin && (
             <button onClick={() => setShowNew(true)} className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-white" style={{ background: "var(--brand-emerald-700)" }}>
-              <Plus className="w-4 h-4" /> নতুন টিকেট
+              <Plus className="w-4 h-4" /> {t("নতুন টিকেট", "New ticket")}
             </button>
           )}
         </div>
@@ -517,18 +525,18 @@ function SupportPage() {
             <div className="flex items-center gap-2">
               <LifeBuoy className="w-5 h-5" style={{ color: "var(--brand-emerald-700)" }} />
               <h3 className="font-semibold" style={{ fontFamily: "var(--font-display)" }}>
-                {isAdmin ? "সব টিকেট" : "আমার টিকেট"}
+                {isAdmin ? t("সব টিকেট", "All tickets") : t("আমার টিকেট", "My tickets")}
               </h3>
             </div>
             <select value={filter} onChange={e => setFilter(e.target.value)} className="px-2 py-1 rounded-md border text-xs" style={{ borderColor: "var(--brand-line)" }}>
-              <option value="">সব</option>
-              {Object.entries(STATUS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              <option value="">{t("সব", "All")}</option>
+              {STATUS_KEYS.map((k) => <option key={k} value={k}>{statusLabel(k)}</option>)}
             </select>
           </div>
           {loading ? (
-            <div className="py-8 text-center text-sm text-slate-500">লোড হচ্ছে…</div>
+            <div className="py-8 text-center text-sm text-slate-500">{t("লোড হচ্ছে…", "Loading…")}</div>
           ) : filtered.length === 0 ? (
-            <div className="py-8 text-center text-sm text-slate-500">কোনো টিকেট নেই</div>
+            <div className="py-8 text-center text-sm text-slate-500">{t("কোনো টিকেট নেই", "No tickets")}</div>
           ) : (
             <div className="space-y-1.5 max-h-[70vh] overflow-y-auto">
               {filtered.map(tk => (
@@ -549,11 +557,11 @@ function SupportPage() {
                       {!seen[tk.id] && selected !== tk.id && (
                         <span className="inline-flex w-2 h-2 rounded-full bg-emerald-500" />
                       )}
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded ${STATUS_COLOR[tk.status]}`}>{STATUS_LABEL[tk.status]}</span>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded ${STATUS_COLOR[tk.status]}`}>{statusLabel(tk.status)}</span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between text-[11px] text-slate-500">
-                    <span>{isAdmin ? (names[tk.user_id] || tk.user_id.slice(0, 8)) : PRIORITY_LABEL[tk.priority]}</span>
+                    <span>{isAdmin ? (names[tk.user_id] || tk.user_id.slice(0, 8)) : priorityLabel(tk.priority)}</span>
                     <span>{new Date(tk.updated_at).toLocaleDateString("bn-BD")}</span>
                   </div>
                 </button>
@@ -567,7 +575,7 @@ function SupportPage() {
           {!current ? (
             <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
               <MessageSquare className="w-12 h-12 mb-2" />
-              <div className="text-sm">একটি টিকেট সিলেক্ট করুন</div>
+              <div className="text-sm">{t("একটি টিকেট সিলেক্ট করুন", "Select a ticket")}</div>
             </div>
           ) : (
             <>
@@ -575,17 +583,17 @@ function SupportPage() {
                 <div>
                   <div className="font-semibold" style={{ fontFamily: "var(--font-display)" }}>{current.subject}</div>
                   <div className="text-xs text-slate-500 mt-0.5">
-                    {isAdmin && <>ইউজার: <span className="font-medium">{names[current.user_id] || current.user_id.slice(0, 8)}</span> · </>}
-                    অগ্রাধিকার: {PRIORITY_LABEL[current.priority]} · {new Date(current.created_at).toLocaleString("bn-BD")}
+                    {isAdmin && <>{t("ইউজার", "User")}: <span className="font-medium">{names[current.user_id] || current.user_id.slice(0, 8)}</span> · </>}
+                    {t("অগ্রাধিকার", "Priority")}: {priorityLabel(current.priority)} · {new Date(current.created_at).toLocaleString("bn-BD")}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   {isAdmin ? (
                     <select value={current.status} onChange={e => updateStatus(e.target.value as any)} className="px-2 py-1 rounded-md border text-xs" style={{ borderColor: "var(--brand-line)" }}>
-                      {Object.entries(STATUS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                      {STATUS_KEYS.map((k) => <option key={k} value={k}>{statusLabel(k)}</option>)}
                     </select>
                   ) : (
-                    <span className={`text-xs px-2 py-1 rounded ${STATUS_COLOR[current.status]}`}>{STATUS_LABEL[current.status]}</span>
+                    <span className={`text-xs px-2 py-1 rounded ${STATUS_COLOR[current.status]}`}>{statusLabel(current.status)}</span>
                   )}
                   {(isAdmin || current.user_id === uid) && (
                     <button onClick={() => deleteTicket(current.id)} className="p-1.5 rounded-md hover:bg-rose-50 text-rose-600">
@@ -605,7 +613,7 @@ function SupportPage() {
                       }}>
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: m.is_admin ? "var(--brand-emerald-700)" : "rgb(100 116 139)" }}>
-                            {m.is_admin ? "অ্যাডমিন" : "ইউজার"}
+                            {m.is_admin ? t("অ্যাডমিন", "Admin") : t("ইউজার", "User")}
                           </span>
                           <span className="text-[10px] text-slate-400">{new Date(m.created_at).toLocaleString("bn-BD")}</span>
                         </div>
@@ -620,13 +628,13 @@ function SupportPage() {
                   <textarea
                     value={reply}
                     onChange={e => setReply(e.target.value)}
-                    placeholder={isAdmin ? "অ্যাডমিন রিপ্লাই…" : "আপনার বার্তা লিখুন…"}
+                    placeholder={isAdmin ? t("অ্যাডমিন রিপ্লাই…", "Admin reply…") : t("আপনার বার্তা লিখুন…", "Write your message…")}
                     className="flex-1 px-3 py-2 rounded-md border text-sm resize-none"
                     style={{ borderColor: "var(--brand-line)" }}
                     rows={2}
                   />
                   <button onClick={sendReply} disabled={!reply.trim()} className="px-4 rounded-md text-white text-sm disabled:opacity-50 flex items-center gap-2" style={{ background: "var(--brand-emerald-700)" }}>
-                    <Send className="w-4 h-4" /> পাঠান
+                    <Send className="w-4 h-4" /> {t("পাঠান", "Send")}
                   </button>
                 </div>
               )}
@@ -639,26 +647,26 @@ function SupportPage() {
       {showNew && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={() => setShowNew(false)}>
           <div className="brand-card p-6 max-w-lg w-full" onClick={e => e.stopPropagation()}>
-            <h3 className="text-lg font-semibold mb-4" style={{ fontFamily: "var(--font-display)" }}>নতুন সাপোর্ট টিকেট</h3>
+            <h3 className="text-lg font-semibold mb-4" style={{ fontFamily: "var(--font-display)" }}>{t("নতুন সাপোর্ট টিকেট", "New support ticket")}</h3>
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-medium text-slate-600">বিষয়</label>
+                <label className="text-xs font-medium text-slate-600">{t("বিষয়", "Subject")}</label>
                 <input value={newSubj} onChange={e => setNewSubj(e.target.value)} className="w-full mt-1 px-3 py-2 rounded-md border text-sm" style={{ borderColor: "var(--brand-line)" }} />
               </div>
               <div>
-                <label className="text-xs font-medium text-slate-600">অগ্রাধিকার</label>
+                <label className="text-xs font-medium text-slate-600">{t("অগ্রাধিকার", "Priority")}</label>
                 <select value={newPri} onChange={e => setNewPri(e.target.value as any)} className="w-full mt-1 px-3 py-2 rounded-md border text-sm" style={{ borderColor: "var(--brand-line)" }}>
-                  {Object.entries(PRIORITY_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                  {PRIORITY_KEYS.map((k) => <option key={k} value={k}>{priorityLabel(k)}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-xs font-medium text-slate-600">সমস্যার বিবরণ</label>
+                <label className="text-xs font-medium text-slate-600">{t("সমস্যার বিবরণ", "Problem description")}</label>
                 <textarea value={newBody} onChange={e => setNewBody(e.target.value)} rows={5} className="w-full mt-1 px-3 py-2 rounded-md border text-sm resize-none" style={{ borderColor: "var(--brand-line)" }} />
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-5">
-              <button onClick={() => setShowNew(false)} className="px-4 py-2 rounded-md border text-sm" style={{ borderColor: "var(--brand-line)" }}>বাতিল</button>
-              <button onClick={createTicket} disabled={!newSubj.trim() || !newBody.trim()} className="px-4 py-2 rounded-md text-white text-sm disabled:opacity-50" style={{ background: "var(--brand-emerald-700)" }}>জমা দিন</button>
+              <button onClick={() => setShowNew(false)} className="px-4 py-2 rounded-md border text-sm" style={{ borderColor: "var(--brand-line)" }}>{t("বাতিল", "Cancel")}</button>
+              <button onClick={createTicket} disabled={!newSubj.trim() || !newBody.trim()} className="px-4 py-2 rounded-md text-white text-sm disabled:opacity-50" style={{ background: "var(--brand-emerald-700)" }}>{t("জমা দিন", "Submit")}</button>
             </div>
           </div>
         </div>
