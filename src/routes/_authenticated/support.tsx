@@ -70,6 +70,9 @@ function SupportPage() {
   const [filter, setFilter] = useState<string>("");
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
   const [fbLoading, setFbLoading] = useState(false);
+  const [selectedFb, setSelectedFb] = useState<string | null>(null);
+  const [fbReply, setFbReply] = useState("");
+  const [fbReplying, setFbReplying] = useState(false);
   const [seen, setSeen] = useState<Record<string, string>>({});
 
   // Load last-seen ticket times from localStorage (per user, for new-reply badge)
@@ -227,6 +230,23 @@ function SupportPage() {
     const { error } = await supabase.from("leads").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
     setFeedbacks(prev => prev.filter(f => f.id !== id));
+    if (selectedFb === id) { setSelectedFb(null); setFbReply(""); }
+  };
+
+  const saveFbReply = async () => {
+    if (!selectedFb || !fbReply.trim()) return;
+    const fb = feedbacks.find(f => f.id === selectedFb);
+    if (!fb) return;
+    setFbReplying(true);
+    const stamp = new Date().toLocaleString("bn-BD");
+    const header = t("অ্যাডমিন রিপ্লাই", "Admin reply");
+    const appended = `${fb.message || ""}\n\n--- ${header} (${stamp}) ---\n${fbReply.trim()}`;
+    const { error } = await supabase.from("leads").update({ message: appended }).eq("id", selectedFb);
+    setFbReplying(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success(t("রিপ্লাই সেভ হয়েছে", "Reply saved"));
+    setFeedbacks(prev => prev.map(f => f.id === selectedFb ? { ...f, message: appended } : f));
+    setFbReply("");
   };
 
   const extractAttachments = (msg: string | null) => {
@@ -350,7 +370,12 @@ function SupportPage() {
               {feedbacks.map(f => {
                 const { text, urls, rating } = extractAttachments(f.message);
                 return (
-                  <div key={f.id} className="p-3 rounded-lg border" style={{ borderColor: "var(--brand-line)" }}>
+                  <div
+                    key={f.id}
+                    onClick={() => { setSelectedFb(s => s === f.id ? null : f.id); setFbReply(""); }}
+                    className={`p-3 rounded-lg border cursor-pointer transition-all ${selectedFb === f.id ? "shadow-sm" : "hover:bg-slate-50"}`}
+                    style={{ borderColor: selectedFb === f.id ? "var(--brand-emerald-700)" : "var(--brand-line)" }}
+                  >
                     <div className="flex items-start justify-between gap-3 mb-1">
                       <div className="min-w-0">
                         <div className="text-sm font-medium truncate">{f.name || t("নামহীন", "Anonymous")}</div>
@@ -363,7 +388,7 @@ function SupportPage() {
                           </span>
                         )}
                         <span className="text-[11px] text-slate-400">{new Date(f.created_at).toLocaleString("bn-BD")}</span>
-                        <button onClick={() => deleteFeedback(f.id)} className="p-1 rounded hover:bg-rose-50 text-rose-600">
+                        <button onClick={(e) => { e.stopPropagation(); deleteFeedback(f.id); }} className="p-1 rounded hover:bg-rose-50 text-rose-600">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -372,10 +397,42 @@ function SupportPage() {
                     {urls.length > 0 && (
                       <div className="flex flex-wrap gap-2 mt-2">
                         {urls.map(u => (
-                          <a key={u} href={u} target="_blank" rel="noreferrer" className="block w-16 h-16 rounded-md overflow-hidden border" style={{ borderColor: "var(--brand-line)" }}>
+                          <a key={u} href={u} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="block w-16 h-16 rounded-md overflow-hidden border" style={{ borderColor: "var(--brand-line)" }}>
                             <img src={u} alt="" className="w-full h-full object-cover" />
                           </a>
                         ))}
+                      </div>
+                    )}
+                    {selectedFb === f.id && (
+                      <div onClick={e => e.stopPropagation()} className="mt-3 pt-3 border-t" style={{ borderColor: "var(--brand-line)" }}>
+                        <label className="text-xs font-medium text-slate-600">{t("রিপ্লাই/আপডেট লিখুন", "Write reply / update")}</label>
+                        <textarea
+                          value={fbReply}
+                          onChange={e => setFbReply(e.target.value)}
+                          rows={3}
+                          maxLength={1000}
+                          placeholder={t("আপনার রিপ্লাই এখানে লিখুন…", "Write your reply here…")}
+                          className="w-full mt-1 px-3 py-2 rounded-md border text-sm resize-none"
+                          style={{ borderColor: "var(--brand-line)" }}
+                        />
+                        <div className="flex items-center justify-between mt-2">
+                          <a
+                            href={`mailto:${f.email}?subject=${encodeURIComponent(t("আপনার ফিডব্যাকের উত্তর", "Re: your feedback"))}&body=${encodeURIComponent(fbReply)}`}
+                            className="text-xs px-3 py-1.5 rounded-md border hover:bg-slate-50"
+                            style={{ borderColor: "var(--brand-line)" }}
+                          >
+                            {t("ইমেইলে পাঠান", "Send via email")}
+                          </a>
+                          <button
+                            onClick={saveFbReply}
+                            disabled={fbReplying || !fbReply.trim()}
+                            className="text-xs px-3 py-1.5 rounded-md text-white disabled:opacity-50 flex items-center gap-1.5"
+                            style={{ background: "var(--brand-emerald-700)" }}
+                          >
+                            {fbReplying ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                            {t("রিপ্লাই সেভ করুন", "Save reply")}
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
