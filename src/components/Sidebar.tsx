@@ -51,9 +51,11 @@ export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean;
         />
       )}
       <aside
-        className={`w-64 flex flex-col h-screen overflow-y-auto relative bg-clip-border z-50 transition-transform duration-300
-          fixed top-0 left-0 lg:sticky lg:translate-x-0
-          ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
+        className={`w-64 flex-col h-screen overflow-y-auto bg-clip-border z-50 transition-transform duration-300
+          lg:sticky lg:top-0 lg:flex lg:translate-x-0 lg:relative
+          ${mobileOpen
+            ? "fixed top-0 left-0 flex translate-x-0"
+            : "hidden -translate-x-full"}`}
         style={{ background: "var(--gradient-sidebar)", color: "var(--brand-ivory)" }}
       >
       <div className="absolute inset-y-0 right-0 w-px" style={{ background: "linear-gradient(180deg, transparent, color-mix(in oklab, var(--brand-gold-500) 50%, transparent), transparent)" }} />
