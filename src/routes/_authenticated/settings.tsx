@@ -4,10 +4,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/hooks/useLanguage";
 import { toast } from "sonner";
 import {
   LogOut, User as UserIcon, KeyRound, SlidersHorizontal, Sparkles,
-  Download, Upload, Trash2, AlertTriangle, Save, ImagePlus,
+  Download, Upload, Trash2, AlertTriangle, Save, ImagePlus, Languages,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({ component: SettingsPage });
@@ -61,6 +62,7 @@ function SettingsPage() {
   const qc = useQueryClient();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { lang, setLang, t } = useLanguage();
   const [name, setName] = useState("");
   const [avatar, setAvatar] = useState("");
   const [busy, setBusy] = useState(false);
