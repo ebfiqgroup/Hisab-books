@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Clock, Ban, LogOut } from "lucide-react";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
+import { RealtimeStatusProvider } from "@/hooks/useRealtimeStatus";
 
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async () => {
@@ -40,7 +41,7 @@ function AuthGate() {
     return () => { cancel = true; subscription.unsubscribe(); };
   }, [navigate]);
 
-  useRealtimeSync(userId);
+  const rtStatus = useRealtimeSync(userId);
 
   if (status === "pending" || status === "suspended") {
     const isPending = status === "pending";
@@ -72,5 +73,9 @@ function AuthGate() {
     );
   }
 
-  return <Outlet />;
+  return (
+    <RealtimeStatusProvider value={rtStatus}>
+      <Outlet />
+    </RealtimeStatusProvider>
+  );
 }

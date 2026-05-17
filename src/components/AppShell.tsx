@@ -5,6 +5,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { Link, useNavigate, useRouter, useLocation } from "@tanstack/react-router";
 import { RefCodeBadge } from "./RefCodeBadge";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useRealtimeStatus } from "@/hooks/useRealtimeStatus";
+import { RealtimeStatusBadge } from "./RealtimeStatusBadge";
 
 export function AppShell({ title, actions, children }: { title: ReactNode; actions?: ReactNode; children: ReactNode }) {
   const { user, signOut } = useAuth();
@@ -12,6 +14,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
   const router = useRouter();
   const location = useLocation();
   const { t } = useLanguage();
+  const rtStatus = useRealtimeStatus();
   const [menuOpen, setMenuOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
@@ -81,6 +84,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
           )}
           <div className="flex items-center gap-2 md:gap-3 flex-wrap w-full lg:w-auto lg:justify-end">
             <div className="hidden lg:flex items-center gap-2 md:gap-3 flex-wrap">{actions}</div>
+            <RealtimeStatusBadge status={rtStatus} />
             <Link
               to="/support"
               title={t("nav.support")}
