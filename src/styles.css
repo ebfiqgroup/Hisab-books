@@ -222,4 +222,53 @@
   border: 1px solid var(--brand-line);
   box-shadow: var(--shadow-soft);
   border-radius: 1rem;
+  transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 220ms ease,
+              border-color 220ms ease;
+  will-change: transform;
+}
+.brand-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-elegant);
+  border-color: color-mix(in oklab, var(--brand-gold-500) 45%, var(--brand-line));
+}
+
+/* Generic interactive hover for any card/tile/panel */
+.hover-lift {
+  transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 220ms ease,
+              border-color 220ms ease,
+              background-color 220ms ease;
+}
+.hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-elegant);
+  border-color: color-mix(in oklab, var(--brand-gold-500) 45%, var(--brand-line));
+}
+
+/* Auto-apply subtle hover to common surfaces site-wide */
+main .rounded-xl,
+main .rounded-2xl,
+main [class*="border"]:where(.bg-white, .bg-card) {
+  transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 220ms ease,
+              border-color 220ms ease;
+}
+main .rounded-xl:hover,
+main .rounded-2xl:hover,
+main [class*="border"]:where(.bg-white, .bg-card):hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-soft);
+  border-color: color-mix(in oklab, var(--brand-gold-500) 35%, var(--brand-line));
+}
+
+/* Buttons & interactive icons gentle response */
+button:not(:disabled),
+a {
+  transition: transform 180ms ease, box-shadow 180ms ease,
+              background-color 180ms ease, color 180ms ease,
+              border-color 180ms ease, opacity 180ms ease;
+}
+button:not(:disabled):hover {
+  transform: translateY(-1px);
 }
