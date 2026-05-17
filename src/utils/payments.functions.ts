@@ -1,7 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { gatewayFetch, type PaddleEnv } from "@/lib/paddle.server";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export const resolvePaddlePrice = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: { priceId: string; environment: PaddleEnv }) => data)
   .handler(async ({ data }) => {
     const response = await gatewayFetch(
