@@ -8,6 +8,18 @@ import { fmtTk, toBn, loadCustomCats, saveCustomCats, allCatsForType } from "@/l
 type Rule = { id: string; category: string; percent: number };
 
 const LS_KEY = "salary_allocation_rules_v1";
+const LS_AUTO = "salary_auto_monthly_v1";
+const AUTO_DEFAULT_IDS = ["sadaqa", "urgent", "savings"];
+type AutoCfg = { enabled: boolean; salary: number; ruleIds: string[]; lastMonth: string };
+const loadAuto = (): AutoCfg => {
+  try {
+    const raw = JSON.parse(localStorage.getItem(LS_AUTO) || "null");
+    if (raw && typeof raw === "object") return { enabled: !!raw.enabled, salary: Number(raw.salary) || 0, ruleIds: Array.isArray(raw.ruleIds) ? raw.ruleIds : AUTO_DEFAULT_IDS, lastMonth: typeof raw.lastMonth === "string" ? raw.lastMonth : "" };
+  } catch { /* ignore */ }
+  return { enabled: false, salary: 0, ruleIds: AUTO_DEFAULT_IDS, lastMonth: "" };
+};
+const saveAuto = (a: AutoCfg) => localStorage.setItem(LS_AUTO, JSON.stringify(a));
+const currentMonth = () => new Date().toISOString().slice(0, 7);
 
 const DEFAULT_RULES: Rule[] = [
   { id: "self",     category: "নিজের",   percent: 7 },
@@ -37,8 +49,10 @@ export function SalaryAllocator() {
   const [draftPct, setDraftPct] = useState("");
   const [adding, setAdding] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [auto, setAuto] = useState<AutoCfg>(() => loadAuto());
 
   useEffect(() => { saveRules(rules); }, [rules]);
+  useEffect(() => { saveAuto(auto); }, [auto]);
 
   // Ensure a category exists in the expense category list; if not, add as custom.
   const ensureCategory = (cat: string) => {
@@ -58,6 +72,43 @@ export function SalaryAllocator() {
     saveCustomCats(next);
     return toAdd.length;
   };
+
+  // Run auto-allocation for selected ruleIds (used by monthly auto + manual)
+  const runAuto = async (cfg: AutoCfg, opts: { silent?: boolean } = {}) => {
+    const selected = rules.filter((r) => cfg.ruleIds.includes(r.id) && r.percent > 0);
+    if (selected.length === 0 || cfg.salary <= 0) return false;
+    const { data: u } = await supabase.auth.getUser();
+    const user_id = u?.user?.id;
+    if (!user_id) return false;
+    ensureCategories(selected.map((r) => r.category));
+    const today = new Date().toISOString().slice(0, 10);
+    const rows = selected.map((r) => ({
+      user_id,
+      type: "expense" as const,
+      category: r.category,
+      amount: Math.round((cfg.salary * r.percent) / 100),
+      occurred_on: today,
+      note: `মাসিক অটো-বণ্টন (${toBn(r.percent)}%)`,
+    }));
+    const { error } = await supabase.from("transactions").insert(rows);
+    if (error) { if (!opts.silent) toast.error(error.message); return false; }
+    qc.invalidateQueries({ queryKey: ["transactions"] });
+    if (!opts.silent) toast.success(`${toBn(rows.length)}টি মাসিক বণ্টন যোগ হয়েছে`);
+    return true;
+  };
+
+  // Monthly auto-run: when enabled and current month not yet processed
+  useEffect(() => {
+    if (!auto.enabled) return;
+    const m = currentMonth();
+    if (auto.lastMonth === m) return;
+    if (auto.salary <= 0) return;
+    (async () => {
+      const ok = await runAuto(auto, { silent: false });
+      if (ok) setAuto((a) => ({ ...a, lastMonth: m }));
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auto.enabled, auto.salary, auto.ruleIds.join(","), rules]);
 
   const base = Number(salary) || 0;
   const totalPct = useMemo(() => rules.reduce((s, r) => s + r.percent, 0), [rules]);
@@ -158,6 +209,69 @@ export function SalaryAllocator() {
         <button onClick={resetDefaults} className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md border border-slate-200 hover:bg-slate-50 text-slate-600">
           <RotateCcw className="w-3.5 h-3.5" /> ডিফল্ট
         </button>
+      </div>
+
+      {/* Monthly auto-allocation panel */}
+      <div className="mb-4 p-3 rounded-lg border border-indigo-100 bg-indigo-50/40">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={auto.enabled}
+            onChange={(e) => setAuto((a) => ({ ...a, enabled: e.target.checked, lastMonth: e.target.checked ? a.lastMonth : "" }))}
+            className="w-4 h-4 accent-indigo-600"
+          />
+          <span className="text-sm font-medium text-slate-800">প্রতি মাসে অটো-বণ্টন চালু</span>
+        </label>
+        <div className="text-[11px] text-slate-500 mt-1 ml-6">প্রতি মাসে প্রথমবার পেজ খুললে নির্বাচিত খাতগুলো ব্যয় হিসেবে যোগ হবে</div>
+        {auto.enabled && (
+          <div className="mt-3 ml-6 space-y-2">
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-slate-600 shrink-0 w-24">মাসিক বেতন (৳)</label>
+              <input
+                type="number"
+                min={0}
+                value={auto.salary || ""}
+                onChange={(e) => setAuto((a) => ({ ...a, salary: Number(e.target.value) || 0 }))}
+                placeholder="যেমন: 50000"
+                className="flex-1 px-2 py-1.5 border border-slate-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-indigo-400"
+              />
+            </div>
+            <div>
+              <div className="text-xs text-slate-600 mb-1">নির্বাচিত খাত:</div>
+              <div className="flex flex-wrap gap-2">
+                {rules.map((r) => {
+                  const checked = auto.ruleIds.includes(r.id);
+                  return (
+                    <label key={r.id} className={`flex items-center gap-1.5 px-2 py-1 rounded-md border text-xs cursor-pointer ${checked ? "border-indigo-300 bg-white text-indigo-700" : "border-slate-200 bg-white text-slate-600"}`}>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(e) => setAuto((a) => ({ ...a, ruleIds: e.target.checked ? [...a.ruleIds, r.id] : a.ruleIds.filter((x) => x !== r.id) }))}
+                        className="w-3 h-3 accent-indigo-600"
+                      />
+                      {r.category} ({toBn(r.percent)}%)
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap text-[11px] text-slate-500">
+              <span>সর্বশেষ মাস: {auto.lastMonth ? toBn(auto.lastMonth) : "—"}</span>
+              <button
+                onClick={async () => {
+                  if (auto.salary <= 0) { toast.error("বেতন দিন"); return; }
+                  const ok = await runAuto(auto);
+                  if (ok) setAuto((a) => ({ ...a, lastMonth: currentMonth() }));
+                }}
+                className="ml-auto px-2 py-1 rounded border border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+              >এখনই চালান</button>
+              <button
+                onClick={() => setAuto((a) => ({ ...a, lastMonth: "" }))}
+                className="px-2 py-1 rounded border border-slate-200 text-slate-600 hover:bg-slate-50"
+              >মাস রিসেট</button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-2 mb-4">
