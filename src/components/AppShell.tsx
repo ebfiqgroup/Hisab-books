@@ -33,19 +33,21 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
   return (
     <div className="h-screen flex overflow-hidden" style={{ background: "var(--gradient-page)" }}>
       <Sidebar mobileOpen={navOpen} onClose={() => setNavOpen(false)} />
-      <main className="flex-1 p-4 md:p-6 overflow-y-auto h-screen w-full min-w-0">
-        <div className="flex items-center justify-between gap-2 mb-6 flex-wrap" ref={ref}>
+      <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto h-screen w-full min-w-0">
+        <div className="flex items-center justify-between gap-2 mb-4 lg:mb-6 flex-wrap" ref={ref}>
           <div className="flex items-center gap-2 md:gap-3 min-w-0">
             <button
               onClick={() => setNavOpen(true)}
-              className="lg:hidden p-2 bg-white rounded-lg border hover:shadow-sm transition shrink-0"
+              className="lg:hidden p-2 bg-white rounded-lg border hover:shadow-sm transition shrink-0 flex flex-col gap-[3px] items-center justify-center w-9 h-9"
               style={{ borderColor: "var(--brand-line)" }}
-              aria-label="Open menu"
+              aria-label="মেনু খুলুন"
             >
-              <Menu className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
+              <span className="block w-4 h-[2px] rounded" style={{ background: "var(--brand-ink)" }} />
+              <span className="block w-4 h-[2px] rounded" style={{ background: "var(--brand-ink)" }} />
+              <span className="block w-4 h-[2px] rounded" style={{ background: "var(--brand-ink)" }} />
             </button>
             <span className="hidden md:block h-7 w-1 rounded-full" style={{ background: "var(--gradient-brand)" }} />
-            <h1 className="text-xl md:text-2xl lg:text-3xl tracking-tight truncate" style={{ fontFamily: "var(--font-display)", color: "var(--brand-ink)" }}>{title}</h1>
+            <h1 className="text-lg md:text-2xl lg:text-3xl tracking-tight truncate" style={{ fontFamily: "var(--font-display)", color: "var(--brand-ink)" }}>{title}</h1>
           </div>
           <div className="flex items-center gap-2 md:gap-3 flex-wrap">
             {actions}
