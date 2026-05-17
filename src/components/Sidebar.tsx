@@ -56,7 +56,12 @@ export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean;
           ${mobileOpen
             ? "fixed top-0 left-0 flex translate-x-0"
             : "hidden -translate-x-full"}`}
-        style={{ background: "var(--gradient-sidebar)", color: "var(--brand-ivory)" }}
+        style={{
+          background: mobileOpen
+            ? "linear-gradient(180deg, #2a3245 0%, #3a4358 100%)"
+            : "var(--gradient-sidebar)",
+          color: "var(--brand-ivory)",
+        }}
       >
       <div className="absolute inset-y-0 right-0 w-px" style={{ background: "linear-gradient(180deg, transparent, color-mix(in oklab, var(--brand-gold-500) 50%, transparent), transparent)" }} />
       <div className="p-5 flex items-center gap-3 border-b border-white/10">
