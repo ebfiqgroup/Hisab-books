@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, useMemo } from "react";
 import { AppShell } from "@/components/AppShell";
-import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/useRole";
 import { fmtTk, monthBounds, BN_MONTHS } from "@/lib/finance";
+import { useServerFn } from "@tanstack/react-start";
+import { adminGetUserDashboard } from "@/lib/admin-users.functions";
 import {
   ArrowLeft, Shield, Wallet, ArrowDown, PiggyBank, Users, TrendingDown,
   Target, StickyNote, ListTodo, ArrowLeftRight, RefreshCw, Mail, User as UserIcon,
@@ -29,6 +30,7 @@ const BN_DAYS = ["রবি", "সোম", "মঙ্গল", "বুধ", "ব�
 function AdminUserView() {
   const { userId } = Route.useParams();
   const isAdmin = useIsAdmin();
+  const getDashboard = useServerFn(adminGetUserDashboard);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [email, setEmail] = useState<string | null>(null);
@@ -41,28 +43,19 @@ function AdminUserView() {
 
   const load = async () => {
     setLoading(true);
-    const [p, t, d, g, n, k, b] = await Promise.all([
-      supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
-      supabase.from("transactions").select("id,type,category,amount,occurred_on,note").eq("user_id", userId).order("occurred_on", { ascending: false }).limit(1000),
-      supabase.from("debts").select("id,kind,amount,settled,person,due_date,note").eq("user_id", userId).order("created_at", { ascending: false }),
-      supabase.from("goals").select("id,label,target,current,color,deadline").eq("user_id", userId).order("created_at", { ascending: false }),
-      supabase.from("notes").select("id,body,created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(50),
-      supabase.from("plan_tasks").select("id,task,due_text,amount_text,priority,done").eq("user_id", userId).order("created_at", { ascending: false }),
-      supabase.from("budgets").select("id,category,monthly_limit,label").eq("user_id", userId).order("created_at", { ascending: false }),
-    ]);
-    setProfile((p.data as Profile) || null);
-    setTxns((t.data as Txn[]) || []);
-    setDebts((d.data as Debt[]) || []);
-    setGoals((g.data as Goal[]) || []);
-    setNotes((n.data as Note[]) || []);
-    setTasks((k.data as Task[]) || []);
-    setBudgets((b.data as Budget[]) || []);
-    // try to fetch email via admin RPC if available — fallback skip
     try {
-      const { data: ad } = await supabase.rpc("admin_user_email" as any, { _user_id: userId });
-      if (ad) setEmail(String(ad));
-    } catch {}
-    setLoading(false);
+      const data = await getDashboard({ data: { user_id: userId } });
+      setProfile((data.profile as Profile) || null);
+      setEmail(data.email);
+      setTxns((data.txns as Txn[]) || []);
+      setDebts((data.debts as Debt[]) || []);
+      setGoals((data.goals as Goal[]) || []);
+      setNotes((data.notes as Note[]) || []);
+      setTasks((data.tasks as Task[]) || []);
+      setBudgets((data.budgets as Budget[]) || []);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { if (isAdmin) load(); }, [isAdmin, userId]);
