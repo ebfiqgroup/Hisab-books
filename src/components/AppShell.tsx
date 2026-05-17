@@ -29,8 +29,14 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
 
   const showBack = location.pathname !== "/app" && location.pathname !== "/";
   const goBack = () => {
-    if (window.history.length > 1) router.history.back();
-    else navigate({ to: "/app" });
+    try {
+      const idx = (router.history as unknown as { index?: number }).index ?? 0;
+      if (idx > 0) {
+        router.history.back();
+        return;
+      }
+    } catch { /* noop */ }
+    navigate({ to: "/app" });
   };
 
   const doSignOut = async () => {
