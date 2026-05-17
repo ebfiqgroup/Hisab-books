@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   Home, Wallet, TrendingDown, ArrowLeftRight, Clock, Target,
-  Users, BarChart3, Calendar, Settings, ShieldCheck,
+  Users, BarChart3, Calendar, Settings, ShieldCheck, Activity,
 } from "lucide-react";
 import { useIsAdmin } from "@/hooks/useRole";
 
@@ -22,7 +22,11 @@ export function Sidebar() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const isAdmin = useIsAdmin();
   const items = isAdmin
-    ? [...navItems, { icon: ShieldCheck, label: "অ্যাডমিন", to: "/admin" as const }]
+    ? [
+        ...navItems,
+        { icon: ShieldCheck, label: "অ্যাডমিন", to: "/admin" as const },
+        { icon: Activity, label: "অডিট লগ", to: "/audit" as const },
+      ]
     : navItems;
   return (
     <aside className="w-64 flex flex-col h-screen sticky top-0 overflow-y-auto relative" style={{ background: "var(--gradient-sidebar)", color: "var(--brand-ivory)" }}>
