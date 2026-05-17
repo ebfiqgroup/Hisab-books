@@ -14,6 +14,7 @@ type Props = {
   expenseByCategory: { category: string; amount: number }[];
   incomeByCategory: { category: string; amount: number }[];
   goals: { label: string; target: number; current: number }[];
+  budgets?: { category: string; limit: number; spent: number }[];
   monthLabel: string;
 };
 
