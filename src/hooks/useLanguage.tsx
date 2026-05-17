@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
+import { setFinanceLang } from "@/lib/finance";
 
 export type Lang = "bn" | "en";
 const KEY = "app_lang_v1";
@@ -79,7 +80,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const saved = localStorage.getItem(KEY) as Lang | null;
-      if (saved === "bn" || saved === "en") setLangState(saved);
+      if (saved === "bn" || saved === "en") { setLangState(saved); setFinanceLang(saved); }
       else {
         const navLangs: string[] = [];
         if (typeof navigator !== "undefined") {
@@ -89,6 +90,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         const isBn = navLangs.some((l) => l?.toLowerCase().startsWith("bn"));
         const detected: Lang = isBn ? "bn" : "en";
         setLangState(detected);
+        setFinanceLang(detected);
         if (typeof document !== "undefined") document.documentElement.lang = detected;
       }
     } catch { /* noop */ }
@@ -96,6 +98,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   const setLang = useCallback((l: Lang) => {
     setLangState(l);
+    setFinanceLang(l);
     try { localStorage.setItem(KEY, l); } catch { /* noop */ }
     if (typeof document !== "undefined") document.documentElement.lang = l;
   }, []);
