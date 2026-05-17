@@ -268,6 +268,7 @@ export type Database = {
       }
     }
     Functions: {
+      admin_delete_user: { Args: { _user_id: string }; Returns: boolean }
       claim_admin_if_none: { Args: never; Returns: boolean }
       has_role: {
         Args: {
