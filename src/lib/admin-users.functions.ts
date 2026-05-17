@@ -65,3 +65,37 @@ export const adminSendPasswordReset = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+export const adminGetUserDashboard = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ user_id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context as any;
+    await assertAdmin(supabase, userId);
+
+    const [profileRes, txnsRes, debtsRes, goalsRes, notesRes, tasksRes, budgetsRes, authRes] = await Promise.all([
+      supabaseAdmin.from("profiles").select("id,full_name,avatar_url,status,created_at").eq("id", data.user_id).maybeSingle(),
+      supabaseAdmin.from("transactions").select("id,type,category,amount,occurred_on,note").eq("user_id", data.user_id).order("occurred_on", { ascending: false }).limit(1000),
+      supabaseAdmin.from("debts").select("id,kind,amount,settled,person,due_date,note").eq("user_id", data.user_id).order("created_at", { ascending: false }),
+      supabaseAdmin.from("goals").select("id,label,target,current,color,deadline").eq("user_id", data.user_id).order("created_at", { ascending: false }),
+      supabaseAdmin.from("notes").select("id,body,created_at").eq("user_id", data.user_id).order("created_at", { ascending: false }).limit(50),
+      supabaseAdmin.from("plan_tasks").select("id,task,due_text,amount_text,priority,done").eq("user_id", data.user_id).order("created_at", { ascending: false }),
+      supabaseAdmin.from("budgets").select("id,category,monthly_limit,label").eq("user_id", data.user_id).order("created_at", { ascending: false }),
+      supabaseAdmin.auth.admin.getUserById(data.user_id),
+    ]);
+
+    const firstError = [profileRes, txnsRes, debtsRes, goalsRes, notesRes, tasksRes, budgetsRes]
+      .find((res) => res.error)?.error;
+    if (firstError) throw new Error(firstError.message);
+
+    return {
+      profile: profileRes.data,
+      email: authRes.data?.user?.email ?? null,
+      txns: txnsRes.data ?? [],
+      debts: debtsRes.data ?? [],
+      goals: goalsRes.data ?? [],
+      notes: notesRes.data ?? [],
+      tasks: tasksRes.data ?? [],
+      budgets: budgetsRes.data ?? [],
+    };
+  });
