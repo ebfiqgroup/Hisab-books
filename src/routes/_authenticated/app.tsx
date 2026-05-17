@@ -236,7 +236,7 @@ function Dashboard() {
         <input value={draft.due_text} onChange={(e) => setDraft({ ...draft, due_text: e.target.value })} placeholder={t("তারিখ", "Date")} className="px-2.5 py-1.5 text-xs border border-slate-200 rounded-md bg-white" />
         <input value={draft.amount_text} onChange={(e) => setDraft({ ...draft, amount_text: e.target.value })} placeholder={t("৳ পরিমাণ", "৳ Amount")} className="px-2.5 py-1.5 text-xs border border-slate-200 rounded-md bg-white" />
         <select value={draft.priority} onChange={(e) => setDraft({ ...draft, priority: e.target.value as PlanTask["priority"] })} className="px-2 py-1.5 text-xs border border-slate-200 rounded-md bg-white">
-          <option value="উচ্চ">উচ্চ</option><option value="মাঝারি">মাঝারি</option><option value="নিম্ন">নিম্ন</option>
+          <option value="উচ্চ">{t("উচ্চ", "High")}</option><option value="মাঝারি">{t("মাঝারি", "Medium")}</option><option value="নিম্ন">{t("নিম্ন", "Low")}</option>
         </select>
       </div>
       <div className="flex justify-end gap-2 pt-1">
@@ -403,7 +403,7 @@ function Dashboard() {
                   <div className={`text-sm font-medium truncate ${t.done ? "text-slate-400 line-through" : "text-slate-800"}`}>{t.task}</div>
                   <div className="text-xs text-slate-500 mt-0.5">{t.due_text || "—"} · {t.amount_text || ""}</div>
                 </div>
-                <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${priColor(t.priority)}`}>{t.priority}</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${priColor(t.priority)}`}>{t.priority === "উচ্চ" ? tr("উচ্চ", "High") : t.priority === "মাঝারি" ? tr("মাঝারি", "Medium") : tr("নিম্ন", "Low")}</span>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
                   <button onClick={() => startEdit(t)} className="p-1.5 rounded-md hover:bg-indigo-50 text-slate-500 hover:text-indigo-600"><Pencil className="w-3.5 h-3.5" /></button>
                   <button onClick={() => removeTask(t.id)} className="p-1.5 rounded-md hover:bg-rose-50 text-slate-500 hover:text-rose-600"><Trash2 className="w-3.5 h-3.5" /></button>
