@@ -28,8 +28,13 @@ export function useRealtimeSync(userId: string | undefined) {
     const channel = supabase.channel(`rt-user-${userId}`);
 
     tables.forEach((table) => {
-      channel.on(
-        // @ts-expect-error - supabase-js realtime types
+      (channel as unknown as {
+        on: (
+          event: string,
+          filter: { event: string; schema: string; table: string },
+          cb: () => void,
+        ) => unknown;
+      }).on(
         "postgres_changes",
         { event: "*", schema: "public", table },
         () => {
