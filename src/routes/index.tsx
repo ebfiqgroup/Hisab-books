@@ -80,6 +80,13 @@ function Landing() {
             <Link to={primaryTo} className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-white text-sm font-medium shadow-md" style={{ background: "var(--gradient-brand)" }}>
               {primaryLabel} <ArrowRight className="w-4 h-4" />
             </Link>
+            <Link to="/demo" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm bg-white border" style={{ borderColor: "var(--brand-line)", color: "var(--brand-emerald-700)" }}>
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping" style={{ background: "var(--brand-emerald-700)" }} />
+                <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: "var(--brand-emerald-700)" }} />
+              </span>
+              লাইভ ডেমো
+            </Link>
             <a href="#features" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm bg-white border" style={{ borderColor: "var(--brand-line)", color: "var(--brand-ink)" }}>
               ফিচার দেখুন
             </a>
