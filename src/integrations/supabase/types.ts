@@ -298,6 +298,7 @@ export type Database = {
           created_at: string | null
           full_name: string | null
           is_admin: boolean | null
+          status: string | null
           total_expense: number | null
           total_income: number | null
           tx_count: number | null
