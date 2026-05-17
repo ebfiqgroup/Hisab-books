@@ -187,7 +187,7 @@ function DemoPage() {
             <div className="brand-card p-5" style={{ background: "color-mix(in oklab, var(--brand-emerald-700) 6%, white)" }}>
               <div className="flex items-center gap-2 mb-2">
                 <Sparkles className="w-4 h-4" style={{ color: "var(--brand-emerald-700)" }} />
-                <h2 className="text-base" style={{ fontFamily: "var(--font-display)" }}>AI পরামর্শ</h2>
+                <h2 className="text-base" style={{ fontFamily: "var(--font-display)" }}>এআই পরামর্শ</h2>
               </div>
               <p className="text-sm" style={{ color: "var(--brand-ink)" }}>
                 {totals.balance < 0

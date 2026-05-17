@@ -71,7 +71,7 @@ function Landing() {
           </h1>
           <p className="mt-5 text-lg max-w-lg" style={{ color: "var(--brand-ink-soft)" }}>
             প্রতিটি টাকার হিসাব, প্রতিটি স্বপ্নের লক্ষ্য — এক শান্ত, পরিচ্ছন্ন ড্যাশবোর্ডে।
-            আয়-ব্যয় থেকে শুরু করে বাজেট, দেনা-পাওনা ও AI পরামর্শ — সবই বাংলায়।
+            আয়-ব্যয় থেকে শুরু করে বাজেট, দেনা-পাওনা ও এআই পরামর্শ — সবই বাংলায়।
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Link to={primaryTo} className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-white text-sm font-medium shadow-md" style={{ background: "var(--gradient-brand)" }}>
@@ -152,8 +152,8 @@ function Landing() {
             { Icon: PiggyBank, t: "স্মার্ট বাজেট", d: "মাসিক সীমা দিন, খরচ ছাড়িয়ে গেলে নিজে থেকেই সতর্কতা।" },
             { Icon: Target, t: "লক্ষ্য", d: "স্বপ্ন থেকে সংখ্যা — প্রতিটি লক্ষ্যের অগ্রগতি দৃশ্যমান।" },
             { Icon: Users, t: "দেনা ও পাওনা", d: "কাকে দিতে হবে, কার কাছ থেকে পাওনা — কখনো ভুলবেন না।" },
-            { Icon: Sparkles, t: "AI পরামর্শ", d: "আপনার অভ্যাস বুঝে ব্যয় কমানোর বুদ্ধিমান সাজেশন।" },
-            { Icon: BarChart3, t: "মাসিক রিপোর্ট", d: "চার্ট, ট্রেন্ড আর তুলনা — এক ক্লিকেই PDF এক্সপোর্ট।" },
+            { Icon: Sparkles, t: "এআই পরামর্শ", d: "আপনার অভ্যাস বুঝে ব্যয় কমানোর বুদ্ধিমান সাজেশন।" },
+            { Icon: BarChart3, t: "মাসিক রিপোর্ট", d: "চার্ট, ট্রেন্ড আর তুলনা — এক ক্লিকেই পিডিএফ এক্সপোর্ট।" },
           ].map((f) => (
             <div key={f.t} className="brand-card p-6">
               <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-4" style={{ background: "color-mix(in oklab, var(--brand-emerald-700) 10%, white)", color: "var(--brand-emerald-700)" }}>
@@ -280,7 +280,7 @@ const TIERS: Tier[] = [
     price: "৳ ১৯৯",
     period: "/মাস",
     tagline: "সিরিয়াস ব্যবহারকারীদের জন্য",
-    features: ["আনলিমিটেড লেনদেন", "AI পরামর্শ ও ইনসাইট", "অ্যাডভান্সড রিপোর্ট ও PDF", "দেনা-পাওনা রিমাইন্ডার", "অগ্রাধিকার সাপোর্ট"],
+    features: ["আনলিমিটেড লেনদেন", "এআই পরামর্শ ও ইনসাইট", "অ্যাডভান্সড রিপোর্ট ও পিডিএফ", "দেনা-পাওনা রিমাইন্ডার", "অগ্রাধিকার সাপোর্ট"],
     cta: "প্রো নিন",
     highlight: true,
     Icon: Sparkles,
@@ -292,7 +292,7 @@ const TIERS: Tier[] = [
     price: "৳ ৪৯৯",
     period: "/মাস",
     tagline: "পরিবার ও ছোট ব্যবসার জন্য",
-    features: ["প্রো-এর সব ফিচার", "৫টি পর্যন্ত সদস্য", "কাস্টম ক্যাটাগরি ও ট্যাগ", "API অ্যাক্সেস", "ডেডিকেটেড ম্যানেজার"],
+    features: ["প্রো-এর সব ফিচার", "৫টি পর্যন্ত সদস্য", "কাস্টম ক্যাটাগরি ও ট্যাগ", "এপিআই অ্যাক্সেস", "ডেডিকেটেড ম্যানেজার"],
     cta: "প্রিমিয়াম নিন",
     Icon: Crown,
     monthlyPriceId: "premium_monthly",
