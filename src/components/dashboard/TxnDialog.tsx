@@ -32,7 +32,7 @@ export function TxnDialog({
 }) {
   const qc = useQueryClient();
   const [type, setType] = useState<TxnType>("expense");
-  const [category, setCategory] = useState("খাবার");
+  const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [note, setNote] = useState("");
@@ -50,7 +50,9 @@ export function TxnDialog({
         setDate(editTxn.occurred_on);
         setNote(editTxn.note ?? "");
       } else {
-        setType("expense"); setCategory("খাবার"); setAmount(""); setNote("");
+        setType("expense"); setAmount(""); setNote("");
+        const m = loadCustomCats();
+        setCategory(m.expense[0] ?? "");
         setDate(new Date().toISOString().slice(0, 10));
       }
       setCustomMap(loadCustomCats());
@@ -64,7 +66,7 @@ export function TxnDialog({
 
   // When type switches, ensure selected category belongs to that type
   useEffect(() => {
-    if (!allCats.includes(category)) setCategory(builtIns[0]);
+    if (!allCats.includes(category)) setCategory(allCats[0] ?? "");
     setAdding(false); setNewCat("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [type]);
@@ -83,11 +85,12 @@ export function TxnDialog({
   const removeCustom = (name: string) => {
     const nextMap = { ...customMap, [type]: custom.filter((c) => c !== name) };
     setCustomMap(nextMap); saveCustomCats(nextMap);
-    if (category === name) setCategory(builtIns[0]);
+    if (category === name) setCategory(nextMap[type][0] ?? "");
   };
 
   const save = async () => {
     if (busy) return;
+    if (!category) { toast.error("ক্যাটাগরি দিন"); return; }
     const amt = parseFloat(amount);
     if (!amt || amt <= 0) { toast.error("সঠিক পরিমাণ দিন"); return; }
     setBusy(true);
