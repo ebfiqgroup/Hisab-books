@@ -44,24 +44,25 @@ function ExpensePage() {
   return (
     <AppShell title="ব্যয়" actions={
       <div className="flex items-center gap-2">
-        <button onClick={() => setCatOpen(true)} className="flex items-center gap-2 px-3 py-2 border border-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50">
-          <Tags className="w-4 h-4" /> ক্যাটাগরি
+        <button onClick={() => setCatOpen(true)} className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 border border-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50">
+          <Tags className="w-4 h-4" /> <span className="hidden sm:inline">ক্যাটাগরি</span>
         </button>
-        <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 bg-rose-500 text-white rounded-lg text-sm font-medium hover:bg-rose-600">
-          <Plus className="w-4 h-4" /> নতুন ব্যয়
+        <button onClick={openNew} className="flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-rose-500 text-white rounded-lg text-sm font-medium hover:bg-rose-600">
+          <Plus className="w-4 h-4" /> <span className="hidden sm:inline">নতুন ব্যয়</span><span className="sm:hidden">যোগ</span>
         </button>
       </div>
     }>
-      <div className="bg-white rounded-xl p-5 border border-slate-200 mb-4 flex items-center gap-4">
-        <div className="w-12 h-12 rounded-full bg-rose-50 flex items-center justify-center">
-          <TrendingDown className="w-6 h-6 text-rose-500" />
+      <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200 mb-4 flex items-center gap-3 sm:gap-4">
+        <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-rose-50 flex items-center justify-center shrink-0">
+          <TrendingDown className="w-5 h-5 sm:w-6 sm:h-6 text-rose-500" />
         </div>
-        <div>
+        <div className="min-w-0">
           <div className="text-sm text-slate-500">মোট ব্যয়</div>
-          <div className="text-2xl font-bold text-rose-500">{fmtTk(total)}</div>
+          <div className="text-xl sm:text-2xl font-bold text-rose-500 truncate">{fmtTk(total)}</div>
         </div>
       </div>
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      {/* Desktop table */}
+      <div className="hidden md:block bg-white rounded-xl border border-slate-200 overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-slate-600 text-xs">
             <tr>
@@ -95,6 +96,31 @@ function ExpensePage() {
             ))}
           </tbody>
         </table>
+      </div>
+      {/* Mobile card list */}
+      <div className="md:hidden space-y-2">
+        {q.isLoading && <div className="bg-white rounded-xl border border-slate-200 p-6 text-center text-slate-400 text-sm">লোড হচ্ছে...</div>}
+        {!q.isLoading && list.length === 0 && <div className="bg-white rounded-xl border border-slate-200 p-6 text-center text-slate-400 text-sm">কোনো ব্যয় নেই</div>}
+        {list.map((t) => (
+          <div key={t.id} className="bg-white rounded-xl border border-slate-200 p-3 flex items-start gap-3">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <div className="font-medium text-slate-800 text-sm truncate">{t.category}</div>
+                <div className="font-bold text-rose-500 text-sm whitespace-nowrap">{fmtTk(Number(t.amount))}</div>
+              </div>
+              {t.note && <div className="text-xs text-slate-600 mt-0.5 truncate">{t.note}</div>}
+              <div className="text-[11px] text-slate-400 mt-1">{toBn(t.occurred_on)}</div>
+            </div>
+            <div className="flex flex-col gap-1 shrink-0">
+              <button onClick={() => openEdit(t)} className="p-1.5 rounded-md hover:bg-indigo-50 text-slate-400 hover:text-indigo-600" title="এডিট">
+                <Pencil className="w-4 h-4" />
+              </button>
+              <button onClick={() => remove(t.id)} className="p-1.5 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600" title="মুছুন">
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
       <TxnDialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }} editTxn={editing} />
       <CategoryManager open={catOpen} onOpenChange={setCatOpen} type="expense" />
