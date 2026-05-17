@@ -107,23 +107,6 @@ export function AiSuggestions(props: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoKey]);
 
-  const _legacyRun = async () => {
-    if (cfg.types.length === 0) {
-      toast.error("অন্তত একটি অ্যালার্ট ধরন নির্বাচন করুন");
-      return;
-    }
-    setLoading(true);
-    try {
-      const res = await callAi({ data: { ...props, config: cfg } });
-      setItems(res.suggestions);
-      if (res.suggestions.length === 0) toast.message("কোনো সাজেশন পাওয়া যায়নি");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "AI সাজেশন আনতে সমস্যা হয়েছে");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const toggleType = (t: AlertType) => {
     setCfg((c) => ({ ...c, types: c.types.includes(t) ? c.types.filter((x) => x !== t) : [...c.types, t] }));
   };
