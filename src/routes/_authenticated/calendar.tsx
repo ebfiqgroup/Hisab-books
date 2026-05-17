@@ -7,14 +7,17 @@ import { fmtTk, toBn, BN_MONTHS } from "@/lib/finance";
 import { ChevronLeft, ChevronRight, Plus, Pencil, Trash2 } from "lucide-react";
 import { TxnDialog, type EditTxn } from "@/components/dashboard/TxnDialog";
 import { toast } from "sonner";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export const Route = createFileRoute("/_authenticated/calendar")({ component: CalendarPage });
 
 type Txn = { id: string; type: "income" | "expense"; amount: number; occurred_on: string; category: string; note: string | null };
 
 const BN_DAYS = ["রবি", "সোম", "মঙ্গল", "বুধ", "বৃহঃ", "শুক্র", "শনি"];
+const EN_DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function CalendarPage() {
+  const { t, lang } = useLanguage();
   const qc = useQueryClient();
   const [cursor, setCursor] = useState(() => { const d = new Date(); d.setDate(1); return d; });
   const [selected, setSelected] = useState<string | null>(null);
@@ -40,10 +43,10 @@ function CalendarPage() {
     qc.invalidateQueries({ queryKey: ["transactions"] });
   };
   const remove = async (id: string) => {
-    if (!confirm("লেনদেনটি মুছে ফেলবেন?")) return;
+    if (!confirm(t("লেনদেনটি মুছে ফেলবেন?", "Delete this transaction?"))) return;
     const { error } = await supabase.from("transactions").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
-    toast.success("মুছে ফেলা হয়েছে");
+    toast.success(t("মুছে ফেলা হয়েছে", "Deleted"));
     refresh();
   };
   const openNew = () => {
@@ -77,7 +80,7 @@ function CalendarPage() {
   const selData = selected ? dayMap.get(selected) : null;
 
   return (
-    <AppShell title="ক্যালেন্ডার" actions={
+    <AppShell title={t("ক্যালেন্ডার", "Calendar")} actions={
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg border border-slate-200">
           <button onClick={() => { const d = new Date(cursor); d.setMonth(d.getMonth() - 1); setCursor(d); }}><ChevronLeft className="w-4 h-4 text-slate-500" /></button>
@@ -85,14 +88,14 @@ function CalendarPage() {
           <button onClick={() => { const d = new Date(cursor); d.setMonth(d.getMonth() + 1); setCursor(d); }}><ChevronRight className="w-4 h-4 text-slate-500" /></button>
         </div>
         <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700">
-          <Plus className="w-4 h-4" /> নতুন লেনদেন
+          <Plus className="w-4 h-4" /> {t("নতুন লেনদেন", "New transaction")}
         </button>
       </div>
     }>
       <div className="grid grid-cols-3 gap-4">
         <div className="col-span-2 bg-white rounded-xl border border-slate-200 p-4">
           <div className="grid grid-cols-7 gap-1 mb-2">
-            {BN_DAYS.map((d) => <div key={d} className="text-center text-xs font-medium text-slate-500 py-2">{d}</div>)}
+            {(lang === "bn" ? BN_DAYS : EN_DAYS).map((d) => <div key={d} className="text-center text-xs font-medium text-slate-500 py-2">{d}</div>)}
           </div>
           <div className="grid grid-cols-7 gap-1">
             {cells.map((d, i) => {
@@ -116,12 +119,12 @@ function CalendarPage() {
           </div>
         </div>
         <div className="bg-white rounded-xl border border-slate-200 p-4">
-          <div className="text-sm font-bold text-slate-800 mb-3">{selected ? toBn(selected) : "তারিখ নির্বাচন করুন"}</div>
+          <div className="text-sm font-bold text-slate-800 mb-3">{selected ? toBn(selected) : t("তারিখ নির্বাচন করুন", "Select a date")}</div>
           {selData ? (
             <>
               <div className="grid grid-cols-2 gap-2 mb-3">
-                <div className="p-2 bg-emerald-50 rounded-lg"><div className="text-[10px] text-slate-500">আয়</div><div className="text-sm font-bold text-emerald-600">{fmtTk(selData.inc)}</div></div>
-                <div className="p-2 bg-rose-50 rounded-lg"><div className="text-[10px] text-slate-500">ব্যয়</div><div className="text-sm font-bold text-rose-500">{fmtTk(selData.exp)}</div></div>
+                <div className="p-2 bg-emerald-50 rounded-lg"><div className="text-[10px] text-slate-500">{t("আয়", "Income")}</div><div className="text-sm font-bold text-emerald-600">{fmtTk(selData.inc)}</div></div>
+                <div className="p-2 bg-rose-50 rounded-lg"><div className="text-[10px] text-slate-500">{t("ব্যয়", "Expense")}</div><div className="text-sm font-bold text-rose-500">{fmtTk(selData.exp)}</div></div>
               </div>
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {selData.items.map((t, i) => (
@@ -134,15 +137,15 @@ function CalendarPage() {
                       {t.type === "income" ? "+" : "-"}{fmtTk(Number(t.amount))}
                     </div>
                     <div className="flex items-center gap-1">
-                      <button onClick={() => openEdit(t)} title="এডিট" className="p-1 rounded hover:bg-indigo-50 text-slate-400 hover:text-indigo-600"><Pencil className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => remove(t.id)} title="মুছুন" className="p-1 rounded hover:bg-rose-50 text-slate-400 hover:text-rose-600"><Trash2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => openEdit(t)} title={t("এডিট", "Edit")} className="p-1 rounded hover:bg-indigo-50 text-slate-400 hover:text-indigo-600"><Pencil className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => remove(t.id)} title={t("মুছুন", "Delete")} className="p-1 rounded hover:bg-rose-50 text-slate-400 hover:text-rose-600"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   </div>
                 ))}
               </div>
             </>
           ) : (
-            <div className="text-xs text-slate-400 py-8 text-center">কোনো তারিখ এ ক্লিক করে দিনের লেনদেন দেখুন</div>
+            <div className="text-xs text-slate-400 py-8 text-center">{t("কোনো তারিখ এ ক্লিক করে দিনের লেনদেন দেখুন", "Click a date to see transactions")}</div>
           )}
         </div>
       </div>
