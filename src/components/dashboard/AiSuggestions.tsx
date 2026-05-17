@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Sparkles, AlertTriangle, Lightbulb, TrendingUp, RefreshCw, Loader2, Settings2, X } from "lucide-react";
+import { Sparkles, AlertTriangle, Lightbulb, TrendingUp, RefreshCw, Loader2, Settings2, X, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { getAiSuggestions, type AiSuggestion } from "@/lib/ai-suggestions.functions";
 
@@ -29,6 +29,8 @@ type AiConfig = {
   expenseRatioPct: number;
   lowCashTk: number;
   goalLagPct: number;
+  autoRun: boolean;
+  autoIntervalMin: number;
 };
 
 const DEFAULT_CFG: AiConfig = {
@@ -36,6 +38,8 @@ const DEFAULT_CFG: AiConfig = {
   expenseRatioPct: 80,
   lowCashTk: 5000,
   goalLagPct: 20,
+  autoRun: true,
+  autoIntervalMin: 30,
 };
 const STORAGE_KEY = "ai_alert_config_v1";
 
@@ -50,6 +54,8 @@ function loadCfg(): AiConfig {
       expenseRatioPct: Number.isFinite(p.expenseRatioPct) ? p.expenseRatioPct : DEFAULT_CFG.expenseRatioPct,
       lowCashTk: Number.isFinite(p.lowCashTk) ? p.lowCashTk : DEFAULT_CFG.lowCashTk,
       goalLagPct: Number.isFinite(p.goalLagPct) ? p.goalLagPct : DEFAULT_CFG.goalLagPct,
+      autoRun: typeof p.autoRun === "boolean" ? p.autoRun : DEFAULT_CFG.autoRun,
+      autoIntervalMin: Number.isFinite(p.autoIntervalMin) && p.autoIntervalMin >= 5 ? p.autoIntervalMin : DEFAULT_CFG.autoIntervalMin,
     };
   } catch { return DEFAULT_CFG; }
 }
@@ -60,25 +66,46 @@ export function AiSuggestions(props: Props) {
   const [loading, setLoading] = useState(false);
   const [cfg, setCfg] = useState<AiConfig>(DEFAULT_CFG);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [lastRun, setLastRun] = useState<Date | null>(null);
+  const cfgRef = useRef(cfg);
+  const propsRef = useRef(props);
+  const loadingRef = useRef(false);
+  useEffect(() => { cfgRef.current = cfg; }, [cfg]);
+  useEffect(() => { propsRef.current = props; }, [props]);
+  useEffect(() => { loadingRef.current = loading; }, [loading]);
 
   useEffect(() => { setCfg(loadCfg()); }, []);
 
-  const run = async () => {
-    if (cfg.types.length === 0) {
-      toast.error("অন্তত একটি অ্যালার্ট ধরন নির্বাচন করুন");
+  const run = async (silent = false) => {
+    const c = cfgRef.current;
+    if (c.types.length === 0) {
+      if (!silent) toast.error("অন্তত একটি অ্যালার্ট ধরন নির্বাচন করুন");
       return;
     }
+    if (loadingRef.current) return;
     setLoading(true);
     try {
-      const res = await callAi({ data: { ...props, config: cfg } });
+      const res = await callAi({ data: { ...propsRef.current, config: c } });
       setItems(res.suggestions);
-      if (res.suggestions.length === 0) toast.message("কোনো সাজেশন পাওয়া যায়নি");
+      setLastRun(new Date());
+      if (!silent && res.suggestions.length === 0) toast.message("কোনো সাজেশন পাওয়া যায়নি");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "AI সাজেশন আনতে সমস্যা হয়েছে");
+      if (!silent) toast.error(e instanceof Error ? e.message : "AI সাজেশন আনতে সমস্যা হয়েছে");
     } finally {
       setLoading(false);
     }
   };
+
+  // Automation: auto-run on mount + every N minutes when enabled
+  const hasData = (props.curIncome + props.curExpense) > 0 || props.expenseByCategory.length > 0;
+  const autoKey = `${cfg.autoRun}-${cfg.autoIntervalMin}-${hasData}`;
+  useEffect(() => {
+    if (!cfg.autoRun || !hasData) return;
+    const t = setTimeout(() => { run(true); }, 1200);
+    const iv = setInterval(() => { run(true); }, Math.max(5, cfg.autoIntervalMin) * 60 * 1000);
+    return () => { clearTimeout(t); clearInterval(iv); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoKey]);
 
   const toggleType = (t: AlertType) => {
     setCfg((c) => ({ ...c, types: c.types.includes(t) ? c.types.filter((x) => x !== t) : [...c.types, t] }));
@@ -101,10 +128,25 @@ export function AiSuggestions(props: Props) {
           </div>
           <div>
             <h3 className="font-bold text-slate-800">AI আর্থিক সাজেশন</h3>
-            <p className="text-xs text-slate-500">আপনার লেনদেন বিশ্লেষণ করে সতর্কতা ও পরামর্শ</p>
+            <p className="text-xs text-slate-500">
+              {cfg.autoRun ? <>অটো-বিশ্লেষণ চালু • প্রতি {cfg.autoIntervalMin} মিনিটে</> : "ম্যানুয়াল বিশ্লেষণ"}
+              {lastRun && <> • সর্বশেষ {lastRun.toLocaleTimeString("bn-BD", { hour: "2-digit", minute: "2-digit" })}</>}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              const next = { ...cfg, autoRun: !cfg.autoRun };
+              setCfg(next);
+              try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch { /* noop */ }
+              toast.success(next.autoRun ? "অটোমেশন চালু" : "অটোমেশন বন্ধ");
+            }}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border ${cfg.autoRun ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-white border-slate-200 text-slate-600"}`}
+            title="অটোমেশন"
+          >
+            <Zap className="w-4 h-4" /> অটো {cfg.autoRun ? "চালু" : "বন্ধ"}
+          </button>
           <button
             onClick={() => setSettingsOpen(true)}
             className="flex items-center gap-1.5 px-3 py-2 bg-white border border-indigo-200 text-indigo-700 rounded-lg text-sm font-medium hover:bg-indigo-50"
@@ -113,7 +155,7 @@ export function AiSuggestions(props: Props) {
             <Settings2 className="w-4 h-4" /> সেটিংস
           </button>
           <button
-            onClick={run}
+            onClick={() => run(false)}
             disabled={loading}
             className="flex items-center gap-2 px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-60"
           >
@@ -217,6 +259,22 @@ export function AiSuggestions(props: Props) {
                 <input type="range" min={5} max={60} step={5} value={cfg.goalLagPct}
                   onChange={(e) => setCfg({ ...cfg, goalLagPct: Number(e.target.value) })}
                   className="w-full accent-indigo-600" />
+              </div>
+
+              <div className="pt-3 border-t border-slate-100">
+                <label className="flex items-center justify-between gap-2 mb-2">
+                  <span className="text-sm font-medium text-slate-700 flex items-center gap-2"><Zap className="w-4 h-4 text-emerald-600" /> অটোমেশন</span>
+                  <input type="checkbox" checked={cfg.autoRun} onChange={(e) => setCfg({ ...cfg, autoRun: e.target.checked })} className="w-4 h-4 accent-emerald-600" />
+                </label>
+                <p className="text-xs text-slate-500 mb-2">চালু থাকলে ড্যাশবোর্ড খুললেই AI নিজে থেকে বিশ্লেষণ করে রিপোর্ট দেখাবে।</p>
+                <label className="text-sm font-medium text-slate-700 flex justify-between mb-1">
+                  <span>রিফ্রেশ ইন্টারভাল</span>
+                  <span className="text-indigo-600 font-semibold">{cfg.autoIntervalMin} মিনিট</span>
+                </label>
+                <input type="range" min={5} max={120} step={5} value={cfg.autoIntervalMin}
+                  disabled={!cfg.autoRun}
+                  onChange={(e) => setCfg({ ...cfg, autoIntervalMin: Number(e.target.value) })}
+                  className="w-full accent-indigo-600 disabled:opacity-50" />
               </div>
             </div>
 
