@@ -3,6 +3,7 @@ import { Sidebar } from "./Sidebar";
 import { Bell, ChevronDown, LogOut, User as UserIcon, Settings as SettingsIcon, LifeBuoy } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useNavigate } from "@tanstack/react-router";
+import { RefCodeBadge } from "./RefCodeBadge";
 import { useLanguage } from "@/hooks/useLanguage";
 
 export function AppShell({ title, actions, children }: { title: ReactNode; actions?: ReactNode; children: ReactNode }) {
