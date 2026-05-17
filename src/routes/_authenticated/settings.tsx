@@ -7,7 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import {
   LogOut, User as UserIcon, KeyRound, SlidersHorizontal, Sparkles,
-  Download, Upload, Trash2, AlertTriangle, Save,
+  Download, Upload, Trash2, AlertTriangle, Save, ImagePlus,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({ component: SettingsPage });
@@ -167,7 +167,7 @@ function SettingsPage() {
           const { id: _id, created_at: _ca, updated_at: _ua, user_id: _uid, ...rest } = r;
           return { ...rest, user_id: user.id };
         });
-        const { error } = await supabase.from(t).insert(clean);
+        const { error } = await supabase.from(t).insert(clean as never);
         if (error) throw new Error(`${t}: ${error.message}`);
         total += clean.length;
       }
@@ -208,6 +208,28 @@ function SettingsPage() {
 
   const doSignOut = async () => { await signOut(); navigate({ to: "/auth" }); };
 
+  const uploadAvatar = async (file: File) => {
+    if (!user) return;
+    if (!file.type.startsWith("image/")) { toast.error("শুধু ছবি ফাইল আপলোড করুন"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("ছবির আকার ৫ MB এর কম হতে হবে"); return; }
+    setBusy(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+      const url = pub.publicUrl;
+      setAvatar(url);
+      const { error: updErr } = await supabase.from("profiles").update({ avatar_url: url }).eq("id", user.id);
+      if (updErr) throw updErr;
+      toast.success("ছবি আপলোড হয়েছে");
+      qc.invalidateQueries({ queryKey: ["profile"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "ছবি আপলোড ব্যর্থ");
+    } finally { setBusy(false); }
+  };
+
   return (
     <AppShell title="সেটিংস">
       <div className="max-w-3xl space-y-4">
@@ -227,6 +249,21 @@ function SettingsPage() {
           </Field>
           <Field label="ছবির লিংক (URL)">
             <input value={avatar} onChange={(e) => setAvatar(e.target.value)} placeholder="https://..." className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+          </Field>
+          <Field label="অথবা সরাসরি ছবি আপলোড">
+            <div className="flex flex-wrap gap-2 items-center">
+              <label className="flex items-center gap-2 px-3 py-2 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg text-sm font-medium hover:bg-indigo-100 cursor-pointer">
+                <ImagePlus className="w-4 h-4" /> ছবি বাছাই করুন
+                <input type="file" accept="image/*" className="hidden" disabled={busy}
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadAvatar(f); e.target.value = ""; }} />
+              </label>
+              {avatar && (
+                <button type="button" onClick={() => setAvatar("")} className="px-3 py-2 text-sm text-rose-600 border border-rose-200 rounded-lg hover:bg-rose-50">
+                  সরান
+                </button>
+              )}
+              <span className="text-xs text-slate-500">JPG/PNG, সর্বোচ্চ ৫ MB</span>
+            </div>
           </Field>
           <PrimaryBtn onClick={saveProfile} disabled={busy}><Save className="w-4 h-4" /> সংরক্ষণ</PrimaryBtn>
         </Section>
