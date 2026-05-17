@@ -169,7 +169,7 @@ function SettingsPage() {
           const { id: _id, created_at: _ca, updated_at: _ua, user_id: _uid, ...rest } = r;
           return { ...rest, user_id: user.id };
         });
-        const { error } = await supabase.from(t).insert(clean as never);
+        const { error } = await supabase.from(tbl).insert(clean as never);
         if (error) throw new Error(`${tbl}: ${error.message}`);
         total += clean.length;
       }
