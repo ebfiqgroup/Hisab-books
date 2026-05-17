@@ -135,17 +135,35 @@ function ReportPage() {
   };
 
   const downloadXlsx = async () => {
-    const XLSX = await import("xlsx");
-    const data = [
-      [colHeader, "আয়", "ব্যয়", "অবশিষ্ট"],
-      ...rows.map((r) => [r.label, Math.round(r.income), Math.round(r.expense), Math.round(r.saving)]),
-      ["মোট", Math.round(totals.income), Math.round(totals.expense), Math.round(totals.saving)],
+    const ExcelJS = (await import("exceljs")).default;
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("রিপোর্ট");
+    ws.columns = [
+      { header: colHeader, key: "label", width: 18 },
+      { header: "আয়", key: "income", width: 14 },
+      { header: "ব্যয়", key: "expense", width: 14 },
+      { header: "অবশিষ্ট", key: "saving", width: 14 },
     ];
-    const ws = XLSX.utils.aoa_to_sheet(data);
-    ws["!cols"] = [{ wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 14 }];
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "রিপোর্ট");
-    XLSX.writeFile(wb, `report-${range.from}_to_${range.to}.xlsx`);
+    rows.forEach((r) => ws.addRow({
+      label: r.label,
+      income: Math.round(r.income),
+      expense: Math.round(r.expense),
+      saving: Math.round(r.saving),
+    }));
+    ws.addRow({
+      label: "মোট",
+      income: Math.round(totals.income),
+      expense: Math.round(totals.expense),
+      saving: Math.round(totals.saving),
+    });
+    const buf = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `report-${range.from}_to_${range.to}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
     toast.success("XLSX রিপোর্ট ডাউনলোড হয়েছে");
   };
 
