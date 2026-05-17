@@ -7,8 +7,6 @@ import {
   Mail, Send, Loader2, Crown, Star,
 } from "lucide-react";
 import { toast } from "sonner";
-import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
-import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -35,7 +33,6 @@ function Landing() {
 
   return (
     <div className="min-h-screen" style={{ background: "var(--gradient-page)" }}>
-      <PaymentTestModeBanner />
       {/* Nav */}
       <header className="sticky top-0 z-30 backdrop-blur-md" style={{ background: "color-mix(in oklab, var(--brand-ivory) 80%, transparent)", borderBottom: "1px solid var(--brand-line)" }}>
         <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
@@ -305,30 +302,6 @@ const TIERS: Tier[] = [
 
 function PricingSection({ primaryTo }: { primaryTo: string }) {
   const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
-  const { openCheckout, loading } = usePaddleCheckout();
-
-  const handlePurchase = async (tier: Tier) => {
-    const priceId = billing === "yearly" ? tier.yearlyPriceId : tier.monthlyPriceId;
-    if (!priceId) {
-      window.location.href = primaryTo;
-      return;
-    }
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      window.location.href = "/auth";
-      return;
-    }
-    try {
-      await openCheckout({
-        priceId,
-        customerEmail: session.user.email ?? undefined,
-        customData: { userId: session.user.id },
-        successUrl: `${window.location.origin}/checkout/success`,
-      });
-    } catch (err: any) {
-      toast.error(err?.message || "চেকআউট খোলা যায়নি");
-    }
-  };
 
   return (
     <section id="pricing" className="max-w-6xl mx-auto px-5 py-20">
@@ -408,29 +381,17 @@ function PricingSection({ primaryTo }: { primaryTo: string }) {
                   </li>
                 ))}
               </ul>
-              {t.monthlyPriceId ? (
-                <button
-                  type="button"
-                  disabled={loading}
-                  onClick={() => handlePurchase(t)}
-                  className="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium disabled:opacity-60"
-                  style={
-                    t.highlight
-                      ? { background: "var(--gradient-brand)", color: "white" }
-                      : { background: "white", color: "var(--brand-emerald-800)", border: "1px solid var(--brand-line)" }
-                  }
-                >
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>{t.cta} <ArrowRight className="w-4 h-4" /></>}
-                </button>
-              ) : (
-                <Link
-                  to={primaryTo}
-                  className="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium"
-                  style={{ background: "white", color: "var(--brand-emerald-800)", border: "1px solid var(--brand-line)" }}
-                >
-                  {t.cta} <ArrowRight className="w-4 h-4" />
-                </Link>
-              )}
+              <Link
+                to={primaryTo}
+                className="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium"
+                style={
+                  t.highlight
+                    ? { background: "var(--gradient-brand)", color: "white" }
+                    : { background: "white", color: "var(--brand-emerald-800)", border: "1px solid var(--brand-line)" }
+                }
+              >
+                {t.cta} <ArrowRight className="w-4 h-4" />
+              </Link>
             </div>
           );
         })}
