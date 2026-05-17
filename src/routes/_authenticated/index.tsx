@@ -286,20 +286,6 @@ function Dashboard() {
         ))}
       </div>
 
-      {/* AI Suggestions */}
-      <AiSuggestions
-        curIncome={curInc}
-        curExpense={curExp}
-        prevIncome={prevInc}
-        prevExpense={prevExp}
-        receivable={receivable}
-        payable={payable}
-        expenseByCategory={expenses.filter((e) => e.amount > 0).map((e) => ({ category: e.label, amount: e.amount }))}
-        incomeByCategory={incomes.filter((e) => e.amount > 0).map((e) => ({ category: e.label, amount: e.amount }))}
-        goals={goals.map((g) => ({ label: g.label, target: Number(g.target), current: Number(g.current) }))}
-        monthLabel={`${BN_MONTHS[now.getMonth()]} ${toBn(now.getFullYear())}`}
-      />
-
       {/* Charts */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         {(() => {
@@ -505,6 +491,20 @@ function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* AI Suggestions — bottom */}
+      <AiSuggestions
+        curIncome={curInc}
+        curExpense={curExp}
+        prevIncome={prevInc}
+        prevExpense={prevExp}
+        receivable={receivable}
+        payable={payable}
+        expenseByCategory={expenses.filter((e) => e.amount > 0).map((e) => ({ category: e.label, amount: e.amount }))}
+        incomeByCategory={incomes.filter((e) => e.amount > 0).map((e) => ({ category: e.label, amount: e.amount }))}
+        goals={goals.map((g) => ({ label: g.label, target: Number(g.target), current: Number(g.current) }))}
+        monthLabel={`${BN_MONTHS[now.getMonth()]} ${toBn(now.getFullYear())}`}
+      />
 
       <div className="text-center text-xs text-slate-500 mt-6">© {toBn(now.getFullYear())} আমার হিসাব <span className="text-rose-500">♥</span></div>
 
