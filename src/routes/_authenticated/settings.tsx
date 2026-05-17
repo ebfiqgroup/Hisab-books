@@ -139,10 +139,10 @@ function SettingsPage() {
     setBusy(true);
     try {
       const dump: Record<string, unknown> = { exported_at: new Date().toISOString(), user_id: user.id };
-      for (const t of TABLES) {
-        const { data, error } = await supabase.from(t).select("*");
+      for (const tbl of TABLES) {
+        const { data, error } = await supabase.from(tbl).select("*");
         if (error) throw error;
-        dump[t] = data ?? [];
+        dump[tbl] = data ?? [];
       }
       const blob = new Blob([JSON.stringify(dump, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -162,15 +162,15 @@ function SettingsPage() {
       const text = await file.text();
       const parsed = JSON.parse(text);
       let total = 0;
-      for (const t of TABLES) {
-        const rows = parsed?.[t];
+      for (const tbl of TABLES) {
+        const rows = parsed?.[tbl];
         if (!Array.isArray(rows) || rows.length === 0) continue;
         const clean = rows.map((r: Record<string, unknown>) => {
           const { id: _id, created_at: _ca, updated_at: _ua, user_id: _uid, ...rest } = r;
           return { ...rest, user_id: user.id };
         });
         const { error } = await supabase.from(t).insert(clean as never);
-        if (error) throw new Error(`${t}: ${error.message}`);
+        if (error) throw new Error(`${tbl}: ${error.message}`);
         total += clean.length;
       }
       toast.success(`${total} টি রেকর্ড আমদানি হয়েছে`);
@@ -185,8 +185,8 @@ function SettingsPage() {
     if (confirmDelete !== "DELETE") { toast.error('নিশ্চিত হতে "DELETE" লিখুন'); return; }
     setBusy(true);
     try {
-      for (const t of TABLES) {
-        const { error } = await supabase.from(t).delete().eq("user_id", user.id);
+      for (const tbl of TABLES) {
+        const { error } = await supabase.from(tbl).delete().eq("user_id", user.id);
         if (error) throw error;
       }
       toast.success("সকল ডেটা মুছে ফেলা হয়েছে");
