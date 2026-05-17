@@ -197,7 +197,7 @@ function AdminPage() {
                     </td>
                     <td className="py-3 text-right">
                       <button
-                        onClick={() => toggleAdmin(r)}
+                        onClick={() => setPending(r)}
                         className="text-xs px-3 py-1.5 rounded-md border hover:shadow-sm inline-flex items-center gap-1"
                         style={{ borderColor: "var(--brand-line)" }}
                       >
@@ -211,6 +211,48 @@ function AdminPage() {
           </div>
         )}
       </div>
+
+      <AlertDialog open={!!pending} onOpenChange={(o) => { if (!o && !busy) setPending(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pending?.is_admin ? "অ্যাডমিন অনুমতি সরাবেন?" : "অ্যাডমিন বানাবেন?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-sm">
+                <p>
+                  <span className="font-semibold text-foreground">{pending?.full_name || "—"}</span>
+                  {" "}<span className="text-xs text-slate-400 font-mono">({pending?.user_id.slice(0, 8)}…)</span>
+                </p>
+                {pending?.is_admin ? (
+                  <p className="text-rose-600">
+                    এই ব্যবহারকারী আর সব ব্যবহারকারীর তথ্য দেখতে বা পরিবর্তন করতে পারবেন না।
+                  </p>
+                ) : (
+                  <p className="text-amber-700">
+                    এই ব্যবহারকারী সব ব্যবহারকারীর তথ্য দেখতে এবং অন্যদের অ্যাডমিন বানাতে/সরাতে পারবেন।
+                  </p>
+                )}
+                {pending?.user_id === user?.id && pending?.is_admin && (
+                  <p className="text-rose-700 font-medium">
+                    ⚠️ এটি আপনার নিজের অ্যাকাউন্ট — সরালে এই পেজে আর প্রবেশ করতে পারবেন না।
+                  </p>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={busy}>বাতিল</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={busy}
+              onClick={(e) => { e.preventDefault(); confirmToggle(); }}
+              className={pending?.is_admin ? "bg-rose-600 hover:bg-rose-700" : ""}
+            >
+              {busy ? "অপেক্ষা করুন…" : (pending?.is_admin ? "হ্যাঁ, সরান" : "হ্যাঁ, অ্যাডমিন বানান")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppShell>
   );
 }
