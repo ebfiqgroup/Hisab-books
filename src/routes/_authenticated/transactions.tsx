@@ -109,7 +109,7 @@ function TransactionsPage() {
         </div>
 
         {/* Summary */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
           <div className="bg-white rounded-xl p-4 border border-slate-200">
             <div className="text-xs text-slate-500">{t("মোট লেনদেন", "Total transactions")}</div>
             <div className="text-xl font-bold text-slate-800">{toBn(filtered.length)}{txnQ.hasNextPage ? "+" : ""}</div>
@@ -156,7 +156,8 @@ function TransactionsPage() {
 
         {/* List */}
         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[640px]">
             <thead className="bg-slate-50 text-slate-600 text-xs">
               <tr>
                 <th className="text-left px-4 py-3 font-medium">{t("ধরন", "Type")}</th>

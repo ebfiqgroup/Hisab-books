@@ -250,7 +250,7 @@ function Dashboard() {
   return (
     <AppShell title={t("ড্যাশবোর্ড", "Dashboard")}>
       {/* Stats */}
-      <div className="grid grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-6">
         {statCards.map((s) => (
           <div key={s.label} className="bg-white rounded-xl p-5 border border-slate-200">
             <div className="flex items-center gap-3 mb-3">
@@ -417,7 +417,7 @@ function Dashboard() {
       </div>
 
       {/* Bottom */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="bg-white rounded-xl p-5 border border-slate-200">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-slate-800">{t("সঞ্চয় লক্ষ্য", "Savings goals")}</h3>

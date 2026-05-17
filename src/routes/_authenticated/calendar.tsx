@@ -92,8 +92,8 @@ function CalendarPage() {
         </button>
       </div>
     }>
-      <div className="grid grid-cols-3 gap-4">
-        <div className="col-span-2 bg-white rounded-xl border border-slate-200 p-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-4 overflow-x-auto">
           <div className="grid grid-cols-7 gap-1 mb-2">
             {(lang === "bn" ? BN_DAYS : EN_DAYS).map((d) => <div key={d} className="text-center text-xs font-medium text-slate-500 py-2">{d}</div>)}
           </div>
