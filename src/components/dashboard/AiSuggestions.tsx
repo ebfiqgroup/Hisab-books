@@ -82,7 +82,7 @@ export function AiSuggestions(props: Props) {
   const run = async (silent = false) => {
     const c = cfgRef.current;
     if (c.types.length === 0) {
-      if (!silent) toast.error("অন্তত একটি অ্যালার্ট ধরন নির্বাচন করুন");
+      if (!silent) toast.error(t("অন্তত একটি অ্যালার্ট ধরন নির্বাচন করুন", "Please select at least one alert type"));
       return;
     }
     if (loadingRef.current) return;
@@ -91,9 +91,9 @@ export function AiSuggestions(props: Props) {
       const res = await callAi({ data: { ...propsRef.current, config: c } });
       setItems(res.suggestions);
       setLastRun(new Date());
-      if (!silent && res.suggestions.length === 0) toast.message("কোনো সাজেশন পাওয়া যায়নি");
+      if (!silent && res.suggestions.length === 0) toast.message(t("কোনো সাজেশন পাওয়া যায়নি", "No suggestions found"));
     } catch (e) {
-      if (!silent) toast.error(e instanceof Error ? e.message : "AI সাজেশন আনতে সমস্যা হয়েছে");
+      if (!silent) toast.error(e instanceof Error ? e.message : t("AI সাজেশন আনতে সমস্যা হয়েছে", "Failed to fetch AI suggestions"));
     } finally {
       setLoading(false);
     }
@@ -117,7 +117,7 @@ export function AiSuggestions(props: Props) {
   const saveCfg = () => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg)); } catch { /* noop */ }
     setSettingsOpen(false);
-    toast.success("সেটিংস সংরক্ষিত হয়েছে");
+    toast.success(t("সেটিংস সংরক্ষিত হয়েছে", "Settings saved"));
   };
 
   const resetCfg = () => setCfg(DEFAULT_CFG);
@@ -130,10 +130,10 @@ export function AiSuggestions(props: Props) {
             <Sparkles className="w-4 h-4 text-white" />
           </div>
           <div>
-            <h3 className="font-bold text-slate-800">AI আর্থিক সাজেশন</h3>
+            <h3 className="font-bold text-slate-800">{t("AI আর্থিক সাজেশন", "AI Financial Suggestions")}</h3>
             <p className="text-xs text-slate-500">
-              {cfg.autoRun ? <>অটো-বিশ্লেষণ চালু • প্রতি {cfg.autoIntervalMin} মিনিটে</> : "ম্যানুয়াল বিশ্লেষণ"}
-              {lastRun && <> • সর্বশেষ {lastRun.toLocaleTimeString("bn-BD", { hour: "2-digit", minute: "2-digit" })}</>}
+              {cfg.autoRun ? <>{t("অটো-বিশ্লেষণ চালু", "Auto-analysis on")} • {t("প্রতি", "every")} {cfg.autoIntervalMin} {t("মিনিটে", "min")}</> : t("ম্যানুয়াল বিশ্লেষণ", "Manual analysis")}
+              {lastRun && <> • {t("সর্বশেষ", "last")} {lastRun.toLocaleTimeString(lang === "bn" ? "bn-BD" : "en-US", { hour: "2-digit", minute: "2-digit" })}</>}
             </p>
           </div>
         </div>
@@ -143,19 +143,19 @@ export function AiSuggestions(props: Props) {
               const next = { ...cfg, autoRun: !cfg.autoRun };
               setCfg(next);
               try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch { /* noop */ }
-              toast.success(next.autoRun ? "অটোমেশন চালু" : "অটোমেশন বন্ধ");
+              toast.success(next.autoRun ? t("অটোমেশন চালু", "Automation on") : t("অটোমেশন বন্ধ", "Automation off"));
             }}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border ${cfg.autoRun ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-white border-slate-200 text-slate-600"}`}
-            title="অটোমেশন"
+            title={t("অটোমেশন", "Automation")}
           >
-            <Zap className="w-4 h-4" /> অটো {cfg.autoRun ? "চালু" : "বন্ধ"}
+            <Zap className="w-4 h-4" /> {t("অটো", "Auto")} {cfg.autoRun ? t("চালু", "On") : t("বন্ধ", "Off")}
           </button>
           <button
             onClick={() => setSettingsOpen(true)}
             className="flex items-center gap-1.5 px-3 py-2 bg-white border border-indigo-200 text-indigo-700 rounded-lg text-sm font-medium hover:bg-indigo-50"
-            title="অ্যালার্ট সেটিংস"
+            title={t("অ্যালার্ট সেটিংস", "Alert settings")}
           >
-            <Settings2 className="w-4 h-4" /> সেটিংস
+            <Settings2 className="w-4 h-4" /> {t("সেটিংস", "Settings")}
           </button>
           <button
             onClick={() => run(false)}
@@ -163,14 +163,14 @@ export function AiSuggestions(props: Props) {
             className="flex items-center gap-2 px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-60"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : items ? <RefreshCw className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
-            {loading ? "বিশ্লেষণ চলছে..." : items ? "আবার বিশ্লেষণ" : "AI বিশ্লেষণ করুন"}
+            {loading ? t("বিশ্লেষণ চলছে...", "Analyzing...") : items ? t("আবার বিশ্লেষণ", "Re-analyze") : t("AI বিশ্লেষণ করুন", "Run AI analysis")}
           </button>
         </div>
       </div>
 
       {!items && !loading && (
         <div className="text-sm text-slate-500 bg-white/60 rounded-lg p-3 border border-dashed border-indigo-200">
-          "AI বিশ্লেষণ করুন" চাপুন — কোন খাতে বেশি ব্যয় হচ্ছে, কোথায় সাশ্রয় ও বিনিয়োগ সম্ভব তা জানতে পারবেন।
+          {t('"AI বিশ্লেষণ করুন" চাপুন — কোন খাতে বেশি ব্যয় হচ্ছে, কোথায় সাশ্রয় ও বিনিয়োগ সম্ভব তা জানতে পারবেন।', 'Press "Run AI analysis" — discover where spending is high and where you can save or invest.')}
         </div>
       )}
 
