@@ -31,11 +31,30 @@ let _currentLang: "bn" | "en" = "bn";
 export const setFinanceLang = (l: "bn" | "en") => { _currentLang = l; };
 export const getFinanceLang = (): "bn" | "en" => _currentLang;
 
+// Global currency symbol signal (user-configurable in Settings).
+export const CURRENCY_LS_KEY = "app_currency_symbol_v1";
+export const CURRENCY_EVENT = "app_currency_changed";
+let _currentSymbol = "৳";
+if (typeof window !== "undefined") {
+  try {
+    const s = localStorage.getItem(CURRENCY_LS_KEY);
+    if (s) _currentSymbol = s;
+  } catch { /* noop */ }
+}
+export const setFinanceSymbol = (sym: string) => {
+  _currentSymbol = sym || "৳";
+  if (typeof window !== "undefined") {
+    try { localStorage.setItem(CURRENCY_LS_KEY, _currentSymbol); } catch { /* noop */ }
+    window.dispatchEvent(new Event(CURRENCY_EVENT));
+  }
+};
+export const getFinanceSymbol = (): string => _currentSymbol;
+
 // Language-aware currency formatter. Bengali: "৳ ১,২৩৪"; English: "৳ 1,234".
 export const fmtTk = (n: number, lang?: "bn" | "en") => {
   const l = lang ?? _currentLang;
   const num = Math.round(n).toLocaleString("en-US");
-  return l === "bn" ? `৳ ${toBn(num)}` : `৳ ${num}`;
+  return l === "bn" ? `${_currentSymbol} ${toBn(num)}` : `${_currentSymbol} ${num}`;
 };
 
 export const monthBounds = (d = new Date()) => {
