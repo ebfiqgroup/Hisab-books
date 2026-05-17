@@ -69,6 +69,8 @@ function BudgetPage() {
   }, []);
   const cats = forType("expense");
   const [newCat, setNewCat] = useState("");
+  const [editingCat, setEditingCat] = useState<string | null>(null);
+  const [editingCatName, setEditingCatName] = useState("");
 
   const addCategory = (raw: string) => {
     const name = raw.trim();
@@ -78,6 +80,39 @@ function BudgetPage() {
     saveCustomCats({ ...m, expense: [...m.expense, name] });
     toast.success("ক্যাটাগরি যুক্ত হয়েছে");
     return name;
+  };
+
+  const renameCategory = async (oldName: string, rawNew: string) => {
+    const newName = rawNew.trim();
+    if (!newName) { toast.error("নাম খালি হতে পারবে না"); return; }
+    if (newName === oldName) { setEditingCat(null); return; }
+    const m = loadCustomCats();
+    if (m.expense.includes(newName)) { toast.error("এই নাম ইতোমধ্যে আছে"); return; }
+    saveCustomCats({ ...m, expense: m.expense.map((c) => (c === oldName ? newName : c)) });
+    // Update affected budgets in DB
+    const { error } = await supabase.from("budgets").update({ category: newName }).eq("category", oldName);
+    if (error) { toast.error(error.message); return; }
+    if (form.category === oldName) setForm({ ...form, category: newName });
+    setEditingCat(null);
+    toast.success("ক্যাটাগরি আপডেট হয়েছে");
+    qc.invalidateQueries({ queryKey: ["budgets"] });
+  };
+
+  const deleteCategory = async (name: string) => {
+    const used = (bQ.data ?? []).some((b) => b.category === name);
+    const msg = used
+      ? `"${name}" ক্যাটাগরি ব্যবহৃত হচ্ছে এমন বাজেটসহ মুছে ফেলবেন?`
+      : `"${name}" ক্যাটাগরি মুছে ফেলবেন?`;
+    if (!confirm(msg)) return;
+    if (used) {
+      const { error } = await supabase.from("budgets").delete().eq("category", name);
+      if (error) { toast.error(error.message); return; }
+    }
+    const m = loadCustomCats();
+    saveCustomCats({ ...m, expense: m.expense.filter((c) => c !== name) });
+    if (form.category === name) setForm({ ...form, category: "" });
+    toast.success("ক্যাটাগরি মুছে ফেলা হয়েছে");
+    qc.invalidateQueries({ queryKey: ["budgets"] });
   };
 
   const [open, setOpen] = useState(false);
@@ -313,13 +348,50 @@ function BudgetPage() {
                 </div>
                 {cats.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mt-2">
-                    {cats.map((c) => (
-                      <button key={c} type="button" onClick={() => setForm({ ...form, category: c })}
-                        className={`px-2.5 py-1 text-xs rounded-full border ${form.category === c ? "bg-indigo-600 text-white border-indigo-600" : "border-slate-200 hover:bg-slate-50 text-slate-700"}`}>
-                        <span className="inline-block w-2 h-2 rounded-full mr-1.5 align-middle" style={{ background: categoryColor(c) }} />
-                        {c}
-                      </button>
-                    ))}
+                    {cats.map((c) => {
+                      const isEditing = editingCat === c;
+                      const isSelected = form.category === c;
+                      if (isEditing) {
+                        return (
+                          <div key={c} className="inline-flex items-center gap-1 border border-indigo-300 rounded-full pl-2 pr-1 py-0.5 bg-white">
+                            <input
+                              autoFocus
+                              value={editingCatName}
+                              onChange={(e) => setEditingCatName(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") { e.preventDefault(); renameCategory(c, editingCatName); }
+                                if (e.key === "Escape") setEditingCat(null);
+                              }}
+                              className="text-xs w-24 outline-none bg-transparent"
+                            />
+                            <button type="button" onClick={() => renameCategory(c, editingCatName)}
+                              className="text-xs px-1.5 py-0.5 rounded-full bg-indigo-600 text-white">ঠিক</button>
+                            <button type="button" onClick={() => setEditingCat(null)}
+                              className="p-0.5 text-slate-400 hover:text-slate-600"><X className="w-3 h-3" /></button>
+                          </div>
+                        );
+                      }
+                      return (
+                        <div key={c}
+                          className={`inline-flex items-center rounded-full border text-xs ${isSelected ? "bg-indigo-600 text-white border-indigo-600" : "border-slate-200 text-slate-700"}`}>
+                          <button type="button" onClick={() => setForm({ ...form, category: c })}
+                            className={`pl-2.5 pr-1.5 py-1 ${isSelected ? "" : "hover:bg-slate-50 rounded-l-full"}`}>
+                            <span className="inline-block w-2 h-2 rounded-full mr-1.5 align-middle" style={{ background: categoryColor(c) }} />
+                            {c}
+                          </button>
+                          <button type="button" title="এডিট"
+                            onClick={() => { setEditingCat(c); setEditingCatName(c); }}
+                            className={`p-1 ${isSelected ? "text-indigo-100 hover:text-white" : "text-slate-400 hover:text-slate-700"}`}>
+                            <Pencil className="w-3 h-3" />
+                          </button>
+                          <button type="button" title="মুছুন"
+                            onClick={() => deleteCategory(c)}
+                            className={`p-1 pr-2 ${isSelected ? "text-indigo-100 hover:text-white" : "text-slate-400 hover:text-rose-600"}`}>
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
                 {!form.category && (
