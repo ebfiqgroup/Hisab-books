@@ -67,6 +67,16 @@ function AdminUserView() {
 
   useEffect(() => { if (isAdmin) load(); }, [isAdmin, userId]);
 
+  const now = new Date();
+  const chartSeries = useMemo(() => {
+    const y = now.getFullYear();
+    return BN_MONTHS.map((m, i) => {
+      const mTxns = txns.filter(t => { const d = new Date(t.occurred_on); return d.getFullYear() === y && d.getMonth() === i; });
+      const sumT = (arr: Txn[], type: "income" | "expense") => arr.filter(t => t.type === type).reduce((s, t) => s + Number(t.amount), 0);
+      return { d: m.slice(0, 3), আয়: sumT(mTxns, "income"), ব্যয়: sumT(mTxns, "expense") };
+    });
+  }, [txns]);
+
   if (isAdmin === null) return <AppShell title="ইউজার ড্যাশবোর্ড"><div className="p-8 text-slate-500">লোড হচ্ছে…</div></AppShell>;
   if (!isAdmin) {
     return (
@@ -80,7 +90,6 @@ function AdminUserView() {
     );
   }
 
-  const now = new Date();
   const { startISO, endISO, prevStartISO } = monthBounds(now);
   const sum = (arr: Txn[], type: "income" | "expense") => arr.filter(t => t.type === type).reduce((s, t) => s + Number(t.amount), 0);
   const cur = txns.filter(t => t.occurred_on >= startISO && t.occurred_on < endISO);
@@ -90,14 +99,6 @@ function AdminUserView() {
   const totalInc = sum(txns, "income"), totalExp = sum(txns, "expense");
   const receivable = debts.filter(d => !d.settled && d.kind === "receivable").reduce((s, d) => s + Number(d.amount), 0);
   const payable = debts.filter(d => !d.settled && d.kind === "payable").reduce((s, d) => s + Number(d.amount), 0);
-
-  const chartSeries = useMemo(() => {
-    const y = now.getFullYear();
-    return BN_MONTHS.map((m, i) => {
-      const mTxns = txns.filter(t => { const d = new Date(t.occurred_on); return d.getFullYear() === y && d.getMonth() === i; });
-      return { d: m.slice(0, 3), আয়: sum(mTxns, "income"), ব্যয়: sum(mTxns, "expense") };
-    });
-  }, [txns]);
 
   const cards = [
     { label: "এই মাসের আয়", value: fmtTk(curInc), last: `গত: ${fmtTk(prevInc)}`, Icon: Wallet, c: "emerald" },
