@@ -250,6 +250,21 @@ function SettingsPage() {
           <Field label="ছবির লিংক (URL)">
             <input value={avatar} onChange={(e) => setAvatar(e.target.value)} placeholder="https://..." className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
           </Field>
+          <Field label="অথবা সরাসরি ছবি আপলোড">
+            <div className="flex flex-wrap gap-2 items-center">
+              <label className="flex items-center gap-2 px-3 py-2 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg text-sm font-medium hover:bg-indigo-100 cursor-pointer">
+                <ImagePlus className="w-4 h-4" /> ছবি বাছাই করুন
+                <input type="file" accept="image/*" className="hidden" disabled={busy}
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadAvatar(f); e.target.value = ""; }} />
+              </label>
+              {avatar && (
+                <button type="button" onClick={() => setAvatar("")} className="px-3 py-2 text-sm text-rose-600 border border-rose-200 rounded-lg hover:bg-rose-50">
+                  সরান
+                </button>
+              )}
+              <span className="text-xs text-slate-500">JPG/PNG, সর্বোচ্চ ৫ MB</span>
+            </div>
+          </Field>
           <PrimaryBtn onClick={saveProfile} disabled={busy}><Save className="w-4 h-4" /> সংরক্ষণ</PrimaryBtn>
         </Section>
 
