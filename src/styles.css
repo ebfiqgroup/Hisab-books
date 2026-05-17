@@ -272,3 +272,43 @@ a {
 button:not(:disabled):hover {
   transform: translateY(-1px);
 }
+
+/* === Responsive normalization for cards / sections on mobile & tablet === */
+/* Tighten padding, gaps, and typography below the lg breakpoint so every
+   module looks consistent without touching each component. */
+@media (max-width: 1023px) {
+  main h1 { font-size: 1.25rem; line-height: 1.75rem; }
+  main h2 { font-size: 1.05rem; line-height: 1.5rem; }
+  main h3 { font-size: 0.95rem; line-height: 1.4rem; }
+
+  /* Common card surfaces — uniform inner padding & radius */
+  main .rounded-xl,
+  main .rounded-2xl {
+    padding: 0.875rem !important;
+    border-radius: 0.875rem;
+  }
+  /* Don't shrink padding inside dialogs / popovers / nested input chips */
+  main [role="dialog"] .rounded-xl,
+  main [role="dialog"] .rounded-2xl,
+  main .rounded-xl .rounded-md,
+  main .rounded-xl .rounded-lg { padding: revert !important; }
+
+  /* Uniform gap inside flex / grid containers */
+  main .gap-4 { gap: 0.625rem; }
+  main .gap-5 { gap: 0.75rem; }
+  main .gap-6 { gap: 0.875rem; }
+  main .mb-6 { margin-bottom: 1rem; }
+  main .mb-8 { margin-bottom: 1.25rem; }
+
+  /* Typography normalization inside cards */
+  main .text-3xl { font-size: 1.375rem; line-height: 1.75rem; }
+  main .text-2xl { font-size: 1.125rem; line-height: 1.5rem; }
+  main .text-xl  { font-size: 1rem;     line-height: 1.4rem; }
+}
+
+@media (max-width: 639px) {
+  main .rounded-xl,
+  main .rounded-2xl { padding: 0.75rem !important; }
+  main .gap-4 { gap: 0.5rem; }
+  main .gap-6 { gap: 0.75rem; }
+}
