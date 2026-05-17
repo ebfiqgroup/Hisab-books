@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Sparkles, AlertTriangle, Lightbulb, TrendingUp, RefreshCw, Loader2, Settings2, X, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { getAiSuggestions, type AiSuggestion } from "@/lib/ai-suggestions.functions";
+import { useLanguage } from "@/hooks/useLanguage";
 
 type Props = {
   curIncome: number;
@@ -19,9 +20,9 @@ type Props = {
 };
 
 const styles = {
-  alert: { icon: AlertTriangle, ring: "border-rose-200", bg: "bg-rose-50", fg: "text-rose-600", chip: "bg-rose-100 text-rose-700", label: "সতর্কতা" },
-  tip: { icon: Lightbulb, ring: "border-amber-200", bg: "bg-amber-50", fg: "text-amber-600", chip: "bg-amber-100 text-amber-700", label: "পরামর্শ" },
-  invest: { icon: TrendingUp, ring: "border-emerald-200", bg: "bg-emerald-50", fg: "text-emerald-600", chip: "bg-emerald-100 text-emerald-700", label: "বিনিয়োগ" },
+  alert: { icon: AlertTriangle, ring: "border-rose-200", bg: "bg-rose-50", fg: "text-rose-600", chip: "bg-rose-100 text-rose-700", labelBn: "সতর্কতা", labelEn: "Alert" },
+  tip: { icon: Lightbulb, ring: "border-amber-200", bg: "bg-amber-50", fg: "text-amber-600", chip: "bg-amber-100 text-amber-700", labelBn: "পরামর্শ", labelEn: "Tip" },
+  invest: { icon: TrendingUp, ring: "border-emerald-200", bg: "bg-emerald-50", fg: "text-emerald-600", chip: "bg-emerald-100 text-emerald-700", labelBn: "বিনিয়োগ", labelEn: "Invest" },
 } as const;
 
 type AlertType = "alert" | "tip" | "invest";
@@ -62,6 +63,7 @@ function loadCfg(): AiConfig {
 }
 
 export function AiSuggestions(props: Props) {
+  const { t, lang } = useLanguage();
   const callAi = useServerFn(getAiSuggestions);
   const [items, setItems] = useState<AiSuggestion[] | null>(null);
   const [loading, setLoading] = useState(false);
