@@ -143,7 +143,7 @@ function BudgetPage() {
             <tr>
               <th className="text-left px-4 py-3 font-medium">ক্যাটাগরি</th>
               <th className="text-right px-4 py-3 font-medium">বাজেট</th>
-              <th className="text-right px-4 py-3 font-medium">এই মাসে ব্যয়</th>
+              <th className="text-right px-4 py-3 font-medium">ব্যয় (নির্বাচিত)</th>
               <th className="px-4 py-3 font-medium">অগ্রগতি</th>
               <th className="px-4 py-3 font-medium text-right">অ্যাকশন</th>
             </tr>
