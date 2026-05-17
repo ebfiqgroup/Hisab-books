@@ -64,7 +64,7 @@ function ReportPage() {
   const summary = [
     { label: "গড় মাসিক আয়", value: fmtTk(avg("income")), Icon: TrendingUp, fg: "text-emerald-600", bg: "bg-emerald-50" },
     { label: "গড় মাসিক ব্যয়", value: fmtTk(avg("expense")), Icon: TrendingDown, fg: "text-rose-500", bg: "bg-rose-50" },
-    { label: "গড় মাসিক সঞ্চয়", value: fmtTk(avg("saving")), Icon: PiggyBank, fg: "text-blue-600", bg: "bg-blue-50" },
+    { label: "গড় মাসিক অবশিষ্ট", value: fmtTk(avg("saving")), Icon: PiggyBank, fg: "text-blue-600", bg: "bg-blue-50" },
     { label: "মোট রিপোর্ট", value: `${toBn(nonEmpty.length)} মাস`, Icon: BarChart3, fg: "text-indigo-600", bg: "bg-indigo-50" },
   ];
 
