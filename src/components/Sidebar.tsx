@@ -1,8 +1,9 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   Home, Wallet, TrendingDown, ArrowLeftRight, Clock, Target,
-  Users, BarChart3, Calendar, Settings,
+  Users, BarChart3, Calendar, Settings, ShieldCheck,
 } from "lucide-react";
+import { useIsAdmin } from "@/hooks/useRole";
 
 const navItems = [
   { icon: Home, label: "ড্যাশবোর্ড", to: "/" },
@@ -19,6 +20,10 @@ const navItems = [
 
 export function Sidebar() {
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const isAdmin = useIsAdmin();
+  const items = isAdmin
+    ? [...navItems, { icon: ShieldCheck, label: "অ্যাডমিন", to: "/admin" as const }]
+    : navItems;
   return (
     <aside className="w-64 flex flex-col h-screen sticky top-0 overflow-y-auto relative" style={{ background: "var(--gradient-sidebar)", color: "var(--brand-ivory)" }}>
       <div className="absolute inset-y-0 right-0 w-px" style={{ background: "linear-gradient(180deg, transparent, color-mix(in oklab, var(--brand-gold-500) 50%, transparent), transparent)" }} />
@@ -32,7 +37,7 @@ export function Sidebar() {
         </div>
       </div>
       <nav className="flex-1 p-3 space-y-0.5">
-        {navItems.map((n, i) => {
+        {items.map((n, i) => {
           const active = path === n.to;
           return (
             <Link
