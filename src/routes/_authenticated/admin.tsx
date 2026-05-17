@@ -4,12 +4,13 @@ import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/useRole";
 import { useAuth } from "@/hooks/useAuth";
-import { Shield, ShieldCheck, ShieldOff, Users, Wallet, TrendingDown, RefreshCw } from "lucide-react";
+import { Shield, ShieldCheck, ShieldOff, Users, Wallet, TrendingDown, RefreshCw, Database, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { UserDataManager } from "@/components/admin/UserDataManager";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
@@ -35,6 +36,9 @@ function AdminPage() {
   const [q, setQ] = useState("");
   const [pending, setPending] = useState<Row | null>(null);
   const [busy, setBusy] = useState(false);
+  const [manage, setManage] = useState<Row | null>(null);
+  const [deleteUser, setDeleteUser] = useState<Row | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -122,6 +126,23 @@ function AdminPage() {
 
   const fmt = (n: number) => new Intl.NumberFormat("bn-BD").format(Math.round(n || 0));
 
+  const confirmDeleteUser = async () => {
+    if (!deleteUser) return;
+    setDeleting(true);
+    const t = toast.loading("অ্যাকাউন্ট মুছে ফেলা হচ্ছে…");
+    try {
+      const { error } = await supabase.rpc("admin_delete_user", { _user_id: deleteUser.user_id });
+      if (error) throw error;
+      toast.success("অ্যাকাউন্ট সম্পূর্ণ মুছে ফেলা হয়েছে", { id: t });
+      setDeleteUser(null);
+      await load();
+    } catch (e: any) {
+      toast.error(e?.message || "মুছে ফেলা ব্যর্থ", { id: t });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <AppShell
       title="অ্যাডমিন প্যানেল"
@@ -196,13 +217,32 @@ function AdminPage() {
                       )}
                     </td>
                     <td className="py-3 text-right">
-                      <button
-                        onClick={() => setPending(r)}
-                        className="text-xs px-3 py-1.5 rounded-md border hover:shadow-sm inline-flex items-center gap-1"
-                        style={{ borderColor: "var(--brand-line)" }}
-                      >
-                        {r.is_admin ? <><ShieldOff className="w-3 h-3" /> সরান</> : <><Shield className="w-3 h-3" /> অ্যাডমিন করুন</>}
-                      </button>
+                      <div className="flex gap-1.5 justify-end flex-wrap">
+                        <button
+                          onClick={() => setManage(r)}
+                          className="text-xs px-2.5 py-1.5 rounded-md border hover:shadow-sm inline-flex items-center gap-1 bg-white"
+                          style={{ borderColor: "var(--brand-line)" }}
+                          title="তথ্য ব্যবস্থাপনা"
+                        >
+                          <Database className="w-3 h-3" /> ডাটা
+                        </button>
+                        <button
+                          onClick={() => setPending(r)}
+                          className="text-xs px-2.5 py-1.5 rounded-md border hover:shadow-sm inline-flex items-center gap-1 bg-white"
+                          style={{ borderColor: "var(--brand-line)" }}
+                        >
+                          {r.is_admin ? <><ShieldOff className="w-3 h-3" /> সরান</> : <><Shield className="w-3 h-3" /> অ্যাডমিন</>}
+                        </button>
+                        {r.user_id !== user?.id && (
+                          <button
+                            onClick={() => setDeleteUser(r)}
+                            className="text-xs px-2.5 py-1.5 rounded-md border border-rose-200 text-rose-600 hover:bg-rose-50 inline-flex items-center gap-1"
+                            title="অ্যাকাউন্ট মুছুন"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -253,6 +293,44 @@ function AdminPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AlertDialog open={!!deleteUser} onOpenChange={(o) => { if (!o && !deleting) setDeleteUser(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-rose-600">⚠️ অ্যাকাউন্ট সম্পূর্ণ মুছে ফেলবেন?</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-sm">
+                <p>
+                  <span className="font-semibold text-foreground">{deleteUser?.full_name || "—"}</span>
+                  {" "}<span className="text-xs text-slate-400 font-mono">({deleteUser?.user_id.slice(0, 8)}…)</span>
+                </p>
+                <p className="text-rose-700 font-medium">
+                  এই ব্যবহারকারীর সকল লেনদেন, বাজেট, ঋণ, লক্ষ্য, নোট, টাস্ক এবং অ্যাকাউন্ট স্থায়ীভাবে মুছে যাবে। এটি আর পুনরুদ্ধার করা যাবে না।
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>বাতিল</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deleting}
+              onClick={(e) => { e.preventDefault(); confirmDeleteUser(); }}
+              className="bg-rose-600 hover:bg-rose-700"
+            >
+              {deleting ? "মুছে ফেলা হচ্ছে…" : "হ্যাঁ, সম্পূর্ণ মুছুন"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {manage && (
+        <UserDataManager
+          userId={manage.user_id}
+          userName={manage.full_name || ""}
+          open={!!manage}
+          onOpenChange={(o) => { if (!o) setManage(null); }}
+        />
+      )}
     </AppShell>
   );
 }
