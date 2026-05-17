@@ -4,13 +4,14 @@ import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/useRole";
 import { useAuth } from "@/hooks/useAuth";
-import { Shield, ShieldCheck, ShieldOff, Users, Wallet, TrendingDown, RefreshCw, Database, Trash2 } from "lucide-react";
+import { Shield, ShieldCheck, ShieldOff, Users, Wallet, TrendingDown, RefreshCw, Database, Trash2, UserCog } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { UserDataManager } from "@/components/admin/UserDataManager";
+import { UserProfileEditor } from "@/components/admin/UserProfileEditor";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
@@ -37,6 +38,7 @@ function AdminPage() {
   const [pending, setPending] = useState<Row | null>(null);
   const [busy, setBusy] = useState(false);
   const [manage, setManage] = useState<Row | null>(null);
+  const [editProfile, setEditProfile] = useState<Row | null>(null);
   const [deleteUser, setDeleteUser] = useState<Row | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -227,6 +229,14 @@ function AdminPage() {
                           <Database className="w-3 h-3" /> ডাটা
                         </button>
                         <button
+                          onClick={() => setEditProfile(r)}
+                          className="text-xs px-2.5 py-1.5 rounded-md border hover:shadow-sm inline-flex items-center gap-1 bg-white"
+                          style={{ borderColor: "var(--brand-line)" }}
+                          title="প্রোফাইল সেটিংস"
+                        >
+                          <UserCog className="w-3 h-3" /> প্রোফাইল
+                        </button>
+                        <button
                           onClick={() => setPending(r)}
                           className="text-xs px-2.5 py-1.5 rounded-md border hover:shadow-sm inline-flex items-center gap-1 bg-white"
                           style={{ borderColor: "var(--brand-line)" }}
@@ -329,6 +339,15 @@ function AdminPage() {
           userName={manage.full_name || ""}
           open={!!manage}
           onOpenChange={(o) => { if (!o) setManage(null); }}
+        />
+      )}
+
+      {editProfile && (
+        <UserProfileEditor
+          userId={editProfile.user_id}
+          open={!!editProfile}
+          onOpenChange={(o) => { if (!o) setEditProfile(null); }}
+          onSaved={() => { load(); }}
         />
       )}
     </AppShell>
