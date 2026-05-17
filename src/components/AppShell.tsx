@@ -34,8 +34,8 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
     <div className="h-screen flex overflow-hidden" style={{ background: "var(--gradient-page)" }}>
       <Sidebar mobileOpen={navOpen} onClose={() => setNavOpen(false)} />
       <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto h-screen w-full min-w-0">
-        <div className="flex items-center justify-between gap-2 mb-4 lg:mb-6 flex-wrap" ref={ref}>
-          <div className="flex items-center gap-2 md:gap-3 min-w-0">
+        <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between lg:gap-3 mb-4 lg:mb-6" ref={ref}>
+          <div className="flex items-center gap-2 md:gap-3 min-w-0 w-full lg:w-auto">
             <button
               onClick={() => setNavOpen(true)}
               className="lg:hidden p-2 bg-white rounded-lg border hover:shadow-sm transition shrink-0 flex flex-col gap-[3px] items-center justify-center w-9 h-9"
@@ -47,10 +47,15 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
               <span className="block w-4 h-[2px] rounded" style={{ background: "var(--brand-ink)" }} />
             </button>
             <span className="hidden md:block h-7 w-1 rounded-full" style={{ background: "var(--gradient-brand)" }} />
-            <h1 className="text-lg md:text-2xl lg:text-3xl tracking-tight truncate" style={{ fontFamily: "var(--font-display)", color: "var(--brand-ink)" }}>{title}</h1>
+            <h1 className="text-lg md:text-2xl lg:text-3xl tracking-tight truncate flex-1 min-w-0" style={{ fontFamily: "var(--font-display)", color: "var(--brand-ink)" }}>{title}</h1>
           </div>
-          <div className="flex items-center gap-2 md:gap-3 flex-wrap">
-            {actions}
+          {actions && (
+            <div className="flex items-center gap-2 flex-wrap w-full lg:hidden">
+              {actions}
+            </div>
+          )}
+          <div className="flex items-center gap-2 md:gap-3 flex-wrap w-full lg:w-auto lg:justify-end">
+            <div className="hidden lg:flex items-center gap-2 md:gap-3 flex-wrap">{actions}</div>
             <Link
               to="/support"
               title={t("nav.support")}
