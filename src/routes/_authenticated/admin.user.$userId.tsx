@@ -12,7 +12,7 @@ import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
 } from "recharts";
 
-export const Route = createFileRoute("/_authenticated/admin/user/")({
+export const Route = createFileRoute("/_authenticated/admin/user/$userId")({
   component: AdminUserView,
 });
 
