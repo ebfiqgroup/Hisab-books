@@ -88,12 +88,27 @@ function BudgetPage() {
   const totalSpent = cats.reduce((s, k) => s + (spentMap.get(k) ?? 0), 0);
   const totalPct = totalBudget > 0 ? Math.min(100, (totalSpent / totalBudget) * 100) : 0;
 
+  const fmtBnDate = (iso: string) => {
+    const d = new Date(iso);
+    const bnMonths = ["জানু", "ফেব", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগ", "সেপ্ট", "অক্টো", "নভে", "ডিসে"];
+    return `${toBn(d.getDate())} ${bnMonths[d.getMonth()]}, ${toBn(d.getFullYear())}`;
+  };
+  const dayCount = Math.max(1, Math.round((new Date(toDate).getTime() - new Date(fromDate).getTime()) / 86400000) + 1);
+
   return (
     <AppShell title="মাসিক বাজেট">
       <div className="bg-white rounded-xl p-3 sm:p-4 border border-slate-200 mb-4">
-        <div className="flex items-center gap-2 mb-2 text-sm text-slate-600">
-          <CalendarRange className="w-4 h-4 text-indigo-600" />
-          <span className="font-medium">তারিখ ফিল্টার</span>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2 text-sm text-slate-600">
+            <CalendarRange className="w-4 h-4 text-indigo-600" />
+            <span className="font-medium">তারিখ ফিল্টার</span>
+          </div>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-xs sm:text-sm">
+            <span className="font-semibold text-indigo-700">{fmtBnDate(fromDate)}</span>
+            <span className="text-slate-400">→</span>
+            <span className="font-semibold text-indigo-700">{fmtBnDate(toDate)}</span>
+            <span className="text-slate-500 hidden sm:inline">· {toBn(dayCount)} দিন</span>
+          </div>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 sm:items-end">
           <div className="flex-1">
