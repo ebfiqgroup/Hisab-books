@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   Home, Wallet, TrendingDown, ArrowLeftRight, Clock, Target,
-  Users, BarChart3, Calendar, Settings, ShieldCheck, Activity,
+  Users, BarChart3, Calendar, Settings, ShieldCheck, Activity, LifeBuoy,
 } from "lucide-react";
 import { useIsAdmin } from "@/hooks/useRole";
 
@@ -15,6 +15,7 @@ const navItems = [
   { icon: Users, label: "পাওনা/দেনা", to: "/debts" },
   { icon: BarChart3, label: "রিপোর্ট", to: "/report" },
   { icon: Calendar, label: "ক্যালেন্ডার", to: "/calendar" },
+  { icon: LifeBuoy, label: "সাপোর্ট", to: "/support" },
   { icon: Settings, label: "সেটিংস", to: "/settings" },
 ];
 

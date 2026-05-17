@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedTransactionsRouteImport } from './routes/_authenticated/transactions'
+import { Route as AuthenticatedSupportRouteImport } from './routes/_authenticated/support'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedReportRouteImport } from './routes/_authenticated/report'
 import { Route as AuthenticatedIncomeRouteImport } from './routes/_authenticated/income'
@@ -50,6 +51,11 @@ const AuthenticatedTransactionsRoute =
     path: '/transactions',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedSupportRoute = AuthenticatedSupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/income': typeof AuthenticatedIncomeRoute
   '/report': typeof AuthenticatedReportRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/support': typeof AuthenticatedSupportRoute
   '/transactions': typeof AuthenticatedTransactionsRoute
 }
 export interface FileRoutesByTo {
@@ -130,6 +137,7 @@ export interface FileRoutesByTo {
   '/income': typeof AuthenticatedIncomeRoute
   '/report': typeof AuthenticatedReportRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/support': typeof AuthenticatedSupportRoute
   '/transactions': typeof AuthenticatedTransactionsRoute
   '/': typeof AuthenticatedIndexRoute
 }
@@ -148,6 +156,7 @@ export interface FileRoutesById {
   '/_authenticated/income': typeof AuthenticatedIncomeRoute
   '/_authenticated/report': typeof AuthenticatedReportRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/support': typeof AuthenticatedSupportRoute
   '/_authenticated/transactions': typeof AuthenticatedTransactionsRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
 }
@@ -167,6 +176,7 @@ export interface FileRouteTypes {
     | '/income'
     | '/report'
     | '/settings'
+    | '/support'
     | '/transactions'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -182,6 +192,7 @@ export interface FileRouteTypes {
     | '/income'
     | '/report'
     | '/settings'
+    | '/support'
     | '/transactions'
     | '/'
   id:
@@ -199,6 +210,7 @@ export interface FileRouteTypes {
     | '/_authenticated/income'
     | '/_authenticated/report'
     | '/_authenticated/settings'
+    | '/_authenticated/support'
     | '/_authenticated/transactions'
     | '/_authenticated/'
   fileRoutesById: FileRoutesById
@@ -244,6 +256,13 @@ declare module '@tanstack/react-router' {
       path: '/transactions'
       fullPath: '/transactions'
       preLoaderRoute: typeof AuthenticatedTransactionsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/support': {
+      id: '/_authenticated/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof AuthenticatedSupportRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/settings': {
@@ -330,6 +349,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedIncomeRoute: typeof AuthenticatedIncomeRoute
   AuthenticatedReportRoute: typeof AuthenticatedReportRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedSupportRoute: typeof AuthenticatedSupportRoute
   AuthenticatedTransactionsRoute: typeof AuthenticatedTransactionsRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
@@ -345,6 +365,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedIncomeRoute: AuthenticatedIncomeRoute,
   AuthenticatedReportRoute: AuthenticatedReportRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedSupportRoute: AuthenticatedSupportRoute,
   AuthenticatedTransactionsRoute: AuthenticatedTransactionsRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
