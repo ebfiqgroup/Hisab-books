@@ -1,10 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/useRole";
 import { useAuth } from "@/hooks/useAuth";
-import { Shield, ShieldCheck, ShieldOff, Users, Wallet, TrendingDown, RefreshCw, Database, Trash2, UserCog, Clock, CheckCircle2, Ban } from "lucide-react";
+import { Shield, ShieldCheck, ShieldOff, Users, Wallet, TrendingDown, RefreshCw, Database, Trash2, UserCog, Clock, CheckCircle2, Ban, LayoutDashboard } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -302,6 +302,15 @@ function AdminPage() {
                         >
                           <Database className="w-3 h-3" /> ডাটা
                         </button>
+                        <Link
+                          to="/admin/user/$userId"
+                          params={{ userId: r.user_id }}
+                          className="text-xs px-2.5 py-1.5 rounded-md border hover:shadow-sm inline-flex items-center gap-1 bg-white"
+                          style={{ borderColor: "var(--brand-line)" }}
+                          title="ফুল ড্যাশবোর্ড ভিউ"
+                        >
+                          <LayoutDashboard className="w-3 h-3" /> ড্যাশবোর্ড
+                        </Link>
                         <button
                           onClick={() => setEditProfile(r)}
                           className="text-xs px-2.5 py-1.5 rounded-md border hover:shadow-sm inline-flex items-center gap-1 bg-white"
