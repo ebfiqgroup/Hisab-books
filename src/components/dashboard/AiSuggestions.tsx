@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Sparkles, AlertTriangle, Lightbulb, TrendingUp, RefreshCw, Loader2, Settings2, X, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { getAiSuggestions, type AiSuggestion } from "@/lib/ai-suggestions.functions";
+import { useLanguage } from "@/hooks/useLanguage";
 
 type Props = {
   curIncome: number;
@@ -19,9 +20,9 @@ type Props = {
 };
 
 const styles = {
-  alert: { icon: AlertTriangle, ring: "border-rose-200", bg: "bg-rose-50", fg: "text-rose-600", chip: "bg-rose-100 text-rose-700", label: "সতর্কতা" },
-  tip: { icon: Lightbulb, ring: "border-amber-200", bg: "bg-amber-50", fg: "text-amber-600", chip: "bg-amber-100 text-amber-700", label: "পরামর্শ" },
-  invest: { icon: TrendingUp, ring: "border-emerald-200", bg: "bg-emerald-50", fg: "text-emerald-600", chip: "bg-emerald-100 text-emerald-700", label: "বিনিয়োগ" },
+  alert: { icon: AlertTriangle, ring: "border-rose-200", bg: "bg-rose-50", fg: "text-rose-600", chip: "bg-rose-100 text-rose-700", labelBn: "সতর্কতা", labelEn: "Alert" },
+  tip: { icon: Lightbulb, ring: "border-amber-200", bg: "bg-amber-50", fg: "text-amber-600", chip: "bg-amber-100 text-amber-700", labelBn: "পরামর্শ", labelEn: "Tip" },
+  invest: { icon: TrendingUp, ring: "border-emerald-200", bg: "bg-emerald-50", fg: "text-emerald-600", chip: "bg-emerald-100 text-emerald-700", labelBn: "বিনিয়োগ", labelEn: "Invest" },
 } as const;
 
 type AlertType = "alert" | "tip" | "invest";
@@ -62,6 +63,7 @@ function loadCfg(): AiConfig {
 }
 
 export function AiSuggestions(props: Props) {
+  const { t, lang } = useLanguage();
   const callAi = useServerFn(getAiSuggestions);
   const [items, setItems] = useState<AiSuggestion[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -80,7 +82,7 @@ export function AiSuggestions(props: Props) {
   const run = async (silent = false) => {
     const c = cfgRef.current;
     if (c.types.length === 0) {
-      if (!silent) toast.error("অন্তত একটি অ্যালার্ট ধরন নির্বাচন করুন");
+      if (!silent) toast.error(t("অন্তত একটি অ্যালার্ট ধরন নির্বাচন করুন", "Please select at least one alert type"));
       return;
     }
     if (loadingRef.current) return;
@@ -89,9 +91,9 @@ export function AiSuggestions(props: Props) {
       const res = await callAi({ data: { ...propsRef.current, config: c } });
       setItems(res.suggestions);
       setLastRun(new Date());
-      if (!silent && res.suggestions.length === 0) toast.message("কোনো সাজেশন পাওয়া যায়নি");
+      if (!silent && res.suggestions.length === 0) toast.message(t("কোনো সাজেশন পাওয়া যায়নি", "No suggestions found"));
     } catch (e) {
-      if (!silent) toast.error(e instanceof Error ? e.message : "AI সাজেশন আনতে সমস্যা হয়েছে");
+      if (!silent) toast.error(e instanceof Error ? e.message : t("AI সাজেশন আনতে সমস্যা হয়েছে", "Failed to fetch AI suggestions"));
     } finally {
       setLoading(false);
     }
@@ -115,7 +117,7 @@ export function AiSuggestions(props: Props) {
   const saveCfg = () => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg)); } catch { /* noop */ }
     setSettingsOpen(false);
-    toast.success("সেটিংস সংরক্ষিত হয়েছে");
+    toast.success(t("সেটিংস সংরক্ষিত হয়েছে", "Settings saved"));
   };
 
   const resetCfg = () => setCfg(DEFAULT_CFG);
@@ -128,10 +130,10 @@ export function AiSuggestions(props: Props) {
             <Sparkles className="w-4 h-4 text-white" />
           </div>
           <div>
-            <h3 className="font-bold text-slate-800">AI আর্থিক সাজেশন</h3>
+            <h3 className="font-bold text-slate-800">{t("AI আর্থিক সাজেশন", "AI Financial Suggestions")}</h3>
             <p className="text-xs text-slate-500">
-              {cfg.autoRun ? <>অটো-বিশ্লেষণ চালু • প্রতি {cfg.autoIntervalMin} মিনিটে</> : "ম্যানুয়াল বিশ্লেষণ"}
-              {lastRun && <> • সর্বশেষ {lastRun.toLocaleTimeString("bn-BD", { hour: "2-digit", minute: "2-digit" })}</>}
+              {cfg.autoRun ? <>{t("অটো-বিশ্লেষণ চালু", "Auto-analysis on")} • {t("প্রতি", "every")} {cfg.autoIntervalMin} {t("মিনিটে", "min")}</> : t("ম্যানুয়াল বিশ্লেষণ", "Manual analysis")}
+              {lastRun && <> • {t("সর্বশেষ", "last")} {lastRun.toLocaleTimeString(lang === "bn" ? "bn-BD" : "en-US", { hour: "2-digit", minute: "2-digit" })}</>}
             </p>
           </div>
         </div>
@@ -141,19 +143,19 @@ export function AiSuggestions(props: Props) {
               const next = { ...cfg, autoRun: !cfg.autoRun };
               setCfg(next);
               try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch { /* noop */ }
-              toast.success(next.autoRun ? "অটোমেশন চালু" : "অটোমেশন বন্ধ");
+              toast.success(next.autoRun ? t("অটোমেশন চালু", "Automation on") : t("অটোমেশন বন্ধ", "Automation off"));
             }}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border ${cfg.autoRun ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-white border-slate-200 text-slate-600"}`}
-            title="অটোমেশন"
+            title={t("অটোমেশন", "Automation")}
           >
-            <Zap className="w-4 h-4" /> অটো {cfg.autoRun ? "চালু" : "বন্ধ"}
+            <Zap className="w-4 h-4" /> {t("অটো", "Auto")} {cfg.autoRun ? t("চালু", "On") : t("বন্ধ", "Off")}
           </button>
           <button
             onClick={() => setSettingsOpen(true)}
             className="flex items-center gap-1.5 px-3 py-2 bg-white border border-indigo-200 text-indigo-700 rounded-lg text-sm font-medium hover:bg-indigo-50"
-            title="অ্যালার্ট সেটিংস"
+            title={t("অ্যালার্ট সেটিংস", "Alert settings")}
           >
-            <Settings2 className="w-4 h-4" /> সেটিংস
+            <Settings2 className="w-4 h-4" /> {t("সেটিংস", "Settings")}
           </button>
           <button
             onClick={() => run(false)}
@@ -161,14 +163,14 @@ export function AiSuggestions(props: Props) {
             className="flex items-center gap-2 px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-60"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : items ? <RefreshCw className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
-            {loading ? "বিশ্লেষণ চলছে..." : items ? "আবার বিশ্লেষণ" : "AI বিশ্লেষণ করুন"}
+            {loading ? t("বিশ্লেষণ চলছে...", "Analyzing...") : items ? t("আবার বিশ্লেষণ", "Re-analyze") : t("AI বিশ্লেষণ করুন", "Run AI analysis")}
           </button>
         </div>
       </div>
 
       {!items && !loading && (
         <div className="text-sm text-slate-500 bg-white/60 rounded-lg p-3 border border-dashed border-indigo-200">
-          "AI বিশ্লেষণ করুন" চাপুন — কোন খাতে বেশি ব্যয় হচ্ছে, কোথায় সাশ্রয় ও বিনিয়োগ সম্ভব তা জানতে পারবেন।
+          {t('"AI বিশ্লেষণ করুন" চাপুন — কোন খাতে বেশি ব্যয় হচ্ছে, কোথায় সাশ্রয় ও বিনিয়োগ সম্ভব তা জানতে পারবেন।', 'Press "Run AI analysis" — discover where spending is high and where you can save or invest.')}
         </div>
       )}
 
@@ -193,18 +195,18 @@ export function AiSuggestions(props: Props) {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${style.chip}`}>{style.label}</span>
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${style.chip}`}>{lang === "bn" ? style.labelBn : style.labelEn}</span>
                       <h4 className="font-semibold text-slate-800 text-sm">{s.title}</h4>
                     </div>
                     <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">{s.detail}</p>
                     {s.reason && (
                       <div className={`mt-2 text-xs rounded-md px-2 py-1.5 ${style.bg} ${style.fg}`}>
-                        <span className="font-semibold">কারণ: </span>{s.reason}
+                        <span className="font-semibold">{t("কারণ", "Reason")}: </span>{s.reason}
                       </div>
                     )}
                     {Array.isArray(s.steps) && s.steps.length > 0 && (
                       <div className="mt-2">
-                        <div className="text-[11px] font-semibold text-slate-700 mb-1">কীভাবে ঠিক করবেন:</div>
+                        <div className="text-[11px] font-semibold text-slate-700 mb-1">{t("কীভাবে ঠিক করবেন:", "How to fix:")}</div>
                         <ol className="list-decimal list-inside space-y-0.5 text-xs text-slate-700">
                           {s.steps.slice(0, 5).map((step, idx) => (
                             <li key={idx} className="leading-snug">{step}</li>
@@ -224,23 +226,23 @@ export function AiSuggestions(props: Props) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setSettingsOpen(false)}>
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-5" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h4 className="font-bold text-slate-800 flex items-center gap-2"><Settings2 className="w-4 h-4 text-indigo-600" /> AI অ্যালার্ট সেটিংস</h4>
+              <h4 className="font-bold text-slate-800 flex items-center gap-2"><Settings2 className="w-4 h-4 text-indigo-600" /> {t("AI অ্যালার্ট সেটিংস", "AI Alert Settings")}</h4>
               <button onClick={() => setSettingsOpen(false)} className="p-1 rounded hover:bg-slate-100"><X className="w-4 h-4 text-slate-500" /></button>
             </div>
 
             <div className="space-y-4">
               <div>
-                <div className="text-sm font-medium text-slate-700 mb-2">কোন ধরনের সমস্যা দেখাবে</div>
+                <div className="text-sm font-medium text-slate-700 mb-2">{t("কোন ধরনের সমস্যা দেখাবে", "Which types to show")}</div>
                 <div className="space-y-2">
-                  {(["alert", "tip", "invest"] as AlertType[]).map((t) => {
-                    const st = styles[t];
-                    const checked = cfg.types.includes(t);
-                    const desc = t === "alert" ? "অতিরিক্ত খরচ, নগদ কম, লক্ষ্য পিছিয়ে" : t === "tip" ? "সাশ্রয় ও বাজেট পরামর্শ" : "সঞ্চয় ও বিনিয়োগ পরামর্শ";
+                  {(["alert", "tip", "invest"] as AlertType[]).map((at) => {
+                    const st = styles[at];
+                    const checked = cfg.types.includes(at);
+                    const desc = at === "alert" ? t("অতিরিক্ত খরচ, নগদ কম, লক্ষ্য পিছিয়ে", "Overspending, low cash, goals behind") : at === "tip" ? t("সাশ্রয় ও বাজেট পরামর্শ", "Saving & budget tips") : t("সঞ্চয় ও বিনিয়োগ পরামর্শ", "Savings & investment tips");
                     return (
-                      <label key={t} className={`flex items-start gap-2 p-2 rounded-lg border cursor-pointer ${checked ? st.ring + " " + st.bg : "border-slate-200 bg-white"}`}>
-                        <input type="checkbox" checked={checked} onChange={() => toggleType(t)} className="mt-1" />
+                      <label key={at} className={`flex items-start gap-2 p-2 rounded-lg border cursor-pointer ${checked ? st.ring + " " + st.bg : "border-slate-200 bg-white"}`}>
+                        <input type="checkbox" checked={checked} onChange={() => toggleType(at)} className="mt-1" />
                         <div className="flex-1">
-                          <div className={`text-sm font-semibold ${st.fg}`}>{st.label}</div>
+                          <div className={`text-sm font-semibold ${st.fg}`}>{lang === "bn" ? st.labelBn : st.labelEn}</div>
                           <div className="text-xs text-slate-500">{desc}</div>
                         </div>
                       </label>
@@ -251,8 +253,8 @@ export function AiSuggestions(props: Props) {
 
               <div>
                 <label className="text-sm font-medium text-slate-700 flex justify-between mb-1">
-                  <span>বেশি খরচ থ্রেশহোল্ড</span>
-                  <span className="text-indigo-600 font-semibold">{cfg.expenseRatioPct}% আয়ের</span>
+                  <span>{t("বেশি খরচ থ্রেশহোল্ড", "High-spend threshold")}</span>
+                  <span className="text-indigo-600 font-semibold">{cfg.expenseRatioPct}% {t("আয়ের", "of income")}</span>
                 </label>
                 <input type="range" min={20} max={150} step={5} value={cfg.expenseRatioPct}
                   onChange={(e) => setCfg({ ...cfg, expenseRatioPct: Number(e.target.value) })}
@@ -260,16 +262,16 @@ export function AiSuggestions(props: Props) {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-slate-700 block mb-1">নগদ কম থ্রেশহোল্ড (৳)</label>
+                <label className="text-sm font-medium text-slate-700 block mb-1">{t("নগদ কম থ্রেশহোল্ড (৳)", "Low-cash threshold (৳)")}</label>
                 <input type="number" min={0} step={500} value={cfg.lowCashTk}
                   onChange={(e) => setCfg({ ...cfg, lowCashTk: Math.max(0, Number(e.target.value) || 0) })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
-                <p className="text-xs text-slate-500 mt-1">অবশিষ্ট এর কম হলে অ্যালার্ট</p>
+                <p className="text-xs text-slate-500 mt-1">{t("অবশিষ্ট এর কম হলে অ্যালার্ট", "Alert when remaining cash falls below this")}</p>
               </div>
 
               <div>
                 <label className="text-sm font-medium text-slate-700 flex justify-between mb-1">
-                  <span>লক্ষ্য পিছিয়ে থ্রেশহোল্ড</span>
+                  <span>{t("লক্ষ্য পিছিয়ে থ্রেশহোল্ড", "Goal-lag threshold")}</span>
                   <span className="text-indigo-600 font-semibold">{cfg.goalLagPct}%</span>
                 </label>
                 <input type="range" min={5} max={60} step={5} value={cfg.goalLagPct}
@@ -279,13 +281,13 @@ export function AiSuggestions(props: Props) {
 
               <div className="pt-3 border-t border-slate-100">
                 <label className="flex items-center justify-between gap-2 mb-2">
-                  <span className="text-sm font-medium text-slate-700 flex items-center gap-2"><Zap className="w-4 h-4 text-emerald-600" /> অটোমেশন</span>
+                  <span className="text-sm font-medium text-slate-700 flex items-center gap-2"><Zap className="w-4 h-4 text-emerald-600" /> {t("অটোমেশন", "Automation")}</span>
                   <input type="checkbox" checked={cfg.autoRun} onChange={(e) => setCfg({ ...cfg, autoRun: e.target.checked })} className="w-4 h-4 accent-emerald-600" />
                 </label>
-                <p className="text-xs text-slate-500 mb-2">চালু থাকলে ড্যাশবোর্ড খুললেই AI নিজে থেকে বিশ্লেষণ করে রিপোর্ট দেখাবে।</p>
+                <p className="text-xs text-slate-500 mb-2">{t("চালু থাকলে ড্যাশবোর্ড খুললেই AI নিজে থেকে বিশ্লেষণ করে রিপোর্ট দেখাবে।", "When on, AI auto-analyzes and shows a report whenever the dashboard opens.")}</p>
                 <label className="text-sm font-medium text-slate-700 flex justify-between mb-1">
-                  <span>রিফ্রেশ ইন্টারভাল</span>
-                  <span className="text-indigo-600 font-semibold">{cfg.autoIntervalMin} মিনিট</span>
+                  <span>{t("রিফ্রেশ ইন্টারভাল", "Refresh interval")}</span>
+                  <span className="text-indigo-600 font-semibold">{cfg.autoIntervalMin} {t("মিনিট", "min")}</span>
                 </label>
                 <input type="range" min={5} max={120} step={5} value={cfg.autoIntervalMin}
                   disabled={!cfg.autoRun}
@@ -295,10 +297,10 @@ export function AiSuggestions(props: Props) {
             </div>
 
             <div className="flex items-center justify-between gap-2 mt-5 pt-4 border-t border-slate-100">
-              <button onClick={resetCfg} className="text-xs text-slate-500 hover:text-slate-700 underline">ডিফল্টে ফিরান</button>
+              <button onClick={resetCfg} className="text-xs text-slate-500 hover:text-slate-700 underline">{t("ডিফল্টে ফিরান", "Reset to defaults")}</button>
               <div className="flex gap-2">
-                <button onClick={() => setSettingsOpen(false)} className="px-3 py-2 text-sm border border-slate-200 rounded-lg">বাতিল</button>
-                <button onClick={saveCfg} className="px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">সংরক্ষণ</button>
+                <button onClick={() => setSettingsOpen(false)} className="px-3 py-2 text-sm border border-slate-200 rounded-lg">{t("বাতিল", "Cancel")}</button>
+                <button onClick={saveCfg} className="px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">{t("সংরক্ষণ", "Save")}</button>
               </div>
             </div>
           </div>
