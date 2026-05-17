@@ -53,14 +53,14 @@ function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: "oklch(0.22 0.04 250)" }}>
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: "var(--gradient-brand)" }}>
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 brand-card">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-xl bg-emerald-500/15 flex items-center justify-center">
-            <Wallet className="w-6 h-6 text-emerald-600" />
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "color-mix(in oklab, var(--brand-gold-500) 18%, transparent)", border: "1px solid color-mix(in oklab, var(--brand-gold-500) 35%, transparent)" }}>
+            <Wallet className="w-6 h-6" style={{ color: "var(--brand-emerald-700)" }} />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-800">আমার হিসাব</h1>
+            <h1 className="text-2xl" style={{ fontFamily: "var(--font-display)", color: "var(--brand-ink)" }}>আমার হিসাব</h1>
             <p className="text-xs text-slate-500">{mode === "login" ? "লগইন করুন" : "নতুন একাউন্ট তৈরি করুন"}</p>
           </div>
         </div>
@@ -105,7 +105,8 @@ function AuthPage() {
           <button
             type="submit"
             disabled={busy}
-            className="w-full py-2.5 bg-indigo-600 text-white rounded-lg font-medium text-sm hover:bg-indigo-700 disabled:opacity-50"
+            className="w-full py-2.5 text-white rounded-lg font-medium text-sm shadow-md hover:opacity-95 transition disabled:opacity-50"
+            style={{ background: "var(--gradient-brand)" }}
           >
             {busy ? "অপেক্ষা করুন..." : mode === "login" ? "লগইন" : "সাইনআপ"}
           </button>
@@ -115,7 +116,8 @@ function AuthPage() {
           {mode === "login" ? "একাউন্ট নেই? " : "ইতিমধ্যে একাউন্ট আছে? "}
           <button
             onClick={() => setMode(mode === "login" ? "signup" : "login")}
-            className="text-indigo-600 font-medium hover:underline"
+            className="font-medium hover:underline"
+            style={{ color: "var(--brand-emerald-700)" }}
           >
             {mode === "login" ? "সাইনআপ করুন" : "লগইন করুন"}
           </button>
