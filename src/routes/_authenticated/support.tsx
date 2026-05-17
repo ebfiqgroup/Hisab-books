@@ -3,7 +3,7 @@ import { useEffect, useState, useMemo } from "react";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/useRole";
-import { LifeBuoy, Plus, Send, RefreshCw, MessageSquare, Trash2, Star, MessageCircle, Paperclip, X as XIcon, Loader2 } from "lucide-react";
+import { LifeBuoy, Plus, Send, RefreshCw, MessageSquare, Trash2, Star, MessageCircle, Paperclip, X as XIcon, Loader2, Inbox, BellDot } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/hooks/useLanguage";
 
@@ -27,6 +27,14 @@ type Msg = {
   sender_id: string;
   is_admin: boolean;
   body: string;
+  created_at: string;
+};
+
+type Feedback = {
+  id: string;
+  name: string | null;
+  email: string;
+  message: string | null;
   created_at: string;
 };
 
@@ -60,6 +68,27 @@ function SupportPage() {
   const [newBody, setNewBody] = useState("");
   const [newPri, setNewPri] = useState<"low"|"normal"|"high"|"urgent">("normal");
   const [filter, setFilter] = useState<string>("");
+  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
+  const [fbLoading, setFbLoading] = useState(false);
+  const [seen, setSeen] = useState<Record<string, string>>({});
+
+  // Load last-seen ticket times from localStorage (per user, for new-reply badge)
+  useEffect(() => {
+    if (!uid) return;
+    try {
+      const raw = localStorage.getItem(`ah_ticket_seen_${uid}`);
+      setSeen(raw ? JSON.parse(raw) : {});
+    } catch { setSeen({}); }
+  }, [uid]);
+
+  const markSeen = (tid: string, ts: string) => {
+    if (!uid) return;
+    setSeen(prev => {
+      const next = { ...prev, [tid]: ts };
+      try { localStorage.setItem(`ah_ticket_seen_${uid}`, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -178,6 +207,40 @@ function SupportPage() {
 
   useEffect(() => { if (isAdmin !== null) load(); }, [isAdmin]);
 
+  // Admin: load feedback (source=support_feedback) from leads
+  const loadFeedback = async () => {
+    if (!isAdmin) return;
+    setFbLoading(true);
+    const { data, error } = await supabase
+      .from("leads")
+      .select("id, name, email, message, created_at")
+      .eq("source", "support_feedback")
+      .order("created_at", { ascending: false });
+    setFbLoading(false);
+    if (error) { toast.error(error.message); return; }
+    setFeedbacks((data || []) as Feedback[]);
+  };
+  useEffect(() => { if (isAdmin) loadFeedback(); }, [isAdmin]);
+
+  const deleteFeedback = async (id: string) => {
+    if (!confirm(t("ফিডব্যাক ডিলিট করবেন?", "Delete this feedback?"))) return;
+    const { error } = await supabase.from("leads").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    setFeedbacks(prev => prev.filter(f => f.id !== id));
+  };
+
+  const extractAttachments = (msg: string | null) => {
+    if (!msg) return { text: "", urls: [] as string[], rating: 0 };
+    const urls = Array.from(msg.matchAll(/https?:\/\/\S+\.(?:png|jpe?g|gif|webp|bmp|svg)/gi)).map(m => m[0]);
+    let text = msg;
+    let rating = 0;
+    const rm = msg.match(/^★\s*(\d)\s*\/\s*5/);
+    if (rm) { rating = parseInt(rm[1], 10); text = text.replace(rm[0], "").trim(); }
+    // strip attachment block
+    text = text.replace(/\n*(?:সংযুক্ত ছবি|Attachments)\s*:\s*\n[\s\S]*$/i, "").trim();
+    return { text, urls, rating };
+  };
+
   const loadMsgs = async (tid: string) => {
     const { data, error } = await supabase
       .from("support_messages")
@@ -188,7 +251,14 @@ function SupportPage() {
     setMsgs((data || []) as Msg[]);
   };
 
-  useEffect(() => { if (selected) loadMsgs(selected); else setMsgs([]); }, [selected]);
+  useEffect(() => {
+    if (selected) {
+      loadMsgs(selected);
+      const tk = tickets.find(x => x.id === selected);
+      if (tk) markSeen(selected, tk.updated_at);
+    } else setMsgs([]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected]);
 
   const filtered = useMemo(
     () => tickets.filter(t => !filter || t.status === filter),
@@ -245,7 +315,7 @@ function SupportPage() {
       title="সাপোর্ট"
       actions={
         <div className="flex gap-2">
-          <button onClick={load} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border text-sm hover:shadow-sm" style={{ borderColor: "var(--brand-line)" }}>
+          <button onClick={() => { load(); if (isAdmin) loadFeedback(); }} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border text-sm hover:shadow-sm" style={{ borderColor: "var(--brand-line)" }}>
             <RefreshCw className="w-4 h-4" /> রিফ্রেশ
           </button>
           {!isAdmin && (
@@ -256,6 +326,66 @@ function SupportPage() {
         </div>
       }
     >
+      {/* Admin feedback list */}
+      {isAdmin && (
+        <div className="brand-card p-5 mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Inbox className="w-5 h-5" style={{ color: "var(--brand-emerald-700)" }} />
+              <h3 className="font-semibold" style={{ fontFamily: "var(--font-display)" }}>
+                {t("ইউজার ফিডব্যাক", "User feedback")}
+              </h3>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">{feedbacks.length}</span>
+            </div>
+            <button onClick={loadFeedback} className="text-xs flex items-center gap-1 px-2 py-1 rounded-md border hover:bg-slate-50" style={{ borderColor: "var(--brand-line)" }}>
+              <RefreshCw className="w-3 h-3" /> {t("রিফ্রেশ", "Refresh")}
+            </button>
+          </div>
+          {fbLoading ? (
+            <div className="py-6 text-center text-sm text-slate-500">{t("লোড হচ্ছে…", "Loading…")}</div>
+          ) : feedbacks.length === 0 ? (
+            <div className="py-6 text-center text-sm text-slate-500">{t("কোনো ফিডব্যাক নেই", "No feedback yet")}</div>
+          ) : (
+            <div className="space-y-2 max-h-[420px] overflow-y-auto">
+              {feedbacks.map(f => {
+                const { text, urls, rating } = extractAttachments(f.message);
+                return (
+                  <div key={f.id} className="p-3 rounded-lg border" style={{ borderColor: "var(--brand-line)" }}>
+                    <div className="flex items-start justify-between gap-3 mb-1">
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium truncate">{f.name || t("নামহীন", "Anonymous")}</div>
+                        <a href={`mailto:${f.email}`} className="text-xs text-slate-500 hover:underline truncate block">{f.email}</a>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {rating > 0 && (
+                          <span className="flex items-center gap-0.5 text-xs">
+                            <Star className="w-3.5 h-3.5" fill="#f59e0b" stroke="#f59e0b" /> {rating}/5
+                          </span>
+                        )}
+                        <span className="text-[11px] text-slate-400">{new Date(f.created_at).toLocaleString("bn-BD")}</span>
+                        <button onClick={() => deleteFeedback(f.id)} className="p-1 rounded hover:bg-rose-50 text-rose-600">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                    {text && <div className="text-sm text-slate-700 whitespace-pre-wrap mt-1">{text}</div>}
+                    {urls.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {urls.map(u => (
+                          <a key={u} href={u} target="_blank" rel="noreferrer" className="block w-16 h-16 rounded-md overflow-hidden border" style={{ borderColor: "var(--brand-line)" }}>
+                            <img src={u} alt="" className="w-full h-full object-cover" />
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Feedback form */}
       {!isAdmin && (
         <div className="brand-card p-5 mb-4">
@@ -344,20 +474,30 @@ function SupportPage() {
             <div className="py-8 text-center text-sm text-slate-500">কোনো টিকেট নেই</div>
           ) : (
             <div className="space-y-1.5 max-h-[70vh] overflow-y-auto">
-              {filtered.map(t => (
+              {filtered.map(tk => (
                 <button
-                  key={t.id}
-                  onClick={() => setSelected(t.id)}
-                  className={`w-full text-left p-3 rounded-lg border transition-all ${selected === t.id ? "shadow-sm" : "hover:bg-slate-50"}`}
-                  style={{ borderColor: selected === t.id ? "var(--brand-emerald-700)" : "var(--brand-line)" }}
+                  key={tk.id}
+                  onClick={() => setSelected(tk.id)}
+                  className={`w-full text-left p-3 rounded-lg border transition-all ${selected === tk.id ? "shadow-sm" : "hover:bg-slate-50"}`}
+                  style={{ borderColor: selected === tk.id ? "var(--brand-emerald-700)" : "var(--brand-line)" }}
                 >
                   <div className="flex items-center justify-between gap-2 mb-1">
-                    <div className="font-medium text-sm truncate flex-1">{t.subject}</div>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${STATUS_COLOR[t.status]}`}>{STATUS_LABEL[t.status]}</span>
+                    <div className="font-medium text-sm truncate flex-1">{tk.subject}</div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      {seen[tk.id] && new Date(tk.updated_at) > new Date(seen[tk.id]) && selected !== tk.id && (
+                        <span title={t("নতুন আপডেট", "New update")} className="inline-flex items-center text-[10px] px-1.5 py-0.5 rounded bg-rose-100 text-rose-700">
+                          <BellDot className="w-3 h-3 mr-0.5" /> {t("নতুন", "New")}
+                        </span>
+                      )}
+                      {!seen[tk.id] && selected !== tk.id && (
+                        <span className="inline-flex w-2 h-2 rounded-full bg-emerald-500" />
+                      )}
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded ${STATUS_COLOR[tk.status]}`}>{STATUS_LABEL[tk.status]}</span>
+                    </div>
                   </div>
                   <div className="flex items-center justify-between text-[11px] text-slate-500">
-                    <span>{isAdmin ? (names[t.user_id] || t.user_id.slice(0, 8)) : PRIORITY_LABEL[t.priority]}</span>
-                    <span>{new Date(t.updated_at).toLocaleDateString("bn-BD")}</span>
+                    <span>{isAdmin ? (names[tk.user_id] || tk.user_id.slice(0, 8)) : PRIORITY_LABEL[tk.priority]}</span>
+                    <span>{new Date(tk.updated_at).toLocaleDateString("bn-BD")}</span>
                   </div>
                 </button>
               ))}
