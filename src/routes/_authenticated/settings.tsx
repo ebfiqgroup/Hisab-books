@@ -8,8 +8,9 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { toast } from "sonner";
 import {
   LogOut, User as UserIcon, KeyRound, SlidersHorizontal, Sparkles,
-  Download, Upload, Trash2, AlertTriangle, Save, ImagePlus, Languages,
+  Download, Upload, Trash2, AlertTriangle, Save, ImagePlus, Languages, Coins,
 } from "lucide-react";
+import { getFinanceSymbol, setFinanceSymbol, fmtTk } from "@/lib/finance";
 
 export const Route = createFileRoute("/_authenticated/settings")({ component: SettingsPage });
 
@@ -71,8 +72,34 @@ function SettingsPage() {
   const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
   const [ai, setAi] = useState<AiCfg>(DEFAULT_AI);
   const [confirmDelete, setConfirmDelete] = useState("");
+  const [currency, setCurrency] = useState<string>("৳");
+  const [customCurrency, setCustomCurrency] = useState<string>("");
 
-  useEffect(() => { setPrefs(loadPrefs()); setAi(loadAi()); }, []);
+  useEffect(() => {
+    setPrefs(loadPrefs());
+    setAi(loadAi());
+    setCurrency(getFinanceSymbol());
+  }, []);
+
+  const CURRENCY_PRESETS: { sym: string; name: string }[] = [
+    { sym: "৳", name: t("টাকা", "Taka") },
+    { sym: "$", name: t("ডলার", "Dollar") },
+    { sym: "€", name: t("ইউরো", "Euro") },
+    { sym: "£", name: t("পাউন্ড", "Pound") },
+    { sym: "₹", name: t("রুপি", "Rupee") },
+    { sym: "¥", name: t("ইয়েন", "Yen") },
+    { sym: "﷼", name: t("রিয়াল", "Riyal") },
+    { sym: "د.إ", name: t("দিরহাম", "Dirham") },
+  ];
+
+  const applyCurrency = (sym: string) => {
+    const s = sym.trim().slice(0, 4);
+    if (!s) { toast.error(t("চিহ্ন দিন", "Enter a symbol")); return; }
+    setFinanceSymbol(s);
+    setCurrency(s);
+    toast.success(t("মুদ্রা চিহ্ন আপডেট হয়েছে", "Currency symbol updated"));
+    setTimeout(() => window.location.reload(), 200);
+  };
 
   const q = useQuery({
     queryKey: ["profile", user?.id],
@@ -337,6 +364,33 @@ function SettingsPage() {
                 </button>
               ))}
             </div>
+          </Field>
+        </Section>
+
+        {/* Currency */}
+        <Section icon={<Coins className="w-4 h-4 text-indigo-600" />} title={t("মুদ্রা চিহ্ন", "Currency Symbol")}>
+          <Field label={t("প্রি-সেট", "Presets")}>
+            <div className="flex flex-wrap gap-2">
+              {CURRENCY_PRESETS.map(({ sym, name }) => (
+                <button key={sym} onClick={() => applyCurrency(sym)}
+                  className={`px-3 py-1.5 rounded-lg text-sm border inline-flex items-center gap-1.5 ${currency === sym ? "bg-indigo-600 text-white border-indigo-600" : "bg-white border-slate-200 text-slate-700"}`}>
+                  <span className="text-base font-semibold">{sym}</span>
+                  <span className="text-xs opacity-80">{name}</span>
+                </button>
+              ))}
+            </div>
+          </Field>
+          <Field label={t("কাস্টম চিহ্ন", "Custom symbol")}>
+            <div className="flex gap-2">
+              <input type="text" value={customCurrency} onChange={(e) => setCustomCurrency(e.target.value)}
+                placeholder={t("যেমন: ₿, kr, R$", "e.g. ₿, kr, R$")} maxLength={4}
+                className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+              <button onClick={() => { applyCurrency(customCurrency); setCustomCurrency(""); }}
+                className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg inline-flex items-center gap-1.5">
+                <Save className="w-4 h-4" /> {t("প্রয়োগ", "Apply")}
+              </button>
+            </div>
+            <p className="text-xs text-slate-500 mt-2">{t("বর্তমান উদাহরণ", "Current example")}: <span className="font-semibold text-slate-700">{fmtTk(12345)}</span></p>
           </Field>
         </Section>
 
