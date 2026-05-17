@@ -134,7 +134,8 @@ function ReportPage() {
     toast.success("রিপোর্ট ডাউনলোড হয়েছে");
   };
 
-  const downloadXlsx = () => {
+  const downloadXlsx = async () => {
+    const XLSX = await import("xlsx");
     const data = [
       [colHeader, "আয়", "ব্যয়", "অবশিষ্ট"],
       ...rows.map((r) => [r.label, Math.round(r.income), Math.round(r.expense), Math.round(r.saving)]),
