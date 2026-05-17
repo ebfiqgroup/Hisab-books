@@ -1,49 +1,47 @@
 ## লক্ষ্য
-এখন ড্যাশবোর্ডের সব সংখ্যা স্ট্যাটিক/স্যাম্পল। এটিকে সম্পূর্ণ ফাংশনাল ব্যক্তিগত আর্থিক অ্যাপে রূপান্তর করা হবে — প্রতিটি ব্যবহারকারীর নিজস্ব ডেটা, লগইন, এবং প্রতিটি কার্ডে যুক্ত/এডিট/মুছুন।
+অ্যাপের সব পেজ ও কম্পোনেন্টের হার্ডকোডেড বাংলা টেক্সট `useLanguage().t()` দিয়ে বাংলা/ইংরেজি দুই ভাষায় কাজ করানো।
 
-## ১. ব্যাকএন্ড সেটআপ
-- **Lovable Cloud চালু** (একবারের কাজ — ডাটাবেস, অথ, স্টোরেজ স্বয়ংক্রিয়ভাবে প্রস্তুত হবে)
-- **লগইন/সাইনআপ পেজ** (`/auth`) — ইমেইল + পাসওয়ার্ড
-- সব রুট `_authenticated` লেআউটে — লগইন ছাড়া ঢোকা যাবে না
+## পদ্ধতি (গুরুত্বপূর্ণ সিদ্ধান্ত)
 
-## ২. ডেটাবেস টেবিল (প্রতিটিতে RLS — শুধু নিজের ডেটা)
-- `profiles` — নাম, অবতার
-- `transactions` — type (income/expense), category, amount, date, note
-- `categories` — খাবার/বাসা/পরিবহন ইত্যাদি (ডিফল্ট সিড সহ)
-- `goals` — সঞ্চয়/জরুরি/ভবিষ্যৎ লক্ষ্য (target, current, deadline)
-- `debts` — receivable/payable, person, amount, due_date
-- `plan_tasks` — আগামী বাজেট ও পরিকল্পনার টাস্ক (date, amount, priority, done)
-- `notes` — দ্রুত নোট
-- `budgets` — মাসিক বাজেট প্রতি ক্যাটাগরিতে
+প্রতিটি স্ট্রিং-এর জন্য `dict`-এ key যোগ করার বদলে `t()`-কে **inline দ্বি-ভাষিক signature** দেব:
 
-## ৩. ড্যাশবোর্ড লাইভ ডেটা
-সব সংখ্যা ডাটাবেস থেকে গণনা হবে:
-- **স্ট্যাট কার্ড (৫টি)** — মোট আয়/ব্যয়/সঞ্চয়/পাওনা/দেনা — চলতি মাসের `transactions` ও `debts` থেকে; গত মাসের তুলনায় % পরিবর্তন
-- **ব্যয়ের ডোনাট চার্ট** — চলতি মাসের ব্যয় ক্যাটাগরি অনুযায়ী
-- **আয়/ব্যয় area চার্ট** — সাপ্তাহিক/মাসিক/বার্ষিক ফিল্টার বাস্তব ডেটায়
-- **সাম্প্রতিক লেনদেন** — সর্বশেষ ৫টি; "+" বাটনে নতুন যুক্ত
-- **আগামী বাজেট ও পরিকল্পনা** — ইতিমধ্যে এডিটেবল, এটি ডাটাবেসে সংযুক্ত হবে
-- **মাসিক লক্ষ্য** — `goals` থেকে; প্রতিটিতে এডিট
-- **পাওনা/দেনা সারাংশ** — মোট + "বিস্তারিত" এ ক্লিকে তালিকা ও CRUD
-- **দ্রুত নোট** — সেভ বাটন কাজ করবে; তালিকায় যুক্ত/মুছুন
-- **মাস সিলেক্টর হেডারে** — কোন মাসের ডেটা দেখানো হবে নিয়ন্ত্রণ
+```ts
+t("বাংলা টেক্সট", "English text")  // overload
+t("nav.dashboard")                  // পুরোনো TKey lookup (backward compatible)
+```
 
-## ৪. মডাল/ফর্ম
-প্রতিটি "+" বা "এডিট" বাটনে শ্যাডসিএন `Dialog` ফর্ম:
-- লেনদেন যুক্ত (type/category/amount/date/note)
-- লক্ষ্য যুক্ত/এডিট
-- পাওনা ও দেনা যুক্ত/এডিট
-- ক্যাটাগরি ম্যানেজ
+এতে প্রতিটি পেজে শুধু একটিমাত্র সিম্পল রিপ্লেস লাগে এবং কোনো বিশাল central dict রক্ষণাবেক্ষণ করতে হয় না।
 
-## ৫. রিপোর্ট পেজ
-ইতিমধ্যে আছে — লাইভ ডেটা দিয়ে আপডেট হবে; PDF/CSV ডাউনলোড বাটন কাজ করবে (CSV export)।
+### ধাপ ১ — `useLanguage.tsx` আপডেট
+- `t` signature: `(bn: string, en?: string) => string`
+  - `en` দেওয়া থাকলে: `lang === "bn" ? bn : en`
+  - না দেওয়া থাকলে: আগের মতো `dict[lang][bn as TKey] ?? bn`
 
-## প্রযুক্তিগত বিবরণ
-- TanStack Query দিয়ে সব ডেটা ফেচ ও ক্যাশ
-- Supabase ক্লায়েন্ট (browser) থেকে সরাসরি RLS-সুরক্ষিত query
-- `useAuth` হুক session management
-- Toast notifications (sonner) সব mutation এ
-- Optimistic updates যেখানে যুক্তিযুক্ত
+### ধাপ ২ — সব পেজ/কম্পোনেন্টে সুইপ
+নিচের ফাইলগুলোয় ইউজার-মুখী হার্ডকোডেড বাংলা স্ট্রিং (titles, labels, buttons, placeholders, toasts, empty states, confirm dialogs) `t("…","…")`-এ মোড়ানো হবে:
 
-## নোট
-এটি বড় কাজ — Lovable Cloud চালু করার পর আমি ধাপে ধাপে সব implement করব। প্রথমে অথ + ডাটাবেস স্কিমা + একটি সেকশন (লেনদেন) end-to-end কাজ করানো হবে যাতে নিদর্শন তৈরি হয়, তারপর বাকি সব সেকশন একই প্যাটার্নে।
+**Routes:**
+- `_authenticated/app.tsx` (ড্যাশবোর্ড)
+- `_authenticated/income.tsx`, `expense.tsx`, `transactions.tsx`
+- `_authenticated/budget.tsx`, `goals.tsx`, `debts.tsx`
+- `_authenticated/report.tsx`, `calendar.tsx`
+- `_authenticated/support.tsx`, `settings.tsx`
+- `_authenticated/admin.tsx`, `admin.user.$userId.tsx`, `audit.tsx`
+- `auth.tsx`, `reset-password.tsx`, `index.tsx`, `demo.tsx`
+
+**Components:**
+- `dashboard/TxnDialog.tsx`, `dashboard/CategoryManager.tsx`, `dashboard/AiSuggestions.tsx`
+- `admin/UserProfileEditor.tsx`, `admin/UserDataManager.tsx`
+- `RefCodeBadge.tsx`
+
+### ধাপ ৩ — সংখ্যা/তারিখ
+`toBn()` ফাংশন বাংলা সংখ্যা দেয়; ইংরেজি মোডে original English digits ব্যবহার হবে — `finance.ts`-এ `toBn`-কে lang-aware করা হবে না (পরিধির বাইরে); শুধু লেবেলগুলো অনুবাদ হবে।
+
+### ধাপ ৪ — যাচাই
+- Build পাস করছে কিনা
+- ভাষা টগল করলে সব পেজে টেক্সট পাল্টায় কিনা (preview-তে চেক)
+
+## পরিধির বাইরে
+- ব্যবহারকারী-জেনারেটেড ডেটা (category names, notes, goal labels) অনুবাদ হবে না
+- DB-stored strings, error messages from Supabase
+- Number formatting (toBn) lang-aware করা
