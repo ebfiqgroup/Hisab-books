@@ -24,6 +24,7 @@ export function UserProfileEditor({ userId, open, onOpenChange, onSaved }: Props
   const [busy, setBusy] = useState(false);
   const [fullName, setFullName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [refCode, setRefCode] = useState<string>("");
   const [email, setEmail] = useState("");
   const [newPwd, setNewPwd] = useState("");
 
@@ -33,11 +34,12 @@ export function UserProfileEditor({ userId, open, onOpenChange, onSaved }: Props
     (async () => {
       const { data: prof } = await supabase
         .from("profiles")
-        .select("full_name, avatar_url")
+        .select("full_name, avatar_url, ref_code")
         .eq("id", userId)
         .maybeSingle();
       setFullName(prof?.full_name ?? "");
       setAvatarUrl(prof?.avatar_url ?? "");
+      setRefCode(prof?.ref_code ?? "");
       setEmail("");
       setNewPwd("");
       setLoading(false);
@@ -135,6 +137,15 @@ export function UserProfileEditor({ userId, open, onOpenChange, onSaved }: Props
           <div className="py-10 text-center text-slate-500">লোড হচ্ছে…</div>
         ) : (
           <div className="space-y-6">
+            {refCode && (
+              <div className="flex items-center justify-between p-3 rounded-lg border bg-slate-50">
+                <div>
+                  <div className="text-xs text-slate-500">রেফারেন্স নম্বর</div>
+                  <div className="font-mono font-semibold text-base tracking-wider">{refCode}</div>
+                </div>
+                <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(refCode); toast.success("কপি হয়েছে"); }}>কপি</Button>
+              </div>
+            )}
             {/* Profile section */}
             <section className="space-y-3 p-4 border rounded-lg">
               <h4 className="text-sm font-semibold">মূল প্রোফাইল</h4>

@@ -21,6 +21,7 @@ type Row = {
   user_id: string;
   full_name: string | null;
   avatar_url: string | null;
+  ref_code: string | null;
   created_at: string;
   status: "pending" | "approved" | "suspended";
   total_income: number;
@@ -94,6 +95,7 @@ function AdminPage() {
     (statusFilter === "all" || r.status === statusFilter) &&
     (!q.trim() ||
     (r.full_name || "").toLowerCase().includes(q.toLowerCase()) ||
+    (r.ref_code || "").toLowerCase().includes(q.toLowerCase()) ||
     r.user_id.includes(q))
   );
 
@@ -206,7 +208,7 @@ function AdminPage() {
             <input
               value={q}
               onChange={e => setQ(e.target.value)}
-              placeholder="নাম বা ID…"
+              placeholder="নাম, রেফারেন্স বা ID…"
               className="px-3 py-2 rounded-lg border text-sm w-full md:w-56"
               style={{ borderColor: "var(--brand-line)" }}
             />
@@ -223,6 +225,7 @@ function AdminPage() {
               <thead>
                 <tr className="text-left text-xs uppercase tracking-wider text-slate-500 border-b" style={{ borderColor: "var(--brand-line)" }}>
                   <th className="py-2 pr-3">ব্যবহারকারী</th>
+                  <th className="py-2 pr-3">রেফারেন্স</th>
                   <th className="py-2 pr-3">যোগদান</th>
                   <th className="py-2 pr-3">স্ট্যাটাস</th>
                   <th className="py-2 pr-3 text-right">আয়</th>
@@ -245,6 +248,17 @@ function AdminPage() {
                           <div className="text-[11px] text-slate-400 font-mono">{r.user_id.slice(0, 8)}…</div>
                         </div>
                       </div>
+                    </td>
+                    <td className="py-3 pr-3">
+                      {r.ref_code ? (
+                        <button
+                          onClick={() => { navigator.clipboard.writeText(r.ref_code!); toast.success("কোড কপি হয়েছে"); }}
+                          className="font-mono text-xs px-2 py-1 rounded border bg-slate-50 hover:bg-slate-100"
+                          title="কপি করুন"
+                        >
+                          {r.ref_code}
+                        </button>
+                      ) : <span className="text-slate-400">—</span>}
                     </td>
                     <td className="py-3 pr-3 text-slate-600">{new Date(r.created_at).toLocaleDateString("bn-BD")}</td>
                     <td className="py-3 pr-3">

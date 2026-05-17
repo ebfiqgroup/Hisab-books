@@ -242,6 +242,7 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          ref_code: string | null
           status: string
           updated_at: string
         }
@@ -250,6 +251,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id: string
+          ref_code?: string | null
           status?: string
           updated_at?: string
         }
@@ -258,6 +260,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          ref_code?: string | null
           status?: string
           updated_at?: string
         }
@@ -438,6 +441,7 @@ export type Database = {
           created_at: string | null
           full_name: string | null
           is_admin: boolean | null
+          ref_code: string | null
           status: string | null
           total_expense: number | null
           total_income: number | null
@@ -454,6 +458,7 @@ export type Database = {
         Returns: boolean
       }
       claim_admin_if_none: { Args: never; Returns: boolean }
+      generate_ref_code: { Args: never; Returns: string }
       has_active_subscription: {
         Args: { check_env?: string; user_uuid: string }
         Returns: boolean
