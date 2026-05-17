@@ -31,9 +31,9 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
   };
 
   return (
-    <div className="h-[100dvh] lg:h-screen flex overflow-hidden" style={{ background: "var(--gradient-page)" }}>
+    <div className="h-[100dvh] lg:h-screen flex overflow-hidden min-h-0 min-w-0" style={{ background: "var(--gradient-page)" }}>
       <Sidebar mobileOpen={navOpen} onClose={() => setNavOpen(false)} />
-      <main className="flex-1 p-2 sm:p-3 lg:p-6 overflow-y-auto overflow-x-hidden h-[100dvh] lg:h-screen w-full min-w-0">
+      <main className="flex-1 p-2 sm:p-3 lg:p-6 overflow-y-auto overflow-x-hidden h-full w-full min-w-0 min-h-0">
         <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between lg:gap-3 mb-4 lg:mb-6" ref={ref}>
           <div className="flex items-center gap-2 md:gap-3 min-w-0 w-full lg:w-auto">
             <button
