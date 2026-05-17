@@ -164,7 +164,7 @@ function ReportPage() {
     a.download = `report-${range.from}_to_${range.to}.xlsx`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success("XLSX রিপোর্ট ডাউনলোড হয়েছে");
+    toast.success("এক্সএলএসএক্স রিপোর্ট ডাউনলোড হয়েছে");
   };
 
   const printReport = () => {
@@ -249,14 +249,14 @@ function ReportPage() {
                 onClick={() => { setMenuOpen(false); downloadCsv(); }}
                 className="w-full text-left px-3 py-2 text-sm hover:bg-slate-50 flex items-center justify-between"
               >
-                <span>CSV ফাইল</span>
+                <span>সিএসভি ফাইল</span>
                 <span className="text-xs text-slate-400">.csv</span>
               </button>
               <button
                 onClick={() => { setMenuOpen(false); downloadXlsx(); }}
                 className="w-full text-left px-3 py-2 text-sm hover:bg-slate-50 flex items-center justify-between border-t border-slate-100"
               >
-                <span>Excel ফাইল</span>
+                <span>এক্সেল ফাইল</span>
                 <span className="text-xs text-slate-400">.xlsx</span>
               </button>
             </div>
