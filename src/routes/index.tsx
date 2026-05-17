@@ -45,6 +45,7 @@ function Landing() {
           <nav className="hidden md:flex items-center gap-7 text-sm" style={{ color: "var(--brand-ink-soft)" }}>
             <a href="#features" className="hover:opacity-70">ফিচার</a>
             <a href="#how" className="hover:opacity-70">কীভাবে কাজ করে</a>
+            <a href="#pricing" className="hover:opacity-70">মূল্য</a>
             <a href="#voices" className="hover:opacity-70">ব্যবহারকারী</a>
           </nav>
           <div className="flex items-center gap-2">
