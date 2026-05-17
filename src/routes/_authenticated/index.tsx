@@ -112,7 +112,7 @@ function Dashboard() {
   const statCards = [
     { label: "মোট আয়", value: fmtTk(curInc), last: fmtTk(prevInc), pct: pctChange(curInc, prevInc), Icon: Wallet, bg: "bg-emerald-50", fg: "text-emerald-600", val: "text-emerald-600" },
     { label: "মোট ব্যয়", value: fmtTk(curExp), last: fmtTk(prevExp), pct: pctChange(curExp, prevExp), Icon: ArrowDown, bg: "bg-rose-50", fg: "text-rose-500", val: "text-rose-500" },
-    { label: "মোট সঞ্চয়", value: fmtTk(curSav), last: fmtTk(prevSav), pct: pctChange(curSav, prevSav), Icon: PiggyBank, bg: "bg-blue-50", fg: "text-blue-600", val: "text-blue-600" },
+    { label: "অবশিষ্ট", value: fmtTk(curSav), last: fmtTk(prevSav), pct: pctChange(curSav, prevSav), Icon: PiggyBank, bg: "bg-blue-50", fg: "text-blue-600", val: "text-blue-600" },
     { label: "মোট পাওনা", value: fmtTk(receivable), last: "—", pct: { value: "", up: true }, Icon: Users, bg: "bg-orange-50", fg: "text-orange-500", val: "text-orange-500" },
     { label: "মোট দেনা", value: fmtTk(payable), last: "—", pct: { value: "", up: false }, Icon: TrendingDown, bg: "bg-rose-50", fg: "text-rose-500", val: "text-rose-600" },
   ];
