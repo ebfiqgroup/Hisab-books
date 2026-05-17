@@ -78,22 +78,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>("bn");
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(KEY) as Lang | null;
-      if (saved === "bn" || saved === "en") { setLangState(saved); setFinanceLang(saved); }
-      else {
-        const navLangs: string[] = [];
-        if (typeof navigator !== "undefined") {
-          if (Array.isArray(navigator.languages)) navLangs.push(...navigator.languages);
-          if (navigator.language) navLangs.push(navigator.language);
-        }
-        const isBn = navLangs.some((l) => l?.toLowerCase().startsWith("bn"));
-        const detected: Lang = isBn ? "bn" : "en";
-        setLangState(detected);
-        setFinanceLang(detected);
-        if (typeof document !== "undefined") document.documentElement.lang = detected;
-      }
-    } catch { /* noop */ }
+    setLangState("bn");
+    setFinanceLang("bn");
+    try { localStorage.setItem(KEY, "bn"); } catch { /* noop */ }
+    if (typeof document !== "undefined") document.documentElement.lang = "bn";
   }, []);
 
   const setLang = useCallback((l: Lang) => {
