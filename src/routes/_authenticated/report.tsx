@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 import { fmtTk, toBn, BN_MONTHS } from "@/lib/finance";
-import { Download, BarChart3, TrendingUp, TrendingDown, PiggyBank, Calendar, ChevronDown } from "lucide-react";
+import { Download, BarChart3, TrendingUp, TrendingDown, PiggyBank, Calendar, ChevronDown, Printer } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
 
@@ -149,6 +149,52 @@ function ReportPage() {
     toast.success("XLSX রিপোর্ট ডাউনলোড হয়েছে");
   };
 
+  const printReport = () => {
+    const rowsHtml = rows.map((r) => `
+      <tr>
+        <td>${r.label}</td>
+        <td style="text-align:right;color:#059669">${fmtTk(r.income)}</td>
+        <td style="text-align:right;color:#e11d48">${fmtTk(r.expense)}</td>
+        <td style="text-align:right;color:#2563eb">${fmtTk(r.saving)}</td>
+      </tr>`).join("");
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>রিপোর্ট ${range.from} – ${range.to}</title>
+      <style>
+        *{box-sizing:border-box}
+        body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#0f172a;padding:24px;margin:0}
+        h1{margin:0 0 4px;font-size:22px}
+        .meta{color:#64748b;font-size:13px;margin-bottom:16px}
+        .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+        .card{border:1px solid #e2e8f0;border-radius:8px;padding:10px}
+        .card .l{font-size:11px;color:#64748b}
+        .card .v{font-size:15px;font-weight:700;margin-top:2px}
+        table{width:100%;border-collapse:collapse;font-size:13px}
+        th,td{padding:8px 10px;border-bottom:1px solid #e2e8f0;text-align:left}
+        th{background:#f8fafc;color:#475569;font-weight:600}
+        tr.total td{font-weight:700;background:#eef2ff;color:#3730a3}
+        @media print{ button{display:none} body{padding:14px} }
+      </style></head><body>
+      <h1>আর্থিক রিপোর্ট</h1>
+      <div class="meta">নির্বাচিত পরিসর: <strong>${range.from}</strong> থেকে <strong>${range.to}</strong> · ${periodLabel} ভিউ</div>
+      <div class="summary">
+        ${summary.map((s) => `<div class="card"><div class="l">${s.label}</div><div class="v">${s.value}</div></div>`).join("")}
+      </div>
+      <table>
+        <thead><tr><th>${colHeader}</th><th style="text-align:right">আয়</th><th style="text-align:right">ব্যয়</th><th style="text-align:right">অবশিষ্ট</th></tr></thead>
+        <tbody>${rowsHtml}
+          <tr class="total"><td>মোট</td>
+            <td style="text-align:right">${fmtTk(totals.income)}</td>
+            <td style="text-align:right">${fmtTk(totals.expense)}</td>
+            <td style="text-align:right">${fmtTk(totals.saving)}</td>
+          </tr>
+        </tbody>
+      </table>
+      <script>window.onload=()=>{setTimeout(()=>{window.print()},250)}</script>
+      </body></html>`;
+    const w = window.open("", "_blank", "width=900,height=700");
+    if (!w) { toast.error("পপ-আপ ব্লক করা হয়েছে"); return; }
+    w.document.open(); w.document.write(html); w.document.close();
+  };
+
   const presets: { k: Preset; label: string }[] = [
     { k: "7d", label: "৭ দিন" },
     { k: "1m", label: "১ মাস" },
@@ -160,7 +206,15 @@ function ReportPage() {
 
   return (
     <AppShell title="রিপোর্ট প্লাটফর্ম" actions={
-      <div className="relative">
+      <div className="flex items-center gap-2">
+        <button
+          onClick={printReport}
+          className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:border-indigo-300"
+        >
+          <Printer className="w-4 h-4" />
+          <span className="hidden sm:inline">প্রিন্ট</span>
+        </button>
+        <div className="relative">
         <button
           onClick={() => setMenuOpen((o) => !o)}
           className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700"
@@ -190,6 +244,7 @@ function ReportPage() {
             </div>
           </>
         )}
+        </div>
       </div>
     }>
       {/* Filter */}
