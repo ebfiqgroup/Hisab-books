@@ -104,7 +104,8 @@ function DebtsPage() {
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[640px]">
           <thead className="bg-slate-50 text-slate-600 text-xs">
             <tr>
               <th className="text-left px-4 py-3 font-medium">{t("ধরন", "Type")}</th>
@@ -140,6 +141,7 @@ function DebtsPage() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
       <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditingId(null); }}>
