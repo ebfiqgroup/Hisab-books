@@ -127,18 +127,18 @@ function CalendarPage() {
                 <div className="p-2 bg-rose-50 rounded-lg"><div className="text-[10px] text-slate-500">{t("ব্যয়", "Expense")}</div><div className="text-sm font-bold text-rose-500">{fmtTk(selData.exp)}</div></div>
               </div>
               <div className="space-y-2 max-h-96 overflow-y-auto">
-                {selData.items.map((t, i) => (
+                {selData.items.map((tx, i) => (
                   <div key={i} className="flex items-center justify-between gap-2 text-sm border-b border-slate-100 pb-2">
                     <div className="min-w-0 flex-1">
-                      <div className="text-slate-700">{t.category}</div>
-                      {t.note && <div className="text-xs text-slate-400">{t.note}</div>}
+                      <div className="text-slate-700">{tx.category}</div>
+                      {tx.note && <div className="text-xs text-slate-400">{tx.note}</div>}
                     </div>
-                    <div className={t.type === "income" ? "text-emerald-600 font-bold" : "text-rose-500 font-bold"}>
-                      {t.type === "income" ? "+" : "-"}{fmtTk(Number(t.amount))}
+                    <div className={tx.type === "income" ? "text-emerald-600 font-bold" : "text-rose-500 font-bold"}>
+                      {tx.type === "income" ? "+" : "-"}{fmtTk(Number(tx.amount))}
                     </div>
                     <div className="flex items-center gap-1">
-                      <button onClick={() => openEdit(t)} title={t("এডিট", "Edit")} className="p-1 rounded hover:bg-indigo-50 text-slate-400 hover:text-indigo-600"><Pencil className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => remove(t.id)} title={t("মুছুন", "Delete")} className="p-1 rounded hover:bg-rose-50 text-slate-400 hover:text-rose-600"><Trash2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => openEdit(tx)} title={t("এডিট", "Edit")} className="p-1 rounded hover:bg-indigo-50 text-slate-400 hover:text-indigo-600"><Pencil className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => remove(tx.id)} title={t("মুছুন", "Delete")} className="p-1 rounded hover:bg-rose-50 text-slate-400 hover:text-rose-600"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   </div>
                 ))}
