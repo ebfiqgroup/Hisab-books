@@ -474,30 +474,30 @@ function SupportPage() {
             <div className="py-8 text-center text-sm text-slate-500">কোনো টিকেট নেই</div>
           ) : (
             <div className="space-y-1.5 max-h-[70vh] overflow-y-auto">
-              {filtered.map(t => (
+              {filtered.map(tk => (
                 <button
-                  key={t.id}
-                  onClick={() => setSelected(t.id)}
-                  className={`w-full text-left p-3 rounded-lg border transition-all ${selected === t.id ? "shadow-sm" : "hover:bg-slate-50"}`}
-                  style={{ borderColor: selected === t.id ? "var(--brand-emerald-700)" : "var(--brand-line)" }}
+                  key={tk.id}
+                  onClick={() => setSelected(tk.id)}
+                  className={`w-full text-left p-3 rounded-lg border transition-all ${selected === tk.id ? "shadow-sm" : "hover:bg-slate-50"}`}
+                  style={{ borderColor: selected === tk.id ? "var(--brand-emerald-700)" : "var(--brand-line)" }}
                 >
                   <div className="flex items-center justify-between gap-2 mb-1">
-                    <div className="font-medium text-sm truncate flex-1">{t.subject}</div>
+                    <div className="font-medium text-sm truncate flex-1">{tk.subject}</div>
                     <div className="flex items-center gap-1 shrink-0">
-                      {seen[t.id] && new Date(t.updated_at) > new Date(seen[t.id]) && selected !== t.id && (
+                      {seen[tk.id] && new Date(tk.updated_at) > new Date(seen[tk.id]) && selected !== tk.id && (
                         <span title={t("নতুন আপডেট", "New update")} className="inline-flex items-center text-[10px] px-1.5 py-0.5 rounded bg-rose-100 text-rose-700">
                           <BellDot className="w-3 h-3 mr-0.5" /> {t("নতুন", "New")}
                         </span>
                       )}
-                      {!seen[t.id] && selected !== t.id && (
+                      {!seen[tk.id] && selected !== tk.id && (
                         <span className="inline-flex w-2 h-2 rounded-full bg-emerald-500" />
                       )}
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded ${STATUS_COLOR[t.status]}`}>{STATUS_LABEL[t.status]}</span>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded ${STATUS_COLOR[tk.status]}`}>{STATUS_LABEL[tk.status]}</span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between text-[11px] text-slate-500">
-                    <span>{isAdmin ? (names[t.user_id] || t.user_id.slice(0, 8)) : PRIORITY_LABEL[t.priority]}</span>
-                    <span>{new Date(t.updated_at).toLocaleDateString("bn-BD")}</span>
+                    <span>{isAdmin ? (names[tk.user_id] || tk.user_id.slice(0, 8)) : PRIORITY_LABEL[tk.priority]}</span>
+                    <span>{new Date(tk.updated_at).toLocaleDateString("bn-BD")}</span>
                   </div>
                 </button>
               ))}
