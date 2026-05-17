@@ -439,3 +439,17 @@ function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string
     </div>
   );
 }
+
+function StatusBadge({ status }: { status: "pending" | "approved" | "suspended" }) {
+  const map = {
+    pending: { label: "পেন্ডিং", icon: <Clock className="w-3 h-3" />, cls: "bg-amber-50 text-amber-700 border-amber-200" },
+    approved: { label: "অনুমোদিত", icon: <CheckCircle2 className="w-3 h-3" />, cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+    suspended: { label: "সাসপেন্ডেড", icon: <Ban className="w-3 h-3" />, cls: "bg-rose-50 text-rose-700 border-rose-200" },
+  };
+  const m = map[status] || map.approved;
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${m.cls}`}>
+      {m.icon} {m.label}
+    </span>
+  );
+}
