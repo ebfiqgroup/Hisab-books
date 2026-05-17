@@ -1,14 +1,16 @@
 import { ReactNode, useState, useRef, useEffect } from "react";
 import { Sidebar } from "./Sidebar";
-import { Bell, ChevronDown, LogOut, User as UserIcon, Settings as SettingsIcon, LifeBuoy } from "lucide-react";
+import { Bell, ChevronDown, LogOut, User as UserIcon, Settings as SettingsIcon, LifeBuoy, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouter, useLocation } from "@tanstack/react-router";
 import { RefCodeBadge } from "./RefCodeBadge";
 import { useLanguage } from "@/hooks/useLanguage";
 
 export function AppShell({ title, actions, children }: { title: ReactNode; actions?: ReactNode; children: ReactNode }) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const router = useRouter();
+  const location = useLocation();
   const { lang, toggle, t } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
@@ -24,6 +26,12 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
   }, []);
 
   const name = (user?.user_metadata?.full_name as string) || user?.email?.split("@")[0] || t("header.you");
+
+  const showBack = location.pathname !== "/app" && location.pathname !== "/";
+  const goBack = () => {
+    if (window.history.length > 1) router.history.back();
+    else navigate({ to: "/app" });
+  };
 
   const doSignOut = async () => {
     await signOut();
@@ -46,6 +54,17 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
               <span className="block w-4 h-[2px] rounded" style={{ background: "var(--brand-ink)" }} />
               <span className="block w-4 h-[2px] rounded" style={{ background: "var(--brand-ink)" }} />
             </button>
+            {showBack && (
+              <button
+                onClick={goBack}
+                title={t("ফিরে যান", "Back")}
+                aria-label={t("ফিরে যান", "Back")}
+                className="p-2 bg-white rounded-lg border hover:shadow-sm transition shrink-0 w-9 h-9 flex items-center justify-center"
+                style={{ borderColor: "var(--brand-line)" }}
+              >
+                <ArrowLeft className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
+              </button>
+            )}
             <span className="hidden md:block h-7 w-1 rounded-full" style={{ background: "var(--gradient-brand)" }} />
             <h1 className="text-lg md:text-2xl lg:text-3xl tracking-tight truncate flex-1 min-w-0" style={{ fontFamily: "var(--font-display)", color: "var(--brand-ink)" }}>{title}</h1>
           </div>
