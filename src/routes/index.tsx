@@ -250,7 +250,7 @@ type Tier = {
   features: string[];
   cta: string;
   highlight?: boolean;
-  Icon: React.ComponentType<{ className?: string }>;
+  Icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
 };
 
 const TIERS: Tier[] = [
