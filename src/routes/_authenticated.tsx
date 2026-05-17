@@ -2,6 +2,7 @@ import { createFileRoute, redirect, Outlet, useNavigate } from "@tanstack/react-
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Clock, Ban, LogOut } from "lucide-react";
+import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async () => {
@@ -15,26 +16,31 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthGate() {
   const navigate = useNavigate();
-  const [status, setStatus] = useState<"loading" | "approved" | "pending" | "suspended">("loading");
+  // Optimistic: render the app immediately after beforeLoad confirms session.
+  // Profile status is verified in background; only block if explicitly pending/suspended.
+  const [status, setStatus] = useState<"approved" | "pending" | "suspended">("approved");
+  const [userId, setUserId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     let cancel = false;
     const check = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { navigate({ to: "/auth" }); return; }
+      if (!cancel) setUserId(session.user.id);
       const { data } = await supabase.from("profiles").select("status").eq("id", session.user.id).maybeSingle();
       if (cancel) return;
-      const s = (data?.status as any) || "approved";
+      const s = (data?.status as "approved" | "pending" | "suspended" | null) || "approved";
       setStatus(s);
     };
     check();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => check());
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
+      if (!s) { navigate({ to: "/auth" }); return; }
+      setUserId(s.user.id);
+    });
     return () => { cancel = true; subscription.unsubscribe(); };
   }, [navigate]);
 
-  if (status === "loading") {
-    return <div className="min-h-screen flex items-center justify-center text-slate-500">লোড হচ্ছে…</div>;
-  }
+  useRealtimeSync(userId);
 
   if (status === "pending" || status === "suspended") {
     const isPending = status === "pending";
