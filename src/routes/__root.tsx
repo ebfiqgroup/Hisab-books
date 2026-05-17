@@ -76,11 +76,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "আমার হিসাব - মাসিক ড্যাশবোর্ড" },
       { name: "description", content: "ব্যক্তিগত আর্থিক ব্যবস্থাপনা ড্যাশবোর্ড" },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "আমার হিসাব" },
-      { property: "og:description", content: "মাসিক আর্থিক ড্যাশবোর্ড" },
+      { property: "og:title", content: "আমার হিসাব - মাসিক ড্যাশবোর্ড" },
+      { property: "og:description", content: "ব্যক্তিগত আর্থিক ব্যবস্থাপনা ড্যাশবোর্ড" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "আমার হিসাব - মাসিক ড্যাশবোর্ড" },
+      { name: "twitter:description", content: "ব্যক্তিগত আর্থিক ব্যবস্থাপনা ড্যাশবোর্ড" },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/e4c74f2a-9cd0-4ed8-8fd3-2f742a2ddf81/id-preview-7a4679a1--97858387-bb12-42fe-a0f2-52f858e4f990.lovable.app-1779001011397.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/e4c74f2a-9cd0-4ed8-8fd3-2f742a2ddf81/id-preview-7a4679a1--97858387-bb12-42fe-a0f2-52f858e4f990.lovable.app-1779001011397.png" },
     ],
     links: [
       {
@@ -93,7 +97,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Work+Sans:wght@400;500;600;700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap",
       },
     ],
   }),
