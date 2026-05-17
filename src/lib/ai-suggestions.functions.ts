@@ -11,6 +11,7 @@ const InputSchema = z.object({
   expenseByCategory: z.array(z.object({ category: z.string(), amount: z.number() })).max(30),
   incomeByCategory: z.array(z.object({ category: z.string(), amount: z.number() })).max(30),
   goals: z.array(z.object({ label: z.string(), target: z.number(), current: z.number() })).max(10),
+  budgets: z.array(z.object({ category: z.string(), limit: z.number(), spent: z.number() })).max(30).optional(),
   monthLabel: z.string().max(64),
   config: z.object({
     types: z.array(z.enum(["alert", "tip", "invest"])).min(1),
@@ -24,6 +25,8 @@ export type AiSuggestion = {
   type: "alert" | "tip" | "invest";
   title: string;
   detail: string;
+  reason?: string;
+  steps?: string[];
 };
 
 export const getAiSuggestions = createServerFn({ method: "POST" })
@@ -41,6 +44,7 @@ export const getAiSuggestions = createServerFn({ method: "POST" })
       ব্যয়ের_খাত: data.expenseByCategory,
       আয়ের_খাত: data.incomeByCategory,
       লক্ষ্যসমূহ: data.goals,
+      বাজেটসমূহ: data.budgets ?? [],
     };
 
     const cfg = data.config ?? { types: ["alert", "tip", "invest"], expenseRatioPct: 80, lowCashTk: 5000, goalLagPct: 20 };
@@ -68,13 +72,20 @@ export const getAiSuggestions = createServerFn({ method: "POST" })
 ব্যবহারকারীর কনফিগার করা থ্রেশহোল্ড অনুসরণ করো:
 ${rules.join("\n")}
 
+বিশেষ নিয়ম — বাজেট/লক্ষ্য মিস:
+- কোনো বাজেট (বাজেটসমূহ-এ spent > limit) অতিক্রম হলে অবশ্যই একটি "alert" দাও।
+- কোনো লক্ষ্যের অগ্রগতি (current/target) প্রত্যাশার চেয়ে পিছিয়ে থাকলে অবশ্যই একটি "alert" দাও।
+- এই ধরনের পরামর্শে অবশ্যই "reason" (কেন মিস হয়েছে, সংখ্যাসহ) এবং "steps" (৩-৪টি সুনির্দিষ্ট অ্যাকশনেবল পদক্ষেপ) দাও।
+
 প্রতিটি পরামর্শে থাকবে:
 - type: উপরের অনুমোদিত list থেকে একটি
 - title: সংক্ষিপ্ত শিরোনাম (সর্বোচ্চ ৮ শব্দ)
 - detail: ১-২ বাক্যে বিস্তারিত, সংখ্যা/খাতের নাম উল্লেখ করে
+- reason (ঐচ্ছিক, তবে বাজেট/লক্ষ্য মিসে আবশ্যক): ব্যর্থতার কারণ এক বাক্যে
+- steps (ঐচ্ছিক, তবে বাজেট/লক্ষ্য মিসে আবশ্যক): ৩-৪টি ছোট, কার্যকর পদক্ষেপের array — প্রতিটি ক্রিয়াপদ দিয়ে শুরু (যেমন "কমান", "সরান", "বরাদ্দ করুন")
 
 শুধু এই JSON ফরম্যাটে উত্তর দাও, অন্য কোনো লেখা নয়:
-{"suggestions":[{"type":"alert","title":"...","detail":"..."}]}`;
+{"suggestions":[{"type":"alert","title":"...","detail":"...","reason":"...","steps":["...","..."]}]}`;
 
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
