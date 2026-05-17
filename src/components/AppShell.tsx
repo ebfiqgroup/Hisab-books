@@ -4,10 +4,12 @@ import { Bell, ChevronDown, LogOut, User as UserIcon, Settings as SettingsIcon }
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { RefCodeBadge } from "./RefCodeBadge";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export function AppShell({ title, actions, children }: { title: ReactNode; actions?: ReactNode; children: ReactNode }) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { lang, toggle, t } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -20,7 +22,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
-  const name = (user?.user_metadata?.full_name as string) || user?.email?.split("@")[0] || "আপনি";
+  const name = (user?.user_metadata?.full_name as string) || user?.email?.split("@")[0] || t("header.you");
 
   const doSignOut = async () => {
     await signOut();
@@ -39,14 +41,23 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
           <div className="flex items-center gap-3">
             {actions}
             <RefCodeBadge variant="header" />
+            <button
+              onClick={toggle}
+              title={t("lang.label")}
+              aria-label={t("lang.label")}
+              className="px-2.5 py-1.5 bg-white rounded-lg border hover:shadow-sm transition text-xs font-semibold"
+              style={{ borderColor: "var(--brand-line)", color: "var(--brand-ink)" }}
+            >
+              {lang === "bn" ? "EN" : "বাং"}
+            </button>
             <div className="relative">
               <button onClick={() => { setBellOpen(o => !o); setMenuOpen(false); }} className="relative p-2 bg-white rounded-lg border hover:shadow-sm transition" style={{ borderColor: "var(--brand-line)" }}>
                 <Bell className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
               </button>
               {bellOpen && (
                 <div className="absolute right-0 top-12 w-72 bg-white rounded-xl p-3 z-50 brand-card">
-                  <div className="text-sm font-semibold mb-2" style={{ color: "var(--brand-ink)" }}>নোটিফিকেশন</div>
-                  <div className="text-xs text-slate-500 py-6 text-center">কোনো নতুন নোটিফিকেশন নেই</div>
+                  <div className="text-sm font-semibold mb-2" style={{ color: "var(--brand-ink)" }}>{t("header.notifications")}</div>
+                  <div className="text-xs text-slate-500 py-6 text-center">{t("header.noNotifications")}</div>
                 </div>
               )}
             </div>
@@ -66,13 +77,13 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                   </div>
                   <RefCodeBadge variant="menu" />
                   <Link to="/settings" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-md">
-                    <UserIcon className="w-4 h-4" /> প্রোফাইল
+                    <UserIcon className="w-4 h-4" /> {t("header.profile")}
                   </Link>
                   <Link to="/settings" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-md">
-                    <SettingsIcon className="w-4 h-4" /> সেটিংস
+                    <SettingsIcon className="w-4 h-4" /> {t("header.settings")}
                   </Link>
                   <button onClick={doSignOut} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-rose-600 hover:bg-rose-50 rounded-md">
-                    <LogOut className="w-4 h-4" /> সাইন আউট
+                    <LogOut className="w-4 h-4" /> {t("header.signOut")}
                   </button>
                 </div>
               )}
