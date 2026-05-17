@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 import { fmtTk, toBn, categoryColor } from "@/lib/finance";
 import { useCustomCategories } from "@/hooks/useCustomCategories";
+import { loadCustomCats, saveCustomCats } from "@/lib/finance";
 import { toast } from "sonner";
 import { Plus, Trash2, Pencil, Wallet, CalendarClock, X } from "lucide-react";
 
@@ -57,7 +58,27 @@ function emptyForm(defaultCat: string): FormState {
 function BudgetPage() {
   const qc = useQueryClient();
   const { forType } = useCustomCategories();
+  // One-time clear of any pre-existing expense categories so the budget
+  // page starts fresh and the user defines categories from scratch here.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (localStorage.getItem("budget_cats_reset_v1")) return;
+    const m = loadCustomCats();
+    saveCustomCats({ ...m, expense: [] });
+    localStorage.setItem("budget_cats_reset_v1", "1");
+  }, []);
   const cats = forType("expense");
+  const [newCat, setNewCat] = useState("");
+
+  const addCategory = (raw: string) => {
+    const name = raw.trim();
+    if (!name) { toast.error("ক্যাটাগরির নাম দিন"); return null; }
+    const m = loadCustomCats();
+    if (m.expense.includes(name)) { toast.error("এই ক্যাটাগরি ইতোমধ্যে আছে"); return name; }
+    saveCustomCats({ ...m, expense: [...m.expense, name] });
+    toast.success("ক্যাটাগরি যুক্ত হয়েছে");
+    return name;
+  };
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<FormState>(() => emptyForm(cats[0] ?? ""));
