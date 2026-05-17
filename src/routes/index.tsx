@@ -4,7 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Wallet, PiggyBank, Target, Users, Sparkles, BarChart3,
   ArrowRight, Check, ShieldCheck, LineChart, ArrowUpRight, Quote,
+  Mail, Send, Loader2, Crown, Star,
 } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
   head: () => ({
