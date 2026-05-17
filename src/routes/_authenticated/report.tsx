@@ -4,8 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 import { fmtTk, toBn, BN_MONTHS } from "@/lib/finance";
-import { Download, BarChart3, TrendingUp, TrendingDown, PiggyBank, Calendar } from "lucide-react";
+import { Download, BarChart3, TrendingUp, TrendingDown, PiggyBank, Calendar, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
+import * as XLSX from "xlsx";
 
 export const Route = createFileRoute("/_authenticated/report")({
   head: () => ({
@@ -41,6 +42,7 @@ function presetRange(p: Preset): { from: string; to: string } {
 function ReportPage() {
   const [preset, setPreset] = useState<Preset>("6m");
   const [range, setRange] = useState(() => presetRange("6m"));
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const setPresetAndRange = (p: Preset) => {
     setPreset(p);
@@ -133,6 +135,20 @@ function ReportPage() {
     toast.success("রিপোর্ট ডাউনলোড হয়েছে");
   };
 
+  const downloadXlsx = () => {
+    const data = [
+      [colHeader, "আয়", "ব্যয়", "অবশিষ্ট"],
+      ...rows.map((r) => [r.label, Math.round(r.income), Math.round(r.expense), Math.round(r.saving)]),
+      ["মোট", Math.round(totals.income), Math.round(totals.expense), Math.round(totals.saving)],
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    ws["!cols"] = [{ wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 14 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "রিপোর্ট");
+    XLSX.writeFile(wb, `report-${range.from}_to_${range.to}.xlsx`);
+    toast.success("XLSX রিপোর্ট ডাউনলোড হয়েছে");
+  };
+
   const presets: { k: Preset; label: string }[] = [
     { k: "7d", label: "৭ দিন" },
     { k: "1m", label: "১ মাস" },
@@ -144,10 +160,37 @@ function ReportPage() {
 
   return (
     <AppShell title="রিপোর্ট প্লাটফর্ম" actions={
-      <button onClick={downloadCsv} className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">
-        <span className="hidden sm:inline">রিপোর্ট ডাউনলোড</span>
-        <Download className="w-4 h-4" />
-      </button>
+      <div className="relative">
+        <button
+          onClick={() => setMenuOpen((o) => !o)}
+          className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700"
+        >
+          <Download className="w-4 h-4" />
+          <span className="hidden sm:inline">ডাউনলোড</span>
+          <ChevronDown className="w-4 h-4" />
+        </button>
+        {menuOpen && (
+          <>
+            <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
+            <div className="absolute right-0 mt-2 w-44 bg-white border border-slate-200 rounded-lg shadow-lg z-20 overflow-hidden">
+              <button
+                onClick={() => { setMenuOpen(false); downloadCsv(); }}
+                className="w-full text-left px-3 py-2 text-sm hover:bg-slate-50 flex items-center justify-between"
+              >
+                <span>CSV ফাইল</span>
+                <span className="text-xs text-slate-400">.csv</span>
+              </button>
+              <button
+                onClick={() => { setMenuOpen(false); downloadXlsx(); }}
+                className="w-full text-left px-3 py-2 text-sm hover:bg-slate-50 flex items-center justify-between border-t border-slate-100"
+              >
+                <span>Excel ফাইল</span>
+                <span className="text-xs text-slate-400">.xlsx</span>
+              </button>
+            </div>
+          </>
+        )}
+      </div>
     }>
       {/* Filter */}
       <div className="bg-white rounded-xl p-3 sm:p-4 border border-slate-200 mb-4 sm:mb-6">
