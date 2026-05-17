@@ -137,6 +137,15 @@ export function UserProfileEditor({ userId, open, onOpenChange, onSaved }: Props
           <div className="py-10 text-center text-slate-500">লোড হচ্ছে…</div>
         ) : (
           <div className="space-y-6">
+            {refCode && (
+              <div className="flex items-center justify-between p-3 rounded-lg border bg-slate-50">
+                <div>
+                  <div className="text-xs text-slate-500">রেফারেন্স নম্বর</div>
+                  <div className="font-mono font-semibold text-base tracking-wider">{refCode}</div>
+                </div>
+                <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(refCode); toast.success("কপি হয়েছে"); }}>কপি</Button>
+              </div>
+            )}
             {/* Profile section */}
             <section className="space-y-3 p-4 border rounded-lg">
               <h4 className="text-sm font-semibold">মূল প্রোফাইল</h4>
