@@ -141,6 +141,7 @@ function DebtsPage() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
       <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditingId(null); }}>

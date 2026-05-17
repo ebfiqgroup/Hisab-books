@@ -204,6 +204,7 @@ function TransactionsPage() {
               })}
             </tbody>
           </table>
+          </div>
           {/* Sentinel + footer */}
           <div ref={sentinelRef} />
           {txnQ.isFetchingNextPage && (
