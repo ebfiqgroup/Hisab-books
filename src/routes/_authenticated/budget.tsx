@@ -88,6 +88,13 @@ function BudgetPage() {
   const totalSpent = cats.reduce((s, k) => s + (spentMap.get(k) ?? 0), 0);
   const totalPct = totalBudget > 0 ? Math.min(100, (totalSpent / totalBudget) * 100) : 0;
 
+  const fmtBnDate = (iso: string) => {
+    const d = new Date(iso);
+    const bnMonths = ["জানু", "ফেব", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগ", "সেপ্ট", "অক্টো", "নভে", "ডিসে"];
+    return `${toBn(d.getDate())} ${bnMonths[d.getMonth()]}, ${toBn(d.getFullYear())}`;
+  };
+  const dayCount = Math.max(1, Math.round((new Date(toDate).getTime() - new Date(fromDate).getTime()) / 86400000) + 1);
+
   return (
     <AppShell title="মাসিক বাজেট">
       <div className="bg-white rounded-xl p-3 sm:p-4 border border-slate-200 mb-4">
