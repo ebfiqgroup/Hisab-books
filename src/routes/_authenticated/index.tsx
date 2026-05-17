@@ -117,16 +117,22 @@ function Dashboard() {
     { label: "মোট দেনা", value: fmtTk(payable), last: "—", pct: { value: "", up: false }, Icon: TrendingDown, bg: "bg-rose-50", fg: "text-rose-500", val: "text-rose-600" },
   ];
 
+  const expCats = forType("expense");
+  const expAllowed = new Set(expCats);
   const expByCat = new Map<string, number>();
-  cur.filter((t) => t.type === "expense").forEach((t) => { expByCat.set(t.category, (expByCat.get(t.category) ?? 0) + Number(t.amount)); });
-  forType("expense").forEach((k) => { if (!expByCat.has(k)) expByCat.set(k, 0); });
+  expCats.forEach((k) => expByCat.set(k, 0));
+  cur.filter((t) => t.type === "expense" && expAllowed.has(t.category))
+    .forEach((t) => { expByCat.set(t.category, (expByCat.get(t.category) ?? 0) + Number(t.amount)); });
   const expenses = Array.from(expByCat.entries())
     .map(([label, amount]) => ({ label, amount, color: categoryColor(label) }))
     .sort((a, b) => b.amount - a.amount);
 
+  const incCats = forType("income");
+  const incAllowed = new Set(incCats);
   const incByCat = new Map<string, number>();
-  cur.filter((t) => t.type === "income").forEach((t) => { incByCat.set(t.category, (incByCat.get(t.category) ?? 0) + Number(t.amount)); });
-  forType("income").forEach((k) => { if (!incByCat.has(k)) incByCat.set(k, 0); });
+  incCats.forEach((k) => incByCat.set(k, 0));
+  cur.filter((t) => t.type === "income" && incAllowed.has(t.category))
+    .forEach((t) => { incByCat.set(t.category, (incByCat.get(t.category) ?? 0) + Number(t.amount)); });
   const incomes = Array.from(incByCat.entries())
     .map(([label, amount]) => ({ label, amount, color: categoryColor(label) }))
     .sort((a, b) => b.amount - a.amount);
