@@ -83,7 +83,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                 <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: "var(--gradient-brand)" }}>
                   {name.charAt(0).toUpperCase()}
                 </div>
-                <span className="text-sm">{name}</span>
+                <span className="text-sm hidden sm:inline max-w-[120px] truncate">{name}</span>
                 <ChevronDown className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
               </button>
               {menuOpen && (
