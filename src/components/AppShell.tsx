@@ -11,7 +11,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
   const navigate = useNavigate();
   const router = useRouter();
   const location = useLocation();
-  const { lang, toggle, t } = useLanguage();
+  const { t } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
@@ -84,15 +84,6 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
             >
               <LifeBuoy className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
             </Link>
-            <button
-              onClick={toggle}
-              title={t("lang.label")}
-              aria-label={t("lang.label")}
-              className="px-2.5 py-1.5 bg-white rounded-lg border hover:shadow-sm transition text-xs font-semibold"
-              style={{ borderColor: "var(--brand-line)", color: "var(--brand-ink)" }}
-            >
-              {lang === "bn" ? "EN" : "বাং"}
-            </button>
             <div className="relative">
               <button onClick={() => { setBellOpen(o => !o); setMenuOpen(false); }} className="relative p-2 bg-white rounded-lg border hover:shadow-sm transition" style={{ borderColor: "var(--brand-line)" }}>
                 <Bell className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
