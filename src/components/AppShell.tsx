@@ -1,6 +1,6 @@
 import { ReactNode, useState, useRef, useEffect } from "react";
 import { Sidebar } from "./Sidebar";
-import { Bell, ChevronDown, LogOut, User as UserIcon, Settings as SettingsIcon } from "lucide-react";
+import { Bell, ChevronDown, LogOut, User as UserIcon, Settings as SettingsIcon, LifeBuoy } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { RefCodeBadge } from "./RefCodeBadge";
@@ -40,7 +40,15 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
           </div>
           <div className="flex items-center gap-3">
             {actions}
-            <RefCodeBadge variant="header" />
+            <Link
+              to="/support"
+              title={t("nav.support")}
+              aria-label={t("nav.support")}
+              className="p-2 bg-white rounded-lg border hover:shadow-sm transition"
+              style={{ borderColor: "var(--brand-line)" }}
+            >
+              <LifeBuoy className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
+            </Link>
             <button
               onClick={toggle}
               title={t("lang.label")}

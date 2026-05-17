@@ -8,7 +8,7 @@ import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
 } from "recharts";
 import {
-  Wallet, Download, Users, TrendingDown,
+  Wallet, Users, TrendingDown,
   ArrowDown, ArrowUp, PiggyBank, StickyNote, Plus, Pencil, Trash2, Check, X, Target,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
@@ -229,22 +229,6 @@ function Dashboard() {
     qc.invalidateQueries({ queryKey: ["notes"] });
   };
 
-  // CSV export
-  const downloadReport = () => {
-    const isBn = lang === "bn";
-    const rows = [isBn
-      ? ["ধরন", "ক্যাটাগরি", "পরিমাণ", "তারিখ", "নোট"]
-      : ["Type", "Category", "Amount", "Date", "Note"]];
-    cur.forEach((tx) => rows.push([tx.type === "income" ? (isBn ? "আয়" : "Income") : (isBn ? "ব্যয়" : "Expense"), tx.category, String(tx.amount), tx.occurred_on, tx.note ?? ""]));
-    const csv = "\ufeff" + rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = `report-${startISO}.csv`; a.click();
-    URL.revokeObjectURL(url);
-    toast.success(t("রিপোর্ট ডাউনলোড হয়েছে", "Report downloaded"));
-  };
-
   const renderDraft = () => (
     <div className="p-3 rounded-lg border border-indigo-200 bg-indigo-50/40 space-y-2">
       <input autoFocus value={draft.task} onChange={(e) => setDraft({ ...draft, task: e.target.value })} placeholder={t("কাজের নাম", "Task name")} className="w-full px-2.5 py-1.5 text-sm border border-slate-200 rounded-md bg-white" />
@@ -263,19 +247,7 @@ function Dashboard() {
   );
 
   return (
-    <AppShell
-      title={t("ড্যাশবোর্ড", "Dashboard")}
-      actions={
-        <>
-          <button onClick={downloadReport} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">
-            {t("রিপোর্ট ডাউনলোড", "Download report")} <Download className="w-4 h-4" />
-          </button>
-          <button onClick={() => { setEditingTxn(null); setTxnOpen(true); }} className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700">
-            <Plus className="w-4 h-4" /> {t("লেনদেন", "Transaction")}
-          </button>
-        </>
-      }
-    >
+    <AppShell title={t("ড্যাশবোর্ড", "Dashboard")}>
       {/* Stats */}
       <div className="grid grid-cols-5 gap-4 mb-6">
         {statCards.map((s) => (
