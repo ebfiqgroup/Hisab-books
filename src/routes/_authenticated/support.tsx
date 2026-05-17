@@ -3,8 +3,9 @@ import { useEffect, useState, useMemo } from "react";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/useRole";
-import { LifeBuoy, Plus, Send, RefreshCw, MessageSquare, Trash2 } from "lucide-react";
+import { LifeBuoy, Plus, Send, RefreshCw, MessageSquare, Trash2, Star, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export const Route = createFileRoute("/_authenticated/support")({
   component: SupportPage,
@@ -44,7 +45,10 @@ const PRIORITY_LABEL: Record<string, string> = {
 
 function SupportPage() {
   const isAdmin = useIsAdmin();
+  const { t } = useLanguage();
   const [uid, setUid] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string>("");
+  const [userName, setUserName] = useState<string>("");
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [names, setNames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -58,8 +62,48 @@ function SupportPage() {
   const [filter, setFilter] = useState<string>("");
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUid(data.user?.id || null));
+    supabase.auth.getUser().then(({ data }) => {
+      setUid(data.user?.id || null);
+      setUserEmail(data.user?.email || "");
+      setUserName(((data.user?.user_metadata as any)?.full_name as string) || "");
+    });
   }, []);
+
+  // Feedback form state
+  const [fbName, setFbName] = useState("");
+  const [fbEmail, setFbEmail] = useState("");
+  const [fbRating, setFbRating] = useState(0);
+  const [fbMsg, setFbMsg] = useState("");
+  const [fbSubmitting, setFbSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!fbName && userName) setFbName(userName);
+    if (!fbEmail && userEmail) setFbEmail(userEmail);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userName, userEmail]);
+
+  const submitFeedback = async () => {
+    const name = fbName.trim().slice(0, 100);
+    const email = fbEmail.trim().slice(0, 255);
+    const msg = fbMsg.trim().slice(0, 1000);
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error(t("সঠিক ইমেইল দিন", "Enter a valid email"));
+      return;
+    }
+    if (!msg) {
+      toast.error(t("ফিডব্যাক লিখুন", "Please write your feedback"));
+      return;
+    }
+    setFbSubmitting(true);
+    const composed = `${fbRating ? `★ ${fbRating}/5\n` : ""}${msg}`;
+    const { error } = await supabase.from("leads").insert({
+      name: name || null, email, message: composed, source: "support_feedback",
+    });
+    setFbSubmitting(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success(t("ফিডব্যাকের জন্য ধন্যবাদ!", "Thanks for your feedback!"));
+    setFbMsg(""); setFbRating(0);
+  };
 
   const load = async () => {
     setLoading(true);
@@ -162,6 +206,51 @@ function SupportPage() {
         </div>
       }
     >
+      {/* Feedback form */}
+      {!isAdmin && (
+        <div className="brand-card p-5 mb-4">
+          <div className="flex items-center gap-2 mb-1">
+            <MessageCircle className="w-5 h-5" style={{ color: "var(--brand-emerald-700)" }} />
+            <h3 className="font-semibold" style={{ fontFamily: "var(--font-display)" }}>
+              {t("ফিডব্যাক দিন", "Send feedback")}
+            </h3>
+          </div>
+          <p className="text-xs text-slate-500 mb-3">
+            {t("আপনার মতামত আমাদের অ্যাপটি উন্নত করতে সাহায্য করবে।", "Your feedback helps us improve the app.")}
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+            <div>
+              <label className="text-xs font-medium text-slate-600">{t("নাম", "Name")}</label>
+              <input value={fbName} onChange={e => setFbName(e.target.value)} maxLength={100} className="w-full mt-1 px-3 py-2 rounded-md border text-sm" style={{ borderColor: "var(--brand-line)" }} />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-600">{t("ইমেইল", "Email")}</label>
+              <input value={fbEmail} onChange={e => setFbEmail(e.target.value)} maxLength={255} type="email" className="w-full mt-1 px-3 py-2 rounded-md border text-sm" style={{ borderColor: "var(--brand-line)" }} />
+            </div>
+          </div>
+          <div className="mb-3">
+            <label className="text-xs font-medium text-slate-600">{t("রেটিং", "Rating")}</label>
+            <div className="flex items-center gap-1 mt-1">
+              {[1,2,3,4,5].map(n => (
+                <button key={n} type="button" onClick={() => setFbRating(n === fbRating ? 0 : n)} aria-label={`${n}`} className="p-1">
+                  <Star className="w-6 h-6" fill={n <= fbRating ? "#f59e0b" : "none"} stroke={n <= fbRating ? "#f59e0b" : "#94a3b8"} />
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="mb-3">
+            <label className="text-xs font-medium text-slate-600">{t("আপনার মতামত", "Your feedback")}</label>
+            <textarea value={fbMsg} onChange={e => setFbMsg(e.target.value)} rows={4} maxLength={1000} className="w-full mt-1 px-3 py-2 rounded-md border text-sm resize-none" style={{ borderColor: "var(--brand-line)" }} />
+            <div className="text-[10px] text-slate-400 mt-1 text-right">{fbMsg.length}/1000</div>
+          </div>
+          <div className="flex justify-end">
+            <button onClick={submitFeedback} disabled={fbSubmitting} className="px-4 py-2 rounded-md text-white text-sm disabled:opacity-50 flex items-center gap-2" style={{ background: "var(--brand-emerald-700)" }}>
+              <Send className="w-4 h-4" /> {fbSubmitting ? t("পাঠানো হচ্ছে…", "Sending…") : t("ফিডব্যাক পাঠান", "Send feedback")}
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-4">
         {/* List */}
         <div className="brand-card p-4 space-y-3">
