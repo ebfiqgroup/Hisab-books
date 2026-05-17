@@ -57,8 +57,8 @@ export const CUSTOM_CAT_LS_KEY = "custom_categories_v2";
 export const CUSTOM_CAT_EVENT = "custom_categories_changed";
 
 export const BUILTIN_CATS_RAW: Record<TxnType, string[]> = {
-  income: ["বেতন", "ফ্রিল্যান্স", "অন্যান্য"],
-  expense: ["খাবার", "বাসা ভাড়া", "পরিবহন", "শিক্ষা", "বিনোদন", "স্বাস্থ্য", "অন্যান্য"],
+  income: [],
+  expense: [],
 };
 
 export const builtinsFor = (type: TxnType, map?: CustomCatMap): string[] => {
