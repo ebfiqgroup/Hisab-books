@@ -63,6 +63,21 @@ export function SalaryAllocator() {
   const totalPct = useMemo(() => rules.reduce((s, r) => s + r.percent, 0), [rules]);
   const totalAmt = useMemo(() => rules.reduce((s, r) => s + (base * r.percent) / 100, 0), [rules, base]);
 
+  // Live validation for draft percent input
+  const draftPctNum = draftPct === "" ? NaN : Number(draftPct);
+  const draftPctInvalid = draftPct !== "" && (!Number.isFinite(draftPctNum) || draftPctNum < 0 || draftPctNum > 100);
+  // Projected total if current draft is applied (edit replaces, add appends)
+  const projectedTotal = useMemo(() => {
+    if (!editingId && !adding) return totalPct;
+    const pct = Number.isFinite(draftPctNum) ? draftPctNum : 0;
+    if (editingId) {
+      const cur = rules.find((r) => r.id === editingId)?.percent ?? 0;
+      return totalPct - cur + pct;
+    }
+    return totalPct + pct;
+  }, [totalPct, editingId, adding, draftPctNum, rules]);
+  const overLimit = projectedTotal > 100;
+
   const startEdit = (r: Rule) => { setEditingId(r.id); setDraftCat(r.category); setDraftPct(String(r.percent)); };
   const cancelEdit = () => { setEditingId(null); setDraftCat(""); setDraftPct(""); };
 
@@ -182,7 +197,7 @@ export function SalaryAllocator() {
                         <input autoFocus value={draftCat} onChange={(e) => setDraftCat(e.target.value)} className="w-full px-2 py-1 border border-slate-200 rounded text-sm" />
                       </td>
                       <td className="px-3 py-2 text-right">
-                        <input type="number" min={0} max={100} value={draftPct} onChange={(e) => setDraftPct(e.target.value)} className="w-16 px-2 py-1 border border-slate-200 rounded text-sm text-right" />
+                        <input type="number" min={0} max={100} value={draftPct} onChange={(e) => setDraftPct(e.target.value)} className={`w-16 px-2 py-1 border rounded text-sm text-right focus:outline-none focus:ring-1 ${draftPctInvalid ? "border-rose-400 ring-rose-300 bg-rose-50" : "border-slate-200 focus:ring-indigo-400"}`} />
                       </td>
                       <td className="px-3 py-2 text-right text-slate-400 text-xs">—</td>
                       <td className="px-3 py-2">
@@ -222,7 +237,7 @@ export function SalaryAllocator() {
                   <input autoFocus value={draftCat} onChange={(e) => setDraftCat(e.target.value)} placeholder="খাত" className="w-full px-2 py-1 border border-slate-200 rounded text-sm" />
                 </td>
                 <td className="px-3 py-2 text-right">
-                  <input type="number" min={0} max={100} value={draftPct} onChange={(e) => setDraftPct(e.target.value)} placeholder="%" className="w-16 px-2 py-1 border border-slate-200 rounded text-sm text-right" />
+                  <input type="number" min={0} max={100} value={draftPct} onChange={(e) => setDraftPct(e.target.value)} placeholder="%" className={`w-16 px-2 py-1 border rounded text-sm text-right focus:outline-none focus:ring-1 ${draftPctInvalid ? "border-rose-400 ring-rose-300 bg-rose-50" : "border-slate-200 focus:ring-indigo-400"}`} />
                 </td>
                 <td className="px-3 py-2 text-right text-slate-400 text-xs">—</td>
                 <td className="px-3 py-2">
@@ -241,7 +256,7 @@ export function SalaryAllocator() {
           <tfoot>
             <tr className="border-t border-slate-200 bg-slate-50">
               <td className="px-3 py-2 text-xs font-medium text-slate-600">মোট</td>
-              <td className={`px-3 py-2 text-right text-xs font-semibold ${totalPct === 100 ? "text-emerald-600" : "text-amber-600"}`}>{toBn(totalPct)}%</td>
+              <td className={`px-3 py-2 text-right text-xs font-semibold ${totalPct === 100 ? "text-emerald-600" : totalPct > 100 ? "text-rose-600" : "text-amber-600"}`}>{toBn(totalPct)}%</td>
               <td className="px-3 py-2 text-right text-xs font-semibold text-slate-800">{fmtTk(totalAmt)}</td>
               <td className="px-3 py-2"></td>
             </tr>
@@ -249,7 +264,21 @@ export function SalaryAllocator() {
         </table>
       </div>
 
-      {totalPct !== 100 && (
+      {(draftPctInvalid || (adding || editingId) ? false : false)}
+      {draftPctInvalid && (
+        <div className="text-[11px] text-rose-600 mb-2">⚠ শতকরা মান ০-১০০ এর মধ্যে হতে হবে</div>
+      )}
+      {overLimit && (
+        <div className="text-[11px] text-rose-600 mb-2">
+          ⚠ প্রজেক্টেড মোট {toBn(projectedTotal)}% — ১০০% ছাড়িয়ে যাচ্ছে
+        </div>
+      )}
+      {!overLimit && totalPct > 100 && (
+        <div className="text-[11px] text-rose-600 mb-3">
+          ⚠ মোট শতকরা {toBn(totalPct)}% — ১০০% ছাড়িয়ে গেছে, কিছু নিয়ম সমন্বয় করুন।
+        </div>
+      )}
+      {totalPct !== 100 && totalPct <= 100 && (
         <div className="text-[11px] text-amber-600 mb-3">
           ⚠ মোট শতকরা {toBn(totalPct)}% — ১০০% হলে পুরো বেতন বণ্টন হবে।
         </div>
