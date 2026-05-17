@@ -264,7 +264,7 @@ function Dashboard() {
 
   return (
     <AppShell
-      title={t("মাসিক ড্যাশবোর্ড", "Monthly dashboard")}
+      title={t("ড্যাশবোর্ড", "Dashboard")}
       actions={
         <>
           <button onClick={downloadReport} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">
