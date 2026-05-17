@@ -6,6 +6,10 @@ import { useIsAdmin } from "@/hooks/useRole";
 import { useAuth } from "@/hooks/useAuth";
 import { Shield, ShieldCheck, ShieldOff, Users, Wallet, TrendingDown, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
@@ -29,6 +33,8 @@ function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
   const [q, setQ] = useState("");
+  const [pending, setPending] = useState<Row | null>(null);
+  const [busy, setBusy] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -88,20 +94,30 @@ function AdminPage() {
     tx: a.tx + Number(r.tx_count || 0),
   }), { users: 0, income: 0, expense: 0, tx: 0 });
 
-  const toggleAdmin = async (row: Row) => {
-    if (row.user_id === user?.id && row.is_admin) {
-      if (!confirm("নিজের অ্যাডমিন অনুমতি সরাবেন?")) return;
+  const confirmToggle = async () => {
+    if (!pending) return;
+    const row = pending;
+    setBusy(true);
+    const t = toast.loading(row.is_admin ? "অ্যাডমিন সরানো হচ্ছে…" : "অ্যাডমিন যোগ করা হচ্ছে…");
+    try {
+      if (row.is_admin) {
+        const { error } = await supabase.from("user_roles")
+          .delete().eq("user_id", row.user_id).eq("role", "admin");
+        if (error) throw error;
+        toast.success("অ্যাডমিন সরানো হয়েছে", { id: t });
+      } else {
+        const { error } = await supabase.from("user_roles")
+          .insert({ user_id: row.user_id, role: "admin" });
+        if (error) throw error;
+        toast.success("অ্যাডমিন যোগ করা হয়েছে", { id: t });
+      }
+      setPending(null);
+      await load();
+    } catch (e: any) {
+      toast.error(e?.message || "অপারেশন ব্যর্থ হয়েছে", { id: t });
+    } finally {
+      setBusy(false);
     }
-    if (row.is_admin) {
-      const { error } = await supabase.from("user_roles").delete().eq("user_id", row.user_id).eq("role", "admin");
-      if (error) return toast.error(error.message);
-      toast.success("অ্যাডমিন সরানো হয়েছে");
-    } else {
-      const { error } = await supabase.from("user_roles").insert({ user_id: row.user_id, role: "admin" });
-      if (error) return toast.error(error.message);
-      toast.success("অ্যাডমিন বানানো হয়েছে");
-    }
-    load();
   };
 
   const fmt = (n: number) => new Intl.NumberFormat("bn-BD").format(Math.round(n || 0));
@@ -181,7 +197,7 @@ function AdminPage() {
                     </td>
                     <td className="py-3 text-right">
                       <button
-                        onClick={() => toggleAdmin(r)}
+                        onClick={() => setPending(r)}
                         className="text-xs px-3 py-1.5 rounded-md border hover:shadow-sm inline-flex items-center gap-1"
                         style={{ borderColor: "var(--brand-line)" }}
                       >
@@ -195,6 +211,48 @@ function AdminPage() {
           </div>
         )}
       </div>
+
+      <AlertDialog open={!!pending} onOpenChange={(o) => { if (!o && !busy) setPending(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pending?.is_admin ? "অ্যাডমিন অনুমতি সরাবেন?" : "অ্যাডমিন বানাবেন?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-sm">
+                <p>
+                  <span className="font-semibold text-foreground">{pending?.full_name || "—"}</span>
+                  {" "}<span className="text-xs text-slate-400 font-mono">({pending?.user_id.slice(0, 8)}…)</span>
+                </p>
+                {pending?.is_admin ? (
+                  <p className="text-rose-600">
+                    এই ব্যবহারকারী আর সব ব্যবহারকারীর তথ্য দেখতে বা পরিবর্তন করতে পারবেন না।
+                  </p>
+                ) : (
+                  <p className="text-amber-700">
+                    এই ব্যবহারকারী সব ব্যবহারকারীর তথ্য দেখতে এবং অন্যদের অ্যাডমিন বানাতে/সরাতে পারবেন।
+                  </p>
+                )}
+                {pending?.user_id === user?.id && pending?.is_admin && (
+                  <p className="text-rose-700 font-medium">
+                    ⚠️ এটি আপনার নিজের অ্যাকাউন্ট — সরালে এই পেজে আর প্রবেশ করতে পারবেন না।
+                  </p>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={busy}>বাতিল</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={busy}
+              onClick={(e) => { e.preventDefault(); confirmToggle(); }}
+              className={pending?.is_admin ? "bg-rose-600 hover:bg-rose-700" : ""}
+            >
+              {busy ? "অপেক্ষা করুন…" : (pending?.is_admin ? "হ্যাঁ, সরান" : "হ্যাঁ, অ্যাডমিন বানান")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppShell>
   );
 }
