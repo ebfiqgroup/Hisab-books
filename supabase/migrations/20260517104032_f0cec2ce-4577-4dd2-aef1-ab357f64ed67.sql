@@ -1,0 +1,1 @@
+drop policy if exists "feedback public read" on storage.objects;
