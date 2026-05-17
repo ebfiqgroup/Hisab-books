@@ -298,6 +298,22 @@ function SettingsPage() {
 
         {/* App preferences */}
         <Section icon={<SlidersHorizontal className="w-4 h-4 text-indigo-600" />} title="অ্যাপ প্রেফারেন্স">
+          <Field label={t("ভাষা", "Language")}>
+            <div className="flex gap-2">
+              {([["bn", "বাংলা"], ["en", "English"]] as const).map(([v, l]) => (
+                <button
+                  key={v}
+                  onClick={() => {
+                    setLang(v);
+                    savePrefs({ ...prefs, language: v });
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm border ${lang === v ? "bg-indigo-600 text-white border-indigo-600" : "bg-white border-slate-200 text-slate-700"}`}
+                >
+                  <Languages className="w-3.5 h-3.5" /> {l}
+                </button>
+              ))}
+            </div>
+          </Field>
           <Field label="ড্যাশবোর্ড চার্ট রেঞ্জ">
             <div className="flex gap-2">
               {(["সাপ্তাহিক", "মাসিক", "বার্ষিক"] as const).map((r) => (
