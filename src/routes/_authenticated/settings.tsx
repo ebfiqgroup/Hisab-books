@@ -128,9 +128,9 @@ function SettingsPage() {
     toast.success("AI সেটিংস সংরক্ষিত");
   };
 
-  const toggleAiType = (t: "alert" | "tip" | "invest") => {
-    const next = { ...ai, types: ai.types.includes(t) ? ai.types.filter((x) => x !== t) : [...ai.types, t] };
-    if (next.types.length === 0) { toast.error("অন্তত একটি ধরন রাখুন"); return; }
+  const toggleAiType = (kind: "alert" | "tip" | "invest") => {
+    const next = { ...ai, types: ai.types.includes(kind) ? ai.types.filter((x) => x !== kind) : [...ai.types, kind] };
+    if (next.types.length === 0) { toast.error(t("অন্তত একটি ধরন রাখুন", "Keep at least one type")); return; }
     setAi(next);
   };
 
