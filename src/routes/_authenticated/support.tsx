@@ -3,7 +3,7 @@ import { useEffect, useState, useMemo } from "react";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/useRole";
-import { LifeBuoy, Plus, Send, RefreshCw, MessageSquare, Trash2, Star, MessageCircle } from "lucide-react";
+import { LifeBuoy, Plus, Send, RefreshCw, MessageSquare, Trash2, Star, MessageCircle, Paperclip, X as XIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/hooks/useLanguage";
 
@@ -75,12 +75,45 @@ function SupportPage() {
   const [fbRating, setFbRating] = useState(0);
   const [fbMsg, setFbMsg] = useState("");
   const [fbSubmitting, setFbSubmitting] = useState(false);
+  const [fbFiles, setFbFiles] = useState<File[]>([]);
+  const [fbPreviews, setFbPreviews] = useState<string[]>([]);
+  const [fbUploading, setFbUploading] = useState(false);
 
   useEffect(() => {
     if (!fbName && userName) setFbName(userName);
     if (!fbEmail && userEmail) setFbEmail(userEmail);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userName, userEmail]);
+
+  const MAX_FILES = 4;
+  const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+
+  const onPickFiles = (list: FileList | null) => {
+    if (!list) return;
+    const incoming = Array.from(list);
+    const next: File[] = [];
+    for (const f of incoming) {
+      if (!f.type.startsWith("image/")) { toast.error(t("শুধু ছবি আপলোড করা যাবে", "Only image files are allowed")); continue; }
+      if (f.size > MAX_SIZE) { toast.error(t("সর্বোচ্চ ৫MB", "Max 5MB per file")); continue; }
+      next.push(f);
+    }
+    const merged = [...fbFiles, ...next].slice(0, MAX_FILES);
+    setFbFiles(merged);
+    setFbPreviews(prev => {
+      prev.forEach(u => URL.revokeObjectURL(u));
+      return merged.map(f => URL.createObjectURL(f));
+    });
+  };
+
+  const removeFile = (idx: number) => {
+    setFbFiles(prev => prev.filter((_, i) => i !== idx));
+    setFbPreviews(prev => {
+      const u = prev[idx]; if (u) URL.revokeObjectURL(u);
+      return prev.filter((_, i) => i !== idx);
+    });
+  };
+
+  useEffect(() => () => { fbPreviews.forEach(u => URL.revokeObjectURL(u)); }, []); // eslint-disable-line
 
   const submitFeedback = async () => {
     const name = fbName.trim().slice(0, 100);
@@ -95,7 +128,22 @@ function SupportPage() {
       return;
     }
     setFbSubmitting(true);
-    const composed = `${fbRating ? `★ ${fbRating}/5\n` : ""}${msg}`;
+    // Upload attachments first
+    const urls: string[] = [];
+    if (fbFiles.length && uid) {
+      setFbUploading(true);
+      for (const f of fbFiles) {
+        const ext = (f.name.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "");
+        const path = `${uid}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { error: upErr } = await supabase.storage.from("feedback").upload(path, f, { contentType: f.type, upsert: false });
+        if (upErr) { toast.error(upErr.message); setFbUploading(false); setFbSubmitting(false); return; }
+        const { data: pub } = supabase.storage.from("feedback").getPublicUrl(path);
+        urls.push(pub.publicUrl);
+      }
+      setFbUploading(false);
+    }
+    const attachBlock = urls.length ? `\n\n${t("সংযুক্ত ছবি", "Attachments")}:\n${urls.join("\n")}` : "";
+    const composed = `${fbRating ? `★ ${fbRating}/5\n` : ""}${msg}${attachBlock}`;
     const { error } = await supabase.from("leads").insert({
       name: name || null, email, message: composed, source: "support_feedback",
     });
@@ -103,6 +151,8 @@ function SupportPage() {
     if (error) { toast.error(error.message); return; }
     toast.success(t("ফিডব্যাকের জন্য ধন্যবাদ!", "Thanks for your feedback!"));
     setFbMsg(""); setFbRating(0);
+    fbPreviews.forEach(u => URL.revokeObjectURL(u));
+    setFbFiles([]); setFbPreviews([]);
   };
 
   const load = async () => {
@@ -243,9 +293,31 @@ function SupportPage() {
             <textarea value={fbMsg} onChange={e => setFbMsg(e.target.value)} rows={4} maxLength={1000} className="w-full mt-1 px-3 py-2 rounded-md border text-sm resize-none" style={{ borderColor: "var(--brand-line)" }} />
             <div className="text-[10px] text-slate-400 mt-1 text-right">{fbMsg.length}/1000</div>
           </div>
+          <div className="mb-3">
+            <label className="text-xs font-medium text-slate-600">{t("ছবি/স্ক্রিনশট সংযুক্ত করুন", "Attach images/screenshots")}</label>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              {fbPreviews.map((u, i) => (
+                <div key={u} className="relative w-16 h-16 rounded-md overflow-hidden border" style={{ borderColor: "var(--brand-line)" }}>
+                  <img src={u} alt="" className="w-full h-full object-cover" />
+                  <button type="button" onClick={() => removeFile(i)} className="absolute -top-1 -right-1 bg-rose-600 text-white rounded-full p-0.5" aria-label="remove">
+                    <XIcon className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+              {fbFiles.length < MAX_FILES && (
+                <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 rounded-md border text-xs hover:bg-slate-50" style={{ borderColor: "var(--brand-line)" }}>
+                  <Paperclip className="w-3.5 h-3.5" />
+                  {t("ছবি যোগ করুন", "Add image")}
+                  <input type="file" accept="image/*" multiple className="hidden" onChange={e => { onPickFiles(e.target.files); e.currentTarget.value = ""; }} />
+                </label>
+              )}
+            </div>
+            <div className="text-[10px] text-slate-400 mt-1">{t(`সর্বোচ্চ ${MAX_FILES}টি ছবি, প্রতিটি ৫MB পর্যন্ত`, `Up to ${MAX_FILES} images, 5MB each`)}</div>
+          </div>
           <div className="flex justify-end">
             <button onClick={submitFeedback} disabled={fbSubmitting} className="px-4 py-2 rounded-md text-white text-sm disabled:opacity-50 flex items-center gap-2" style={{ background: "var(--brand-emerald-700)" }}>
-              <Send className="w-4 h-4" /> {fbSubmitting ? t("পাঠানো হচ্ছে…", "Sending…") : t("ফিডব্যাক পাঠান", "Send feedback")}
+              {fbSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              {fbUploading ? t("আপলোড হচ্ছে…", "Uploading…") : fbSubmitting ? t("পাঠানো হচ্ছে…", "Sending…") : t("ফিডব্যাক পাঠান", "Send feedback")}
             </button>
           </div>
         </div>
