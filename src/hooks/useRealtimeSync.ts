@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -21,9 +21,11 @@ const TABLE_KEYS: Record<string, string[][]> = {
  */
 export function useRealtimeSync(userId: string | undefined) {
   const qc = useQueryClient();
+  const [status, setStatus] = useState<"connecting" | "connected" | "disconnected">("connecting");
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) { setStatus("disconnected"); return; }
+    setStatus("connecting");
     const tables = Object.keys(TABLE_KEYS);
     const channel = supabase.channel(`rt-user-${userId}`);
 
@@ -45,9 +47,16 @@ export function useRealtimeSync(userId: string | undefined) {
       );
     });
 
-    channel.subscribe();
+    channel.subscribe((s: string) => {
+      if (s === "SUBSCRIBED") setStatus("connected");
+      else if (s === "CHANNEL_ERROR" || s === "TIMED_OUT" || s === "CLOSED") setStatus("disconnected");
+      else setStatus("connecting");
+    });
     return () => {
       supabase.removeChannel(channel);
+      setStatus("disconnected");
     };
   }, [userId, qc]);
+
+  return status;
 }
