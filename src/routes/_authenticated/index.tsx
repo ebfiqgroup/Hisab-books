@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { TxnDialog, type EditTxn } from "@/components/dashboard/TxnDialog";
+import { AiSuggestions } from "@/components/dashboard/AiSuggestions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/")({ component: Dashboard });
@@ -284,6 +285,20 @@ function Dashboard() {
           </div>
         ))}
       </div>
+
+      {/* AI Suggestions */}
+      <AiSuggestions
+        curIncome={curInc}
+        curExpense={curExp}
+        prevIncome={prevInc}
+        prevExpense={prevExp}
+        receivable={receivable}
+        payable={payable}
+        expenseByCategory={expenses.filter((e) => e.amount > 0).map((e) => ({ category: e.label, amount: e.amount }))}
+        incomeByCategory={incomes.filter((e) => e.amount > 0).map((e) => ({ category: e.label, amount: e.amount }))}
+        goals={goals.map((g) => ({ label: g.label, target: Number(g.target), current: Number(g.current) }))}
+        monthLabel={`${BN_MONTHS[now.getMonth()]} ${toBn(now.getFullYear())}`}
+      />
 
       {/* Charts */}
       <div className="grid grid-cols-2 gap-4 mb-6">
