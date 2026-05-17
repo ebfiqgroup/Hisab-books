@@ -3,6 +3,7 @@ import { Sidebar } from "./Sidebar";
 import { Bell, ChevronDown, LogOut, User as UserIcon, Settings as SettingsIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useNavigate } from "@tanstack/react-router";
+import { RefCodeBadge } from "./RefCodeBadge";
 
 export function AppShell({ title, actions, children }: { title: ReactNode; actions?: ReactNode; children: ReactNode }) {
   const { user, signOut } = useAuth();
@@ -37,6 +38,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
           </div>
           <div className="flex items-center gap-3">
             {actions}
+            <RefCodeBadge variant="header" />
             <div className="relative">
               <button onClick={() => { setBellOpen(o => !o); setMenuOpen(false); }} className="relative p-2 bg-white rounded-lg border hover:shadow-sm transition" style={{ borderColor: "var(--brand-line)" }}>
                 <Bell className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
@@ -62,6 +64,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                     <div className="text-sm font-semibold truncate" style={{ color: "var(--brand-ink)" }}>{name}</div>
                     <div className="text-xs text-slate-500 truncate">{user?.email}</div>
                   </div>
+                  <RefCodeBadge variant="menu" />
                   <Link to="/settings" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-md">
                     <UserIcon className="w-4 h-4" /> প্রোফাইল
                   </Link>
