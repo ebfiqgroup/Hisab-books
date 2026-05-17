@@ -93,8 +93,23 @@ function SettingsPage() {
   ];
 
   const applyCurrency = (sym: string) => {
-    const s = sym.trim().slice(0, 4);
+    const s = (sym ?? "").trim();
     if (!s) { toast.error(t("চিহ্ন দিন", "Enter a symbol")); return; }
+    const cps = [...s];
+    if (cps.length < 1 || cps.length > 4) {
+      toast.error(t("চিহ্ন ১ থেকে ৪ অক্ষরের হতে হবে", "Symbol must be 1–4 characters"));
+      return;
+    }
+    // Reject control, format, whitespace, and surrogate codepoints
+    if (/[\p{C}\p{Z}]/u.test(s)) {
+      toast.error(t("অবৈধ অক্ষর রয়েছে", "Contains invalid characters"));
+      return;
+    }
+    // Allow only Letters, Numbers, Symbols, Punctuation (safe Unicode range)
+    if (!/^[\p{L}\p{N}\p{S}\p{P}]+$/u.test(s)) {
+      toast.error(t("শুধু অক্ষর/সংখ্যা/চিহ্ন ব্যবহার করুন", "Only letters, numbers and symbols allowed"));
+      return;
+    }
     setFinanceSymbol(s);
     setCurrency(s);
     toast.success(t("মুদ্রা চিহ্ন আপডেট হয়েছে", "Currency symbol updated"));
