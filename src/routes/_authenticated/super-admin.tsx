@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
@@ -301,11 +301,19 @@ function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string
 
 function AccessDeniedWithRequest() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [myRequests, setMyRequests] = useState<RoleRequest[]>([]);
   const [requestedRole, setRequestedRole] = useState<"admin" | "super_admin">("super_admin");
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Show a clear notification on entry so the user understands why they're here.
+  useEffect(() => {
+    toast.error("সুপার অ্যাডমিন প্যানেলে অ্যাক্সেস নেই", {
+      description: "নিচ থেকে রিকোয়েস্ট পাঠান অথবা ড্যাশবোর্ডে ফিরে যান।",
+    });
+  }, []);
 
   const load = async () => {
     if (!user) return;
