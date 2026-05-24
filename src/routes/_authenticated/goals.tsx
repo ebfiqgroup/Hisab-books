@@ -11,7 +11,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 
 export const Route = createFileRoute("/_authenticated/goals")({ component: GoalsPage });
 
-type Goal = { id: string; label: string; target: number; current: number; deadline: string | null; color: string };
+type Goal = { id: string; label: string; target: number; current: number; deadline: string | null; color: string; status: "pending" | "ongoing" | "completed" | null };
 
 const COLORS = [
   { key: "emerald", bg: "bg-emerald-500", text: "text-emerald-600", soft: "bg-emerald-50" },
@@ -33,7 +33,7 @@ function GoalsPage() {
   const q = useQuery({
     queryKey: ["goals"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("goals").select("id,label,target,current,deadline,color").order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("goals").select("id,label,target,current,deadline,color,status").order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Goal[];
     },
@@ -70,16 +70,22 @@ function GoalsPage() {
   };
 
   const list = q.data ?? [];
+  const autoStatus = (g: Goal): "pending" | "ongoing" | "completed" => {
+    const c = Number(g.current), tg = Number(g.target);
+    return c >= tg ? "completed" : c > 0 ? "ongoing" : "pending";
+  };
+  const effStatus = (g: Goal) => g.status ?? autoStatus(g);
+
+  const setStatus = async (g: Goal, s: "pending" | "ongoing" | "completed") => {
+    const next = effStatus(g) === s ? null : s;
+    const { error } = await supabase.from("goals").update({ status: next }).eq("id", g.id);
+    if (error) { toast.error(error.message); return; }
+    qc.invalidateQueries({ queryKey: ["goals"] });
+  };
+
   const filteredList = useMemo(() => {
     if (filter === "all") return list;
-    return list.filter((g) => {
-      const current = Number(g.current);
-      const target = Number(g.target);
-      if (filter === "pending") return current === 0;
-      if (filter === "ongoing") return current > 0 && current < target;
-      if (filter === "completed") return current >= target;
-      return true;
-    });
+    return list.filter((g) => effStatus(g) === filter);
   }, [list, filter]);
 
   const filterBtns: { key: typeof filter; labelBn: string; labelEn: string }[] = [
@@ -136,20 +142,12 @@ function GoalsPage() {
         {filteredList.map((g) => {
           const c = colorOf(g.color);
           const pct = g.target > 0 ? Math.min(100, (Number(g.current) / Number(g.target)) * 100) : 0;
-          const current = Number(g.current);
-          const target = Number(g.target);
-          const status: "pending" | "ongoing" | "completed" =
-            current >= target ? "completed" : current > 0 ? "ongoing" : "pending";
-          const statusStyle =
-            status === "pending"
-              ? "bg-amber-50 text-amber-700 border-amber-200"
-              : status === "ongoing"
-              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-              : "bg-slate-100 text-slate-600 border-slate-200";
-          const statusLabel =
-            status === "pending" ? t("অপেক্ষিত", "Pending")
-            : status === "ongoing" ? t("চলমান", "Ongoing")
-            : t("শেষ", "Completed");
+          const status = effStatus(g);
+          const statusBtns: { key: "pending" | "ongoing" | "completed"; labelBn: string; labelEn: string; active: string }[] = [
+            { key: "pending", labelBn: "অপেক্ষিত", labelEn: "Pending", active: "bg-amber-500 text-white border-amber-500" },
+            { key: "ongoing", labelBn: "চলমান", labelEn: "Ongoing", active: "bg-emerald-500 text-white border-emerald-500" },
+            { key: "completed", labelBn: "শেষ", labelEn: "Completed", active: "bg-slate-500 text-white border-slate-500" },
+          ];
           return (
             <div key={g.id} className="bg-white rounded-xl p-5 border border-slate-200">
               <div className="flex items-start justify-between mb-3">
@@ -157,15 +155,27 @@ function GoalsPage() {
                   <Target className={`w-5 h-5 ${c.text}`} />
                 </div>
                 <div className="flex items-center gap-1">
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${statusStyle}`}>
-                    {statusLabel}
-                  </span>
                   <button onClick={() => openEdit(g)} className="p-1.5 rounded-md hover:bg-slate-50 text-slate-400 hover:text-slate-700"><Pencil className="w-4 h-4" /></button>
                   <button onClick={() => remove(g.id)} className="p-1.5 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600"><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
               <div className="font-bold text-slate-800 mb-1">{g.label}</div>
               <div className="text-xs text-slate-500 mb-3">{fmtTk(Number(g.current))} / {fmtTk(Number(g.target))}</div>
+              <div className="flex flex-wrap gap-1.5 mb-3">
+                {statusBtns.map((sb) => (
+                  <button
+                    key={sb.key}
+                    onClick={() => setStatus(g, sb.key)}
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors ${
+                      status === sb.key
+                        ? sb.active
+                        : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                    }`}
+                  >
+                    {t(sb.labelBn, sb.labelEn)}
+                  </button>
+                ))}
+              </div>
               <div className="h-2 bg-slate-100 rounded-full overflow-hidden mb-1">
                 <div className={`h-full ${c.bg}`} style={{ width: `${pct}%` }}></div>
               </div>
