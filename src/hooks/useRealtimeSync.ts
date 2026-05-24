@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 // Map db tables → react-query keys (prefix-match invalidation) + the column
@@ -23,6 +24,25 @@ const TABLE_CONFIG: Record<string, { keys: string[][]; userCol: string }> = {
 export function useRealtimeSync(userId: string | undefined) {
   const qc = useQueryClient();
   const [status, setStatus] = useState<"connecting" | "connected" | "disconnected">("connecting");
+  const prevStatusRef = useRef<"connecting" | "connected" | "disconnected">("connecting");
+  const everConnectedRef = useRef(false);
+
+  useEffect(() => {
+    const prev = prevStatusRef.current;
+    if (prev !== status) {
+      if (status === "connected") {
+        if (everConnectedRef.current) {
+          toast.success("রিয়েলটাইম সংযোগ পুনরায় স্থাপন হয়েছে");
+        }
+        everConnectedRef.current = true;
+      } else if (status === "disconnected" && everConnectedRef.current) {
+        toast.error("রিয়েলটাইম সংযোগ বিচ্ছিন্ন হয়েছে", {
+          description: "আপডেটগুলো সাময়িকভাবে দেরিতে আসতে পারে।",
+        });
+      }
+      prevStatusRef.current = status;
+    }
+  }, [status]);
 
   useEffect(() => {
     if (!userId) { setStatus("disconnected"); return; }
