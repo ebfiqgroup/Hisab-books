@@ -7,7 +7,7 @@ import { fmtTk, toBn, categoryColor } from "@/lib/finance";
 import { useCustomCategories } from "@/hooks/useCustomCategories";
 import { loadCustomCats, saveCustomCats } from "@/lib/finance";
 import { toast } from "sonner";
-import { Plus, Trash2, Pencil, Wallet, CalendarClock, X } from "lucide-react";
+import { Plus, Trash2, Pencil, Wallet, CalendarClock, X, ListFilter } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 
 export const Route = createFileRoute("/_authenticated/budget")({ component: BudgetPage });
