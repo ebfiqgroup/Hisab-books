@@ -136,13 +136,30 @@ function GoalsPage() {
         {filteredList.map((g) => {
           const c = colorOf(g.color);
           const pct = g.target > 0 ? Math.min(100, (Number(g.current) / Number(g.target)) * 100) : 0;
+          const current = Number(g.current);
+          const target = Number(g.target);
+          const status: "pending" | "ongoing" | "completed" =
+            current >= target ? "completed" : current > 0 ? "ongoing" : "pending";
+          const statusStyle =
+            status === "pending"
+              ? "bg-amber-50 text-amber-700 border-amber-200"
+              : status === "ongoing"
+              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+              : "bg-slate-100 text-slate-600 border-slate-200";
+          const statusLabel =
+            status === "pending" ? t("অপেক্ষিত", "Pending")
+            : status === "ongoing" ? t("চলমান", "Ongoing")
+            : t("শেষ", "Completed");
           return (
             <div key={g.id} className="bg-white rounded-xl p-5 border border-slate-200">
               <div className="flex items-start justify-between mb-3">
                 <div className={`w-10 h-10 rounded-full ${c.soft} flex items-center justify-center`}>
                   <Target className={`w-5 h-5 ${c.text}`} />
                 </div>
-                <div className="flex gap-1">
+                <div className="flex items-center gap-1">
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${statusStyle}`}>
+                    {statusLabel}
+                  </span>
                   <button onClick={() => openEdit(g)} className="p-1.5 rounded-md hover:bg-slate-50 text-slate-400 hover:text-slate-700"><Pencil className="w-4 h-4" /></button>
                   <button onClick={() => remove(g.id)} className="p-1.5 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600"><Trash2 className="w-4 h-4" /></button>
                 </div>
