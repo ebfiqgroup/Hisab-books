@@ -478,7 +478,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "user"
+      app_role: "admin" | "user" | "super_admin"
       debt_kind: "receivable" | "payable"
       priority_level: "উচ্চ" | "মাঝারি" | "নিম্ন"
       txn_type: "income" | "expense"
@@ -609,7 +609,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user"],
+      app_role: ["admin", "user", "super_admin"],
       debt_kind: ["receivable", "payable"],
       priority_level: ["উচ্চ", "মাঝারি", "নিম্ন"],
       txn_type: ["income", "expense"],
