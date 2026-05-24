@@ -272,6 +272,45 @@ export type Database = {
         }
         Relationships: []
       }
+      role_requests: {
+        Row: {
+          created_at: string
+          id: string
+          reason: string | null
+          requested_role: Database["public"]["Enums"]["app_role"]
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reason?: string | null
+          requested_role: Database["public"]["Enums"]["app_role"]
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reason?: string | null
+          requested_role?: Database["public"]["Enums"]["app_role"]
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           cancel_at_period_end: boolean | null
@@ -477,6 +516,10 @@ export type Database = {
         Args: { _status: string; _user_id: string }
         Returns: boolean
       }
+      approve_role_request: {
+        Args: { _note?: string; _request_id: string }
+        Returns: boolean
+      }
       claim_admin_if_none: { Args: never; Returns: boolean }
       generate_ref_code: { Args: never; Returns: string }
       has_active_subscription: {
@@ -488,6 +531,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      reject_role_request: {
+        Args: { _note?: string; _request_id: string }
         Returns: boolean
       }
     }
