@@ -8,7 +8,8 @@ async function assertAdmin(supabase: any, userId: string) {
     .from("user_roles")
     .select("role")
     .eq("user_id", userId)
-    .eq("role", "admin")
+    .in("role", ["admin", "super_admin"])
+    .limit(1)
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) throw new Error("অনুমতি নেই");
