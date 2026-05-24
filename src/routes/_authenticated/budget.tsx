@@ -318,6 +318,18 @@ function BudgetPage() {
             const spent = spentFor(b);
             const pct = b.monthly_limit > 0 ? Math.min(100, (spent / b.monthly_limit) * 100) : 0;
             const over = b.monthly_limit > 0 && spent > b.monthly_limit;
+            const status: "pending" | "ongoing" | "completed" =
+              nowIso < b.start_at ? "pending" : nowIso > b.end_at ? "completed" : "ongoing";
+            const statusStyle =
+              status === "pending"
+                ? "bg-amber-50 text-amber-700 border-amber-200"
+                : status === "ongoing"
+                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                : "bg-slate-100 text-slate-600 border-slate-200";
+            const statusLabel =
+              status === "pending" ? t("অপেক্ষিত", "Pending")
+              : status === "ongoing" ? t("চলমান", "Ongoing")
+              : t("শেষ", "Completed");
             return (
               <div key={b.id} className="bg-white rounded-xl border border-slate-200 p-4">
                 <div className="flex items-start justify-between gap-2 mb-2">
@@ -325,6 +337,9 @@ function BudgetPage() {
                     <div className="flex items-center gap-2 mb-1">
                       <span className="inline-block w-2.5 h-2.5 rounded-full shrink-0" style={{ background: categoryColor(b.category) }} />
                       <span className="font-semibold text-slate-800 truncate">{b.label || b.category}</span>
+                      <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] font-medium border ${statusStyle}`}>
+                        {statusLabel}
+                      </span>
                     </div>
                     {b.label && <div className="text-xs text-slate-500 ml-4.5">{t("ক্যাটাগরি", "Category")}: {b.category}</div>}
                   </div>
