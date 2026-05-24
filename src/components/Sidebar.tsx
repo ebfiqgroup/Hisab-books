@@ -2,9 +2,9 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
 import {
   Home, Wallet, TrendingDown, ArrowLeftRight, Clock, Target,
-  Users, BarChart3, Calendar, Settings, ShieldCheck, Activity, LifeBuoy, X, StickyNote,
+  Users, BarChart3, Calendar, Settings, ShieldCheck, Activity, LifeBuoy, X, StickyNote, Crown,
 } from "lucide-react";
-import { useIsAdmin } from "@/hooks/useRole";
+import { useIsAdmin, useIsSuperAdmin } from "@/hooks/useRole";
 import { RefCodeBadge } from "./RefCodeBadge";
 import { useLanguage, type TKey } from "@/hooks/useLanguage";
 
@@ -26,6 +26,7 @@ const navItems: { icon: typeof Home; key: TKey; to: string }[] = [
 export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean; onClose?: () => void } = {}) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const isAdmin = useIsAdmin();
+  const isSuperAdmin = useIsSuperAdmin();
   const { t } = useLanguage();
   useEffect(() => {
     if (!mobileOpen) return;
@@ -39,6 +40,7 @@ export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean;
     ? [
         ...navItems,
         { icon: ShieldCheck, key: "nav.admin" as TKey, to: "/admin" as const },
+        ...(isSuperAdmin ? [{ icon: Crown, key: "nav.superAdmin" as TKey, to: "/super-admin" as const }] : []),
         { icon: Activity, key: "nav.audit" as TKey, to: "/audit" as const },
       ]
     : navItems;
