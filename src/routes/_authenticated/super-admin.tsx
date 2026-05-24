@@ -51,6 +51,8 @@ type RoleRequest = {
   full_name?: string | null;
 };
 
+type DetailKey = "users" | "admins" | "supers" | "pending" | "transactions" | "budgets" | "goals" | "tickets";
+
 function SuperAdminPage() {
   const { user } = useAuth();
   const isSuper = useIsSuperAdmin();
