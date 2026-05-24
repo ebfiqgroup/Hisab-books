@@ -449,7 +449,7 @@ function RequestsInbox({ requests, onChange }: { requests: RoleRequest[]; onChan
   const pendingReqs = requests.filter(r => r.status === "pending");
 
   const act = async (id: string, kind: "approve" | "reject") => {
-    const note = kind === "reject" ? (window.prompt("প্রত্যাখ্যানের কারণ (ঐচ্ছিক):") || null) : null;
+    const note = kind === "reject" ? (window.prompt("প্রত্যাখ্যানের কারণ (ঐচ্ছিক):") || undefined) : undefined;
     setBusyId(id);
     const t = toast.loading("প্রসেস হচ্ছে…");
     const fn = kind === "approve" ? "approve_role_request" : "reject_role_request";
