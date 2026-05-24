@@ -298,3 +298,204 @@ function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string
     </div>
   );
 }
+
+function AccessDeniedWithRequest() {
+  const { user } = useAuth();
+  const [myRequests, setMyRequests] = useState<RoleRequest[]>([]);
+  const [requestedRole, setRequestedRole] = useState<"admin" | "super_admin">("super_admin");
+  const [reason, setReason] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const load = async () => {
+    if (!user) return;
+    setLoading(true);
+    const { data } = await supabase
+      .from("role_requests")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+    setMyRequests((data as any) || []);
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, [user?.id]);
+
+  const hasPending = myRequests.some(r => r.status === "pending" && r.requested_role === requestedRole);
+
+  const submit = async () => {
+    if (!user) return;
+    if (!reason.trim()) { toast.error("কারণ লিখুন"); return; }
+    setSubmitting(true);
+    const t = toast.loading("পাঠানো হচ্ছে…");
+    const { error } = await supabase.from("role_requests").insert({
+      user_id: user.id, requested_role: requestedRole, reason: reason.trim(),
+    });
+    if (error) { toast.error(error.message, { id: t }); setSubmitting(false); return; }
+    toast.success("রিকোয়েস্ট পাঠানো হয়েছে", { id: t });
+    setReason("");
+    setSubmitting(false);
+    load();
+  };
+
+  return (
+    <AppShell title="সুপার অ্যাডমিন">
+      <div className="max-w-2xl mx-auto space-y-5 mt-6">
+        <div className="brand-card p-6 text-center">
+          <AlertTriangle className="w-12 h-12 mx-auto mb-3 text-amber-500" />
+          <h2 className="text-xl font-semibold mb-2" style={{ fontFamily: "var(--font-display)" }}>অ্যাক্সেস নেই</h2>
+          <p className="text-sm text-slate-600">
+            এই পেজটি দেখতে <strong>সুপার অ্যাডমিন</strong> অনুমতি প্রয়োজন।
+            নিচ থেকে অ্যাডমিনকে রিকোয়েস্ট পাঠাতে পারেন।
+          </p>
+        </div>
+
+        <div className="brand-card p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Send className="w-5 h-5" style={{ color: "var(--brand-emerald-700)" }} />
+            <h3 className="text-lg font-semibold" style={{ fontFamily: "var(--font-display)" }}>রোল রিকোয়েস্ট পাঠান</h3>
+          </div>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs text-slate-500 mb-1">যে রোল চান</label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setRequestedRole("admin")}
+                  className={`flex-1 px-3 py-2 rounded-lg border text-sm inline-flex items-center justify-center gap-2 ${requestedRole === "admin" ? "bg-emerald-50 border-emerald-300 text-emerald-800" : "bg-white"}`}
+                  style={requestedRole === "admin" ? undefined : { borderColor: "var(--brand-line)" }}
+                >
+                  <ShieldCheck className="w-4 h-4" /> অ্যাডমিন
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRequestedRole("super_admin")}
+                  className={`flex-1 px-3 py-2 rounded-lg border text-sm inline-flex items-center justify-center gap-2 ${requestedRole === "super_admin" ? "bg-amber-50 border-amber-300 text-amber-800" : "bg-white"}`}
+                  style={requestedRole === "super_admin" ? undefined : { borderColor: "var(--brand-line)" }}
+                >
+                  <Crown className="w-4 h-4" /> সুপার অ্যাডমিন
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs text-slate-500 mb-1">কারণ</label>
+              <textarea
+                value={reason}
+                onChange={e => setReason(e.target.value)}
+                placeholder="কেন এই রোল প্রয়োজন তা সংক্ষেপে লিখুন…"
+                rows={3}
+                className="w-full px-3 py-2 rounded-lg border text-sm"
+                style={{ borderColor: "var(--brand-line)" }}
+              />
+            </div>
+            <button
+              onClick={submit}
+              disabled={submitting || hasPending}
+              className="w-full px-4 py-2.5 rounded-lg text-white text-sm font-medium disabled:opacity-50 inline-flex items-center justify-center gap-2"
+              style={{ background: "var(--gradient-brand)" }}
+            >
+              <Send className="w-4 h-4" />
+              {hasPending ? "এই রোলের জন্য পেন্ডিং রিকোয়েস্ট আছে" : submitting ? "পাঠানো হচ্ছে…" : "রিকোয়েস্ট পাঠান"}
+            </button>
+          </div>
+        </div>
+
+        <div className="brand-card p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Inbox className="w-5 h-5" style={{ color: "var(--brand-emerald-700)" }} />
+            <h3 className="text-lg font-semibold" style={{ fontFamily: "var(--font-display)" }}>আপনার রিকোয়েস্ট</h3>
+          </div>
+          {loading ? (
+            <div className="py-6 text-center text-slate-500 text-sm">লোড হচ্ছে…</div>
+          ) : myRequests.length === 0 ? (
+            <div className="py-6 text-center text-slate-500 text-sm">কোনো রিকোয়েস্ট নেই</div>
+          ) : (
+            <div className="space-y-2">
+              {myRequests.map(r => <RequestStatusRow key={r.id} req={r} />)}
+            </div>
+          )}
+        </div>
+      </div>
+    </AppShell>
+  );
+}
+
+function RequestStatusRow({ req }: { req: RoleRequest }) {
+  const badge = req.status === "pending"
+    ? { cls: "bg-amber-100 text-amber-800", icon: <Clock className="w-3 h-3" />, label: "পেন্ডিং" }
+    : req.status === "approved"
+    ? { cls: "bg-emerald-100 text-emerald-700", icon: <Check className="w-3 h-3" />, label: "অনুমোদিত" }
+    : { cls: "bg-rose-100 text-rose-700", icon: <X className="w-3 h-3" />, label: "প্রত্যাখ্যাত" };
+  return (
+    <div className="border rounded-lg p-3 text-sm" style={{ borderColor: "var(--brand-line)" }}>
+      <div className="flex items-center justify-between gap-3 mb-1">
+        <div className="flex items-center gap-2">
+          {req.requested_role === "super_admin" ? <Crown className="w-4 h-4 text-amber-600" /> : <ShieldCheck className="w-4 h-4 text-emerald-700" />}
+          <span className="font-medium">{req.requested_role === "super_admin" ? "সুপার অ্যাডমিন" : "অ্যাডমিন"}</span>
+        </div>
+        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${badge.cls}`}>
+          {badge.icon} {badge.label}
+        </span>
+      </div>
+      {req.reason && <div className="text-slate-600 text-xs mb-1">{req.reason}</div>}
+      {req.review_note && <div className="text-slate-500 text-xs italic">পর্যালোচকের নোট: {req.review_note}</div>}
+      <div className="text-[11px] text-slate-400 mt-1">{new Date(req.created_at).toLocaleString("bn-BD")}</div>
+    </div>
+  );
+}
+
+function RequestsInbox({ requests, onChange }: { requests: RoleRequest[]; onChange: () => void }) {
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const pendingReqs = requests.filter(r => r.status === "pending");
+
+  const act = async (id: string, kind: "approve" | "reject") => {
+    const note = kind === "reject" ? (window.prompt("প্রত্যাখ্যানের কারণ (ঐচ্ছিক):") || null) : null;
+    setBusyId(id);
+    const t = toast.loading("প্রসেস হচ্ছে…");
+    const fn = kind === "approve" ? "approve_role_request" : "reject_role_request";
+    const { error } = await supabase.rpc(fn, { _request_id: id, _note: note });
+    if (error) toast.error(error.message, { id: t });
+    else { toast.success("সম্পন্ন", { id: t }); onChange(); }
+    setBusyId(null);
+  };
+
+  return (
+    <div className="mb-6 border rounded-xl p-4" style={{ borderColor: "var(--brand-line)", background: "color-mix(in oklab, var(--brand-gold-500) 5%, transparent)" }}>
+      <div className="flex items-center gap-2 mb-3">
+        <Inbox className="w-4 h-4" style={{ color: "var(--brand-emerald-700)" }} />
+        <h4 className="font-semibold text-sm" style={{ fontFamily: "var(--font-display)" }}>
+          রোল রিকোয়েস্ট ইনবক্স {pendingReqs.length > 0 && <span className="ml-1 px-2 py-0.5 rounded-full bg-amber-200 text-amber-900 text-xs">{pendingReqs.length}</span>}
+        </h4>
+      </div>
+      {pendingReqs.length === 0 ? (
+        <div className="text-xs text-slate-500 py-2">কোনো পেন্ডিং রিকোয়েস্ট নেই</div>
+      ) : (
+        <div className="space-y-2">
+          {pendingReqs.map(r => (
+            <div key={r.id} className="bg-white border rounded-lg p-3 flex items-start gap-3 flex-wrap" style={{ borderColor: "var(--brand-line)" }}>
+              <div className="flex-1 min-w-[200px]">
+                <div className="flex items-center gap-2 text-sm mb-1">
+                  <strong>{r.full_name || r.user_id.slice(0, 8) + "…"}</strong>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-slate-100 text-slate-700">
+                    {r.requested_role === "super_admin" ? <Crown className="w-3 h-3" /> : <ShieldCheck className="w-3 h-3" />}
+                    {r.requested_role === "super_admin" ? "সুপার" : "অ্যাডমিন"}
+                  </span>
+                </div>
+                {r.reason && <div className="text-xs text-slate-600">{r.reason}</div>}
+                <div className="text-[11px] text-slate-400 mt-1">{new Date(r.created_at).toLocaleString("bn-BD")}</div>
+              </div>
+              <div className="flex gap-1.5">
+                <button disabled={busyId === r.id} onClick={() => act(r.id, "approve")} className="text-xs px-2.5 py-1.5 rounded-md border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 inline-flex items-center gap-1 disabled:opacity-50">
+                  <Check className="w-3 h-3" /> অনুমোদন
+                </button>
+                <button disabled={busyId === r.id} onClick={() => act(r.id, "reject")} className="text-xs px-2.5 py-1.5 rounded-md border border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100 inline-flex items-center gap-1 disabled:opacity-50">
+                  <X className="w-3 h-3" /> প্রত্যাখ্যান
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
