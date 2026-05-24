@@ -84,11 +84,15 @@ export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean;
       </div>
       <nav className="flex-1 p-3 space-y-0.5">
         {items.map((n, i) => {
-          const active = path === n.to;
+          const hasSearch = !!n.search;
+          const active = hasSearch
+            ? path === n.to && new URLSearchParams(window.location.search).get("filter") === n.search!.filter
+            : path === n.to && !new URLSearchParams(window.location.search).get("filter");
           return (
             <Link
               key={i}
               to={n.to}
+              search={n.search}
               onClick={onClose}
               className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${active ? "text-white shadow-md" : "text-white/65 hover:text-white hover:bg-white/5"}`}
               style={active ? { background: "color-mix(in oklab, var(--brand-gold-500) 18%, transparent)", border: "1px solid color-mix(in oklab, var(--brand-gold-500) 35%, transparent)" } : undefined}
