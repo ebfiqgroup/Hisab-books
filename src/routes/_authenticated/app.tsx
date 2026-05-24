@@ -187,6 +187,29 @@ function Dashboard() {
 
   const recent = all.slice(0, 5);
 
+  // Budget rows (with computed spent for each budget's own date range)
+  const nowIsoFull = now.toISOString();
+  const budgetRows = useMemo(() => {
+    const list = budgetsQ.data ?? [];
+    return list.map((b) => {
+      const sIso = b.start_at.slice(0, 10);
+      const eIso = b.end_at.slice(0, 10);
+      const spent = all
+        .filter((t) => t.type === "expense" && t.category === b.category && t.occurred_on >= sIso && t.occurred_on <= eIso)
+        .reduce((s, t) => s + Number(t.amount), 0);
+      const auto: "pending" | "ongoing" | "completed" =
+        nowIsoFull < b.start_at ? "pending" : nowIsoFull > b.end_at ? "completed" : "ongoing";
+      const status = b.status ?? auto;
+      return { ...b, spent, status };
+    });
+  }, [budgetsQ.data, all, nowIsoFull]);
+  const activeBudgets = useMemo(
+    () => budgetRows.filter((b) => b.status !== "completed").slice(0, 4),
+    [budgetRows],
+  );
+  const totalBudgetLimit = activeBudgets.reduce((s, b) => s + Number(b.monthly_limit), 0);
+  const totalBudgetSpent = activeBudgets.reduce((s, b) => s + b.spent, 0);
+
   // Plan tasks (DB)
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
