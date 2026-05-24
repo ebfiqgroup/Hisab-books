@@ -7,7 +7,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { adminGetUserDashboard } from "@/lib/admin-users.functions";
 import {
   ArrowLeft, Shield, Wallet, ArrowDown, PiggyBank, Users, TrendingDown,
-  Target, StickyNote, ListTodo, ArrowLeftRight, RefreshCw, Mail, User as UserIcon,
+  Target, StickyNote, ListTodo, ArrowLeftRight, RefreshCw, Mail, Download, X, Search,
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
