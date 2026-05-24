@@ -47,7 +47,7 @@ export function useRealtimeSync(userId: string | undefined) {
   useEffect(() => {
     if (!userId) { setStatus("disconnected"); return; }
     setStatus("connecting");
-    const channel = supabase.channel(`rt-user-${userId}`, {
+    let channel = supabase.channel(`rt-user-${userId}`, {
       config: { broadcast: { self: false }, presence: { key: "" } },
     });
 
@@ -88,12 +88,67 @@ export function useRealtimeSync(userId: string | undefined) {
       () => { scheduleInvalidate(["support_messages"]); scheduleInvalidate(["support_tickets"]); },
     );
 
-    channel.subscribe((s: string) => {
-      if (s === "SUBSCRIBED") setStatus("connected");
-      else if (s === "CHANNEL_ERROR" || s === "TIMED_OUT" || s === "CLOSED") setStatus("disconnected");
-      else setStatus("connecting");
-    });
+    const subscribe = () => {
+      channel.subscribe((s: string) => {
+        if (s === "SUBSCRIBED") setStatus("connected");
+        else if (s === "CHANNEL_ERROR" || s === "TIMED_OUT" || s === "CLOSED") setStatus("disconnected");
+        else setStatus("connecting");
+      });
+    };
+    subscribe();
+
+    // Mobile/tablet browsers aggressively suspend websockets when the tab is
+    // backgrounded or the device sleeps. Force a reconnect + refetch on
+    // visibility/online so users always see fresh data when they return.
+    const reconnect = () => {
+      try {
+        supabase.removeChannel(channel);
+      } catch { /* noop */ }
+      setStatus("connecting");
+      channel = supabase.channel(`rt-user-${userId}`, {
+        config: { broadcast: { self: false }, presence: { key: "" } },
+      });
+      (Object.keys(TABLE_CONFIG) as Array<keyof typeof TABLE_CONFIG>).forEach((table) => {
+        const { keys, userCol } = TABLE_CONFIG[table];
+        (channel as unknown as {
+          on: (e: string, f: { event: string; schema: string; table: string; filter?: string }, cb: () => void) => unknown;
+        }).on(
+          "postgres_changes",
+          { event: "*", schema: "public", table, filter: `${userCol}=eq.${userId}` },
+          () => { for (const key of keys) scheduleInvalidate(key); },
+        );
+      });
+      (channel as unknown as {
+        on: (e: string, f: { event: string; schema: string; table: string; filter?: string }, cb: () => void) => unknown;
+      }).on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "support_messages", filter: `sender_id=eq.${userId}` },
+        () => { scheduleInvalidate(["support_messages"]); scheduleInvalidate(["support_tickets"]); },
+      );
+      subscribe();
+      qc.invalidateQueries({ refetchType: "active" });
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        qc.invalidateQueries({ refetchType: "active" });
+        if (channel.state !== "joined") reconnect();
+      }
+    };
+    const onOnline = () => { reconnect(); };
+    const onFocus = () => {
+      qc.invalidateQueries({ refetchType: "active" });
+      if (channel.state !== "joined") reconnect();
+    };
+
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("online", onOnline);
+    window.addEventListener("focus", onFocus);
+
     return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("online", onOnline);
+      window.removeEventListener("focus", onFocus);
       pending.forEach((t) => clearTimeout(t));
       pending.clear();
       supabase.removeChannel(channel);
