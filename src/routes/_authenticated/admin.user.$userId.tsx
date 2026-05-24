@@ -94,15 +94,28 @@ function AdminUserView() {
   const payable = debts.filter(d => !d.settled && d.kind === "payable").reduce((s, d) => s + Number(d.amount), 0);
 
   const cards = [
-    { label: "এই মাসের আয়", value: fmtTk(curInc), last: `গত: ${fmtTk(prevInc)}`, Icon: Wallet, c: "emerald" },
-    { label: "এই মাসের ব্যয়", value: fmtTk(curExp), last: `গত: ${fmtTk(prevExp)}`, Icon: ArrowDown, c: "rose" },
-    { label: "এই মাসের সঞ্চয়", value: fmtTk(curInc - curExp), last: `গত: ${fmtTk(prevInc - prevExp)}`, Icon: PiggyBank, c: "blue" },
-    { label: "মোট পাওনা", value: fmtTk(receivable), last: "", Icon: Users, c: "orange" },
-    { label: "মোট দেনা", value: fmtTk(payable), last: "", Icon: TrendingDown, c: "rose" },
-    { label: "সর্বমোট লেনদেন", value: String(txns.length), last: `আয় ${fmtTk(totalInc)} · ব্যয় ${fmtTk(totalExp)}`, Icon: ArrowLeftRight, c: "indigo" },
-  ];
+    { key: "income", label: "এই মাসের আয়", value: fmtTk(curInc), last: `গত: ${fmtTk(prevInc)}`, Icon: Wallet, c: "emerald" },
+    { key: "expense", label: "এই মাসের ব্যয়", value: fmtTk(curExp), last: `গত: ${fmtTk(prevExp)}`, Icon: ArrowDown, c: "rose" },
+    { key: "savings", label: "এই মাসের সঞ্চয়", value: fmtTk(curInc - curExp), last: `গত: ${fmtTk(prevInc - prevExp)}`, Icon: PiggyBank, c: "blue" },
+    { key: "receivable", label: "মোট পাওনা", value: fmtTk(receivable), last: "", Icon: Users, c: "orange" },
+    { key: "payable", label: "মোট দেনা", value: fmtTk(payable), last: "", Icon: TrendingDown, c: "rose" },
+    { key: "all", label: "সর্বমোট লেনদেন", value: String(txns.length), last: `আয় ${fmtTk(totalInc)} · ব্যয় ${fmtTk(totalExp)}`, Icon: ArrowLeftRight, c: "indigo" },
+  ] as const;
 
   const cBg: Record<string, string> = { emerald: "bg-emerald-50 text-emerald-600", rose: "bg-rose-50 text-rose-500", blue: "bg-blue-50 text-blue-600", orange: "bg-orange-50 text-orange-500", indigo: "bg-indigo-50 text-indigo-600" };
+
+  const exportCSV = () => {
+    const rows = [["তারিখ", "ধরন", "ক্যাটাগরি", "পরিমাণ", "নোট"]];
+    txns.forEach(t => rows.push([t.occurred_on, t.type, t.category, String(t.amount), t.note || ""]));
+    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `transactions-${profile?.full_name || userId}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <AppShell
@@ -112,6 +125,9 @@ function AdminUserView() {
           <Link to="/admin" className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border text-sm hover:shadow-sm" style={{ borderColor: "var(--brand-line)" }}>
             <ArrowLeft className="w-4 h-4" /> ফিরে যান
           </Link>
+          <button onClick={exportCSV} disabled={txns.length === 0} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border text-sm hover:shadow-sm disabled:opacity-50" style={{ borderColor: "var(--brand-line)" }}>
+            <Download className="w-4 h-4" /> CSV
+          </button>
           <button onClick={load} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border text-sm hover:shadow-sm" style={{ borderColor: "var(--brand-line)" }}>
             <RefreshCw className="w-4 h-4" /> রিফ্রেশ
           </button>
