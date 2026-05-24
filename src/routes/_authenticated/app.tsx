@@ -450,7 +450,7 @@ function Dashboard() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2 min-w-0">
               <Wallet className="w-5 h-5 text-indigo-600 shrink-0" />
-              <h3 className="font-bold text-slate-800 truncate">{t("চলমান বাজেট", "Active budgets")}</h3>
+              <h3 className="font-bold text-slate-800 truncate">{t("বাজেট ও পরিকল্পনা", "Budget & Plans")}</h3>
               {activeBudgets.length > 0 && (
                 <span className="text-xs text-slate-500 shrink-0">
                   {fmtTk(totalBudgetSpent)} / {fmtTk(totalBudgetLimit)}
