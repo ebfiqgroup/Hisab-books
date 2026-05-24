@@ -35,8 +35,9 @@ export function useIsAdmin() {
     fetchRole();
     const onChange = () => fetchRole();
     window.addEventListener(ROLES_CHANGED_EVENT, onChange);
+    const nonce = Math.random().toString(36).slice(2, 10);
     const channel = supabase
-      .channel(`user_roles:admin:${user.id}`)
+      .channel(`user_roles:admin:${user.id}:${nonce}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "user_roles", filter: `user_id=eq.${user.id}` }, () => fetchRole())
       .subscribe();
     return () => {
@@ -70,8 +71,9 @@ export function useIsSuperAdmin() {
     fetchRole();
     const onChange = () => fetchRole();
     window.addEventListener(ROLES_CHANGED_EVENT, onChange);
+    const nonce = Math.random().toString(36).slice(2, 10);
     const channel = supabase
-      .channel(`user_roles:super:${user.id}`)
+      .channel(`user_roles:super:${user.id}:${nonce}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "user_roles", filter: `user_id=eq.${user.id}` }, () => fetchRole())
       .subscribe();
     return () => {
