@@ -332,6 +332,15 @@ function AdminUserView() {
           </div>
         </div>
       )}
+      {detail && (
+        <DetailDialog
+          title={detail.title}
+          onClose={() => setDetail(null)}
+          txns={txns}
+          debts={debts}
+          filterKey={detail.key}
+        />
+      )}
     </AppShell>
   );
 }
@@ -347,6 +356,68 @@ function Section({ title, icon, count, children }: { title: string; icon: React.
         <span className="text-xs text-slate-500">{count}</span>
       </div>
       {children}
+    </div>
+  );
+}
+
+function Empty({ text }: { text: string }) {
+  return <div className="py-8 text-center text-sm text-slate-400">{text}</div>;
+}
+
+function DetailDialog({ title, onClose, txns, debts, filterKey }: { title: string; onClose: () => void; txns: Txn[]; debts: Debt[]; filterKey: string }) {
+  const { startISO, endISO } = monthBounds(new Date());
+  let rows: Array<{ a: string; b: string; c: string; d?: string }> = [];
+  let cols = ["তারিখ", "ক্যাটাগরি", "পরিমাণ"];
+  if (filterKey === "income") {
+    rows = txns.filter(t => t.type === "income" && t.occurred_on >= startISO && t.occurred_on < endISO)
+      .map(t => ({ a: new Date(t.occurred_on).toLocaleDateString("bn-BD"), b: t.category, c: fmtTk(Number(t.amount)) }));
+  } else if (filterKey === "expense") {
+    rows = txns.filter(t => t.type === "expense" && t.occurred_on >= startISO && t.occurred_on < endISO)
+      .map(t => ({ a: new Date(t.occurred_on).toLocaleDateString("bn-BD"), b: t.category, c: fmtTk(Number(t.amount)) }));
+  } else if (filterKey === "savings") {
+    rows = txns.filter(t => t.occurred_on >= startISO && t.occurred_on < endISO)
+      .map(t => ({ a: new Date(t.occurred_on).toLocaleDateString("bn-BD"), b: `${t.type === "income" ? "আয়" : "ব্যয়"} · ${t.category}`, c: (t.type === "income" ? "+" : "−") + " " + fmtTk(Number(t.amount)) }));
+  } else if (filterKey === "receivable") {
+    cols = ["ব্যক্তি", "নোট", "পরিমাণ"];
+    rows = debts.filter(d => !d.settled && d.kind === "receivable")
+      .map(d => ({ a: d.person, b: d.note || "—", c: fmtTk(Number(d.amount)) }));
+  } else if (filterKey === "payable") {
+    cols = ["ব্যক্তি", "নোট", "পরিমাণ"];
+    rows = debts.filter(d => !d.settled && d.kind === "payable")
+      .map(d => ({ a: d.person, b: d.note || "—", c: fmtTk(Number(d.amount)) }));
+  } else {
+    cols = ["তারিখ", "ধরন · ক্যাটাগরি", "পরিমাণ"];
+    rows = txns.map(t => ({ a: new Date(t.occurred_on).toLocaleDateString("bn-BD"), b: `${t.type === "income" ? "আয়" : "ব্যয়"} · ${t.category}`, c: (t.type === "income" ? "+" : "−") + " " + fmtTk(Number(t.amount)) }));
+  }
+  const total = rows.length;
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} className="bg-white rounded-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between px-5 py-3 border-b" style={{ borderColor: "var(--brand-line)" }}>
+          <h3 className="font-semibold" style={{ fontFamily: "var(--font-display)" }}>{title} <span className="text-xs text-slate-400 font-normal">({total})</span></h3>
+          <button onClick={onClose} className="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center"><X className="w-4 h-4" /></button>
+        </div>
+        <div className="overflow-auto p-5">
+          {rows.length === 0 ? <Empty text="কোনো রেকর্ড নেই" /> : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs text-slate-500 border-b" style={{ borderColor: "var(--brand-line)" }}>
+                  {cols.map(c => <th key={c} className={`py-2 ${c === "পরিমাণ" ? "text-right" : ""}`}>{c}</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r, i) => (
+                  <tr key={i} className="border-b last:border-0" style={{ borderColor: "var(--brand-line)" }}>
+                    <td className="py-2 text-slate-500">{r.a}</td>
+                    <td className="py-2">{r.b}</td>
+                    <td className="py-2 text-right font-medium">{r.c}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
