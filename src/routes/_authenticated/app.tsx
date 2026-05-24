@@ -214,6 +214,7 @@ function Dashboard() {
 
   // Notes
   const [noteInput, setNoteInput] = useState("");
+  const [noteSearch, setNoteSearch] = useState("");
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editNoteInput, setEditNoteInput] = useState("");
   const saveNote = async () => {
