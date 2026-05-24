@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/useRole";
@@ -33,6 +34,7 @@ type Row = {
 function AdminPage() {
   const { user } = useAuth();
   const isAdmin = useIsAdmin();
+  const navigate = useNavigate();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
@@ -73,6 +75,17 @@ function AdminPage() {
   };
 
   useEffect(() => { if (isAdmin) load(); }, [isAdmin]);
+
+  // Redirect non-admins when an admin already exists in the system.
+  // If no admin exists, keep them here so they can use the "claim" flow.
+  useEffect(() => {
+    if (isAdmin === false && anyAdmin === true) {
+      toast.error("অ্যাডমিন প্যানেলে অ্যাক্সেস নেই", {
+        description: "অ্যাডমিন অনুমতির জন্য সুপার অ্যাডমিনের কাছে রিকোয়েস্ট পাঠান।",
+      });
+      navigate({ to: "/super-admin", replace: true });
+    }
+  }, [isAdmin, anyAdmin, navigate]);
 
   if (isAdmin === null) return <AppShell title="অ্যাডমিন"><div className="p-8 text-slate-500">লোড হচ্ছে…</div></AppShell>;
 
