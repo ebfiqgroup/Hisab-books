@@ -59,6 +59,7 @@ export type Database = {
           label: string | null
           monthly_limit: number
           start_at: string
+          status: string | null
           updated_at: string
           user_id: string
         }
@@ -70,6 +71,7 @@ export type Database = {
           label?: string | null
           monthly_limit?: number
           start_at?: string
+          status?: string | null
           updated_at?: string
           user_id: string
         }
@@ -81,6 +83,7 @@ export type Database = {
           label?: string | null
           monthly_limit?: number
           start_at?: string
+          status?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -130,6 +133,7 @@ export type Database = {
           deadline: string | null
           id: string
           label: string
+          status: string | null
           target: number
           user_id: string
         }
@@ -140,6 +144,7 @@ export type Database = {
           deadline?: string | null
           id?: string
           label: string
+          status?: string | null
           target: number
           user_id: string
         }
@@ -150,6 +155,7 @@ export type Database = {
           deadline?: string | null
           id?: string
           label?: string
+          status?: string | null
           target?: number
           user_id?: string
         }
