@@ -40,6 +40,8 @@ function AdminUserView() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [detail, setDetail] = useState<null | { key: string; title: string }>(null);
+  const [search, setSearch] = useState("");
 
   const load = async () => {
     setLoading(true);
