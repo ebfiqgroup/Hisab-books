@@ -448,108 +448,53 @@ function Dashboard() {
 
         <div className="bg-white rounded-xl p-5 border border-slate-200">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-slate-800">{t("আগামী বাজেট ও পরিকল্পনা", "Upcoming budget & plans")}</h3>
-            <button onClick={startAdd} className="flex items-center gap-1 px-2.5 py-1.5 text-xs bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
-              <Plus className="w-3 h-3" /> {t("নতুন", "New")}
-            </button>
+            <div className="flex items-center gap-2 min-w-0">
+              <Wallet className="w-5 h-5 text-indigo-600 shrink-0" />
+              <h3 className="font-bold text-slate-800 truncate">{t("চলমান বাজেট", "Active budgets")}</h3>
+              {activeBudgets.length > 0 && (
+                <span className="text-xs text-slate-500 shrink-0">
+                  {fmtTk(totalBudgetSpent)} / {fmtTk(totalBudgetLimit)}
+                </span>
+              )}
+            </div>
+            <Link to="/budget" className="text-sm text-indigo-600 shrink-0">{t("সব দেখুন →", "View all →")}</Link>
           </div>
           <div className="space-y-2.5 max-h-80 overflow-y-auto pr-1">
-            {adding && renderDraft()}
-            {budgetRows
-              .filter((b) => b.status === "pending")
-              .slice(0, 5)
-              .map((b) => (
-                <Link
-                  key={`bud-${b.id}`}
-                  to="/budget"
-                  className="group flex items-center gap-3 p-2.5 rounded-lg border border-indigo-100 bg-indigo-50/40 hover:bg-indigo-50"
-                >
-                  <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center flex-shrink-0">
-                    <Wallet className="w-3.5 h-3.5 text-indigo-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium truncate text-slate-800">{b.label || b.category}</div>
-                    <div className="text-xs text-slate-500 mt-0.5">
-                      {t("শুরু", "Starts")}: {toBn(b.start_at.slice(0, 10))} · {fmtTk(b.monthly_limit)}
-                    </div>
-                  </div>
-                  <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0 bg-amber-50 text-amber-600">
-                    {t("অপেক্ষিত", "Pending")}
-                  </span>
-                </Link>
-              ))}
-            {tasks.map((t) => editingId === t.id ? (
-              <div key={t.id}>{renderDraft()}</div>
-            ) : (
-              <div key={t.id} className="group flex items-center gap-3 p-2.5 rounded-lg border border-slate-100 hover:bg-slate-50">
-                <input type="checkbox" checked={t.done} onChange={() => toggleTask(t)} className="w-4 h-4 rounded border-slate-300 text-indigo-600 flex-shrink-0 cursor-pointer" />
-                <div className="flex-1 min-w-0">
-                  <div className={`text-sm font-medium truncate ${t.done ? "text-slate-400 line-through" : "text-slate-800"}`}>{t.task}</div>
-                  <div className="text-xs text-slate-500 mt-0.5">{t.due_text || "—"} · {t.amount_text || ""}</div>
-                </div>
-                <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${priColor(t.priority)}`}>{t.priority === "উচ্চ" ? tr("উচ্চ", "High") : t.priority === "মাঝারি" ? tr("মাঝারি", "Medium") : tr("নিম্ন", "Low")}</span>
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
-                  <button onClick={() => startEdit(t)} className="p-1.5 rounded-md hover:bg-indigo-50 text-slate-500 hover:text-indigo-600"><Pencil className="w-3.5 h-3.5" /></button>
-                  <button onClick={() => removeTask(t.id)} className="p-1.5 rounded-md hover:bg-rose-50 text-slate-500 hover:text-rose-600"><Trash2 className="w-3.5 h-3.5" /></button>
-                </div>
+            {activeBudgets.length === 0 ? (
+              <div className="text-sm text-slate-400 text-center py-6">
+                {t("কোনো চলমান বাজেট নেই", "No active budgets")} ·{" "}
+                <Link to="/budget" className="text-indigo-600">{t("নতুন তৈরি করুন", "Create one")}</Link>
               </div>
-            ))}
-            {tasks.length === 0 && budgetRows.filter((b) => b.status === "pending").length === 0 && !adding && (
-              <div className="text-center text-sm text-slate-400 py-6">{t("কোনো পরিকল্পনা নেই", "No plans")}</div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Budgets overview */}
-      <div className="bg-white rounded-xl p-5 border border-slate-200 mb-4">
-        <div className="flex items-center justify-between mb-4 gap-2">
-          <div className="flex items-center gap-2 min-w-0">
-            <Wallet className="w-5 h-5 text-indigo-600 shrink-0" />
-            <h3 className="font-bold text-slate-800 truncate">{t("চলমান বাজেট", "Active budgets")}</h3>
-            {activeBudgets.length > 0 && (
-              <span className="text-xs text-slate-500 shrink-0">
-                {fmtTk(totalBudgetSpent)} / {fmtTk(totalBudgetLimit)}
-              </span>
-            )}
-          </div>
-          <Link to="/budget" className="text-sm text-indigo-600 shrink-0">{t("সব দেখুন →", "View all →")}</Link>
-        </div>
-        {activeBudgets.length === 0 ? (
-          <div className="text-sm text-slate-400 text-center py-6">
-            {t("কোনো চলমান বাজেট নেই", "No active budgets")} ·{" "}
-            <Link to="/budget" className="text-indigo-600">{t("নতুন তৈরি করুন", "Create one")}</Link>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {activeBudgets.map((b) => {
-              const pct = b.monthly_limit > 0 ? Math.min(100, (b.spent / b.monthly_limit) * 100) : 0;
-              const over = b.monthly_limit > 0 && b.spent > b.monthly_limit;
-              const color = categoryColor(b.category);
-              return (
-                <div key={b.id} className="p-3 rounded-lg border border-slate-100 hover:bg-slate-50/60">
-                  <div className="flex items-center justify-between mb-1.5 gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
-                      <span className="text-sm font-medium text-slate-800 truncate">{b.label || b.category}</span>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full shrink-0 ${b.status === "ongoing" ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"}`}>
-                        {b.status === "ongoing" ? t("চলমান", "Ongoing") : t("অপেক্ষিত", "Pending")}
-                      </span>
+            ) : (
+              activeBudgets.map((b) => {
+                const pct = b.monthly_limit > 0 ? Math.min(100, (b.spent / b.monthly_limit) * 100) : 0;
+                const over = b.monthly_limit > 0 && b.spent > b.monthly_limit;
+                const color = categoryColor(b.category);
+                return (
+                  <Link key={b.id} to="/budget" className="block p-3 rounded-lg border border-slate-100 hover:bg-slate-50/60">
+                    <div className="flex items-center justify-between mb-1.5 gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
+                        <span className="text-sm font-medium text-slate-800 truncate">{b.label || b.category}</span>
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full shrink-0 ${b.status === "ongoing" ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"}`}>
+                          {b.status === "ongoing" ? t("চলমান", "Ongoing") : t("অপেক্ষিত", "Pending")}
+                        </span>
+                      </div>
+                      <span className={`text-xs font-semibold shrink-0 ${over ? "text-rose-500" : "text-slate-600"}`}>{toBn(pct.toFixed(0))}%</span>
                     </div>
-                    <span className={`text-xs font-semibold shrink-0 ${over ? "text-rose-500" : "text-slate-600"}`}>{toBn(pct.toFixed(0))}%</span>
-                  </div>
-                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full" style={{ width: `${pct}%`, background: over ? "#f43f5e" : color }} />
-                  </div>
-                  <div className="flex items-center justify-between mt-1.5 text-xs">
-                    <span className={over ? "text-rose-500 font-medium" : "text-slate-500"}>{fmtTk(b.spent)}</span>
-                    <span className="text-slate-400">/ {fmtTk(b.monthly_limit)}</span>
-                  </div>
-                </div>
-              );
-            })}
+                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: `${pct}%`, background: over ? "#f43f5e" : color }} />
+                    </div>
+                    <div className="flex items-center justify-between mt-1.5 text-xs">
+                      <span className={over ? "text-rose-500 font-medium" : "text-slate-500"}>{fmtTk(b.spent)}</span>
+                      <span className="text-slate-400">/ {fmtTk(b.monthly_limit)}</span>
+                    </div>
+                  </Link>
+                );
+              })
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Bottom */}
