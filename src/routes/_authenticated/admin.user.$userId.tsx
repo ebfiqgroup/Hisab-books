@@ -421,7 +421,3 @@ function DetailDialog({ title, onClose, txns, debts, filterKey }: { title: strin
     </div>
   );
 }
-
-function Empty({ text }: { text: string }) {
-  return <div className="py-6 text-center text-sm text-slate-400">{text}</div>;
-}
