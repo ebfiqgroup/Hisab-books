@@ -119,6 +119,9 @@ function BudgetPage() {
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<FormState>(() => emptyForm(cats[0] ?? ""));
+  const [filter, setFilter] = useState<"all" | "pending" | "ongoing" | "completed">("all");
+
+  const nowIso = new Date().toISOString();
 
   const bQ = useQuery({
     queryKey: ["budgets"],

@@ -28,6 +28,7 @@ function GoalsPage() {
   const [open, setOpen] = useState(false);
   const [edit, setEdit] = useState<Goal | null>(null);
   const [form, setForm] = useState({ label: "", target: "", current: "", deadline: "", color: "emerald" });
+  const [filter, setFilter] = useState<"all" | "pending" | "ongoing" | "completed">("all");
 
   const q = useQuery({
     queryKey: ["goals"],
