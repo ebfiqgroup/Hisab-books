@@ -4,7 +4,7 @@ import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsSuperAdmin } from "@/hooks/useRole";
 import { useAuth } from "@/hooks/useAuth";
-import { Crown, Shield, ShieldCheck, ShieldOff, Users, Activity, RefreshCw, Database, AlertTriangle } from "lucide-react";
+import { Crown, Shield, ShieldCheck, ShieldOff, Users, Activity, RefreshCw, Database, AlertTriangle, Send, Check, X, Clock, Inbox } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -37,6 +37,18 @@ type Stats = {
   tickets: number;
 };
 
+type RoleRequest = {
+  id: string;
+  user_id: string;
+  requested_role: "admin" | "super_admin";
+  reason: string | null;
+  status: "pending" | "approved" | "rejected";
+  review_note: string | null;
+  created_at: string;
+  reviewed_at: string | null;
+  full_name?: string | null;
+};
+
 function SuperAdminPage() {
   const { user } = useAuth();
   const isSuper = useIsSuperAdmin();
@@ -46,6 +58,7 @@ function SuperAdminPage() {
   const [q, setQ] = useState("");
   const [pending, setPending] = useState<{ row: UserRow; action: "grant_admin" | "revoke_admin" | "grant_super" | "revoke_super" } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [requests, setRequests] = useState<RoleRequest[]>([]);
 
   const load = async () => {
     setLoading(true);
@@ -115,15 +128,7 @@ function SuperAdminPage() {
   if (isSuper === null) return <AppShell title="সুপার অ্যাডমিন"><div className="p-8 text-slate-500">লোড হচ্ছে…</div></AppShell>;
 
   if (!isSuper) {
-    return (
-      <AppShell title="সুপার অ্যাডমিন">
-        <div className="max-w-xl mx-auto mt-10 brand-card p-8 text-center">
-          <AlertTriangle className="w-12 h-12 mx-auto mb-3 text-rose-500" />
-          <h2 className="text-xl font-semibold mb-2" style={{ fontFamily: "var(--font-display)" }}>অ্যাক্সেস নেই</h2>
-          <p className="text-sm text-slate-600">এই পেজটি দেখতে সুপার অ্যাডমিন অনুমতি লাগবে।</p>
-        </div>
-      </AppShell>
-    );
+    return <AccessDeniedWithRequest />;
   }
 
   const fmt = (n: number) => new Intl.NumberFormat("bn-BD").format(n || 0);
