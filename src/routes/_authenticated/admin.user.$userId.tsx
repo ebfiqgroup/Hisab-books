@@ -201,7 +201,12 @@ function AdminUserView() {
             {/* Recent Transactions */}
             <Section title="সাম্প্রতিক লেনদেন" icon={<ArrowLeftRight className="w-4 h-4" />} count={txns.length}>
               {txns.length === 0 ? <Empty text="কোনো লেনদেন নেই" /> : (
-                <div className="overflow-x-auto">
+                <>
+                <div className="relative mb-2">
+                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
+                  <input value={search} onChange={e => setSearch(e.target.value)} placeholder="ক্যাটাগরি/নোট সার্চ…" className="w-full pl-8 pr-3 py-1.5 text-xs rounded-md border" style={{ borderColor: "var(--brand-line)" }} />
+                </div>
+                <div className="overflow-x-auto max-h-96 overflow-y-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="text-left text-xs text-slate-500 border-b" style={{ borderColor: "var(--brand-line)" }}>
@@ -209,7 +214,7 @@ function AdminUserView() {
                       </tr>
                     </thead>
                     <tbody>
-                      {txns.slice(0, 15).map(t => (
+                      {txns.filter(t => !search || t.category.toLowerCase().includes(search.toLowerCase()) || (t.note || "").toLowerCase().includes(search.toLowerCase())).map(t => (
                         <tr key={t.id} className="border-b last:border-0" style={{ borderColor: "var(--brand-line)" }}>
                           <td className="py-2 text-slate-500">{new Date(t.occurred_on).toLocaleDateString("bn-BD")}</td>
                           <td className="py-2">{t.category}</td>
@@ -221,6 +226,7 @@ function AdminUserView() {
                     </tbody>
                   </table>
                 </div>
+                </>
               )}
             </Section>
 
