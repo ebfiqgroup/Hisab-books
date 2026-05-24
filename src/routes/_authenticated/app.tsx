@@ -529,7 +529,7 @@ function Dashboard() {
 
         <div className="bg-white rounded-xl p-5 border border-slate-200">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-slate-800">{t("পাওনা / দেনা সারাংশ", "Receivable / Payable summary")}</h3>
+            <h3 className="font-bold text-slate-800">{t("দেনা / পাওনা সারাংশ", "Receivable / Payable summary")}</h3>
             <Link to="/debts" className="text-sm text-indigo-600">{t("বিস্তারিত →", "Details →")}</Link>
           </div>
           <div className="space-y-3">

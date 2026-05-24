@@ -224,7 +224,7 @@ function AdminUserView() {
             </Section>
 
             {/* Debts */}
-            <Section title="পাওনা / দেনা" icon={<Users className="w-4 h-4" />} count={debts.length}>
+            <Section title="দেনা / পাওনা" icon={<Users className="w-4 h-4" />} count={debts.length}>
               {debts.length === 0 ? <Empty text="কোনো দেনা-পাওনা নেই" /> : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
