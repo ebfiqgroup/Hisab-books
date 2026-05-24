@@ -102,8 +102,38 @@ function GoalsPage() {
           {t('এখনো কোনো লক্ষ্য নেই। "নতুন লক্ষ্য" দিয়ে শুরু করুন।', 'No goals yet. Start with "New goal".')}
         </div>
       )}
+
+      {/* Filter tabs */}
+      {list.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-4">
+          <div className="flex items-center gap-1.5 text-xs text-slate-500 mr-1">
+            <ListFilter className="w-3.5 h-3.5" />
+            <span>{t("ফিল্টার", "Filter")}:</span>
+          </div>
+          {filterBtns.map((f) => (
+            <button
+              key={f.key}
+              onClick={() => setFilter(f.key)}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                filter === f.key
+                  ? "bg-indigo-600 text-white"
+                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+              }`}
+            >
+              {t(f.labelBn, f.labelEn)}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {filteredList.length === 0 && list.length > 0 && (
+        <div className="bg-white rounded-xl border border-dashed border-slate-300 p-10 text-center text-slate-500">
+          <Target className="w-10 h-10 mx-auto mb-3 text-slate-300" />
+          {t("এই ফিল্টারে কোনো লক্ষ্য পাওয়া যায়নি", "No goals match this filter")}
+        </div>
+      )}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-        {list.map((g) => {
+        {filteredList.map((g) => {
           const c = colorOf(g.color);
           const pct = g.target > 0 ? Math.min(100, (Number(g.current) / Number(g.target)) * 100) : 0;
           return (
