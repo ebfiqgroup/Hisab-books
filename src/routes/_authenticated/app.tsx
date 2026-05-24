@@ -217,6 +217,11 @@ function Dashboard() {
   const [noteSearch, setNoteSearch] = useState("");
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editNoteInput, setEditNoteInput] = useState("");
+  const filteredNotes = useMemo(() => {
+    const q = noteSearch.trim().toLowerCase();
+    if (!q) return notes;
+    return notes.filter((n) => n.body.toLowerCase().includes(q));
+  }, [notes, noteSearch]);
   const saveNote = async () => {
     const body = noteInput.trim();
     if (!body) return;
