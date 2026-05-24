@@ -7,7 +7,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { adminGetUserDashboard } from "@/lib/admin-users.functions";
 import {
   ArrowLeft, Shield, Wallet, ArrowDown, PiggyBank, Users, TrendingDown,
-  Target, StickyNote, ListTodo, ArrowLeftRight, RefreshCw, Mail, User as UserIcon,
+  Target, StickyNote, ListTodo, ArrowLeftRight, RefreshCw, Mail, Download, X, Search,
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
@@ -40,6 +40,8 @@ function AdminUserView() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [detail, setDetail] = useState<null | { key: string; title: string }>(null);
+  const [search, setSearch] = useState("");
 
   const load = async () => {
     setLoading(true);
@@ -94,15 +96,28 @@ function AdminUserView() {
   const payable = debts.filter(d => !d.settled && d.kind === "payable").reduce((s, d) => s + Number(d.amount), 0);
 
   const cards = [
-    { label: "এই মাসের আয়", value: fmtTk(curInc), last: `গত: ${fmtTk(prevInc)}`, Icon: Wallet, c: "emerald" },
-    { label: "এই মাসের ব্যয়", value: fmtTk(curExp), last: `গত: ${fmtTk(prevExp)}`, Icon: ArrowDown, c: "rose" },
-    { label: "এই মাসের সঞ্চয়", value: fmtTk(curInc - curExp), last: `গত: ${fmtTk(prevInc - prevExp)}`, Icon: PiggyBank, c: "blue" },
-    { label: "মোট পাওনা", value: fmtTk(receivable), last: "", Icon: Users, c: "orange" },
-    { label: "মোট দেনা", value: fmtTk(payable), last: "", Icon: TrendingDown, c: "rose" },
-    { label: "সর্বমোট লেনদেন", value: String(txns.length), last: `আয় ${fmtTk(totalInc)} · ব্যয় ${fmtTk(totalExp)}`, Icon: ArrowLeftRight, c: "indigo" },
-  ];
+    { key: "income", label: "এই মাসের আয়", value: fmtTk(curInc), last: `গত: ${fmtTk(prevInc)}`, Icon: Wallet, c: "emerald" },
+    { key: "expense", label: "এই মাসের ব্যয়", value: fmtTk(curExp), last: `গত: ${fmtTk(prevExp)}`, Icon: ArrowDown, c: "rose" },
+    { key: "savings", label: "এই মাসের সঞ্চয়", value: fmtTk(curInc - curExp), last: `গত: ${fmtTk(prevInc - prevExp)}`, Icon: PiggyBank, c: "blue" },
+    { key: "receivable", label: "মোট পাওনা", value: fmtTk(receivable), last: "", Icon: Users, c: "orange" },
+    { key: "payable", label: "মোট দেনা", value: fmtTk(payable), last: "", Icon: TrendingDown, c: "rose" },
+    { key: "all", label: "সর্বমোট লেনদেন", value: String(txns.length), last: `আয় ${fmtTk(totalInc)} · ব্যয় ${fmtTk(totalExp)}`, Icon: ArrowLeftRight, c: "indigo" },
+  ] as const;
 
   const cBg: Record<string, string> = { emerald: "bg-emerald-50 text-emerald-600", rose: "bg-rose-50 text-rose-500", blue: "bg-blue-50 text-blue-600", orange: "bg-orange-50 text-orange-500", indigo: "bg-indigo-50 text-indigo-600" };
+
+  const exportCSV = () => {
+    const rows = [["তারিখ", "ধরন", "ক্যাটাগরি", "পরিমাণ", "নোট"]];
+    txns.forEach(t => rows.push([t.occurred_on, t.type, t.category, String(t.amount), t.note || ""]));
+    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `transactions-${profile?.full_name || userId}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <AppShell
@@ -112,6 +127,9 @@ function AdminUserView() {
           <Link to="/admin" className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border text-sm hover:shadow-sm" style={{ borderColor: "var(--brand-line)" }}>
             <ArrowLeft className="w-4 h-4" /> ফিরে যান
           </Link>
+          <button onClick={exportCSV} disabled={txns.length === 0} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border text-sm hover:shadow-sm disabled:opacity-50" style={{ borderColor: "var(--brand-line)" }}>
+            <Download className="w-4 h-4" /> CSV
+          </button>
           <button onClick={load} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border text-sm hover:shadow-sm" style={{ borderColor: "var(--brand-line)" }}>
             <RefreshCw className="w-4 h-4" /> রিফ্রেশ
           </button>
@@ -145,14 +163,19 @@ function AdminUserView() {
           {/* Stat cards */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
             {cards.map(s => (
-              <div key={s.label} className="bg-white rounded-xl p-4 border border-slate-200">
+              <button
+                key={s.label}
+                onClick={() => setDetail({ key: s.key, title: s.label })}
+                className="bg-white rounded-xl p-4 border border-slate-200 text-left hover:shadow-md hover:border-emerald-300 transition"
+              >
                 <div className="flex items-center gap-2 mb-2">
                   <div className={`w-9 h-9 rounded-full flex items-center justify-center ${cBg[s.c]}`}><s.Icon className="w-4 h-4" /></div>
                   <div className="text-xs text-slate-500">{s.label}</div>
                 </div>
                 <div className="text-lg font-bold text-slate-800">{s.value}</div>
                 {s.last && <div className="text-[11px] text-slate-400 mt-1">{s.last}</div>}
-              </div>
+                <div className="text-[10px] text-emerald-600 mt-1.5">বিস্তারিত দেখুন →</div>
+              </button>
             ))}
           </div>
 
@@ -178,7 +201,12 @@ function AdminUserView() {
             {/* Recent Transactions */}
             <Section title="সাম্প্রতিক লেনদেন" icon={<ArrowLeftRight className="w-4 h-4" />} count={txns.length}>
               {txns.length === 0 ? <Empty text="কোনো লেনদেন নেই" /> : (
-                <div className="overflow-x-auto">
+                <>
+                <div className="relative mb-2">
+                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
+                  <input value={search} onChange={e => setSearch(e.target.value)} placeholder="ক্যাটাগরি/নোট সার্চ…" className="w-full pl-8 pr-3 py-1.5 text-xs rounded-md border" style={{ borderColor: "var(--brand-line)" }} />
+                </div>
+                <div className="overflow-x-auto max-h-96 overflow-y-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="text-left text-xs text-slate-500 border-b" style={{ borderColor: "var(--brand-line)" }}>
@@ -186,7 +214,7 @@ function AdminUserView() {
                       </tr>
                     </thead>
                     <tbody>
-                      {txns.slice(0, 15).map(t => (
+                      {txns.filter(t => !search || t.category.toLowerCase().includes(search.toLowerCase()) || (t.note || "").toLowerCase().includes(search.toLowerCase())).map(t => (
                         <tr key={t.id} className="border-b last:border-0" style={{ borderColor: "var(--brand-line)" }}>
                           <td className="py-2 text-slate-500">{new Date(t.occurred_on).toLocaleDateString("bn-BD")}</td>
                           <td className="py-2">{t.category}</td>
@@ -198,6 +226,7 @@ function AdminUserView() {
                     </tbody>
                   </table>
                 </div>
+                </>
               )}
             </Section>
 
@@ -303,6 +332,15 @@ function AdminUserView() {
           </div>
         </div>
       )}
+      {detail && (
+        <DetailDialog
+          title={detail.title}
+          onClose={() => setDetail(null)}
+          txns={txns}
+          debts={debts}
+          filterKey={detail.key}
+        />
+      )}
     </AppShell>
   );
 }
@@ -323,5 +361,63 @@ function Section({ title, icon, count, children }: { title: string; icon: React.
 }
 
 function Empty({ text }: { text: string }) {
-  return <div className="py-6 text-center text-sm text-slate-400">{text}</div>;
+  return <div className="py-8 text-center text-sm text-slate-400">{text}</div>;
+}
+
+function DetailDialog({ title, onClose, txns, debts, filterKey }: { title: string; onClose: () => void; txns: Txn[]; debts: Debt[]; filterKey: string }) {
+  const { startISO, endISO } = monthBounds(new Date());
+  let rows: Array<{ a: string; b: string; c: string; d?: string }> = [];
+  let cols = ["তারিখ", "ক্যাটাগরি", "পরিমাণ"];
+  if (filterKey === "income") {
+    rows = txns.filter(t => t.type === "income" && t.occurred_on >= startISO && t.occurred_on < endISO)
+      .map(t => ({ a: new Date(t.occurred_on).toLocaleDateString("bn-BD"), b: t.category, c: fmtTk(Number(t.amount)) }));
+  } else if (filterKey === "expense") {
+    rows = txns.filter(t => t.type === "expense" && t.occurred_on >= startISO && t.occurred_on < endISO)
+      .map(t => ({ a: new Date(t.occurred_on).toLocaleDateString("bn-BD"), b: t.category, c: fmtTk(Number(t.amount)) }));
+  } else if (filterKey === "savings") {
+    rows = txns.filter(t => t.occurred_on >= startISO && t.occurred_on < endISO)
+      .map(t => ({ a: new Date(t.occurred_on).toLocaleDateString("bn-BD"), b: `${t.type === "income" ? "আয়" : "ব্যয়"} · ${t.category}`, c: (t.type === "income" ? "+" : "−") + " " + fmtTk(Number(t.amount)) }));
+  } else if (filterKey === "receivable") {
+    cols = ["ব্যক্তি", "নোট", "পরিমাণ"];
+    rows = debts.filter(d => !d.settled && d.kind === "receivable")
+      .map(d => ({ a: d.person, b: d.note || "—", c: fmtTk(Number(d.amount)) }));
+  } else if (filterKey === "payable") {
+    cols = ["ব্যক্তি", "নোট", "পরিমাণ"];
+    rows = debts.filter(d => !d.settled && d.kind === "payable")
+      .map(d => ({ a: d.person, b: d.note || "—", c: fmtTk(Number(d.amount)) }));
+  } else {
+    cols = ["তারিখ", "ধরন · ক্যাটাগরি", "পরিমাণ"];
+    rows = txns.map(t => ({ a: new Date(t.occurred_on).toLocaleDateString("bn-BD"), b: `${t.type === "income" ? "আয়" : "ব্যয়"} · ${t.category}`, c: (t.type === "income" ? "+" : "−") + " " + fmtTk(Number(t.amount)) }));
+  }
+  const total = rows.length;
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} className="bg-white rounded-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between px-5 py-3 border-b" style={{ borderColor: "var(--brand-line)" }}>
+          <h3 className="font-semibold" style={{ fontFamily: "var(--font-display)" }}>{title} <span className="text-xs text-slate-400 font-normal">({total})</span></h3>
+          <button onClick={onClose} className="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center"><X className="w-4 h-4" /></button>
+        </div>
+        <div className="overflow-auto p-5">
+          {rows.length === 0 ? <Empty text="কোনো রেকর্ড নেই" /> : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs text-slate-500 border-b" style={{ borderColor: "var(--brand-line)" }}>
+                  {cols.map(c => <th key={c} className={`py-2 ${c === "পরিমাণ" ? "text-right" : ""}`}>{c}</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r, i) => (
+                  <tr key={i} className="border-b last:border-0" style={{ borderColor: "var(--brand-line)" }}>
+                    <td className="py-2 text-slate-500">{r.a}</td>
+                    <td className="py-2">{r.b}</td>
+                    <td className="py-2 text-right font-medium">{r.c}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
