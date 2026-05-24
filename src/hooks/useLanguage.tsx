@@ -11,6 +11,7 @@ const dict = {
     "nav.expense": "ব্যয়",
     "nav.transactions": "লেনদেন",
     "nav.budget": "বাজেট",
+    "nav.upcomingBudget": "আগামী বাজেট ও পরিকল্পনা",
     "nav.goals": "লক্ষ্য",
     "nav.debts": "পাওনা/দেনা",
     "nav.report": "রিপোর্ট",
