@@ -19,6 +19,7 @@ type Budget = {
   label: string | null;
   start_at: string;
   end_at: string;
+  status: "pending" | "ongoing" | "completed" | null;
 };
 type Txn = { category: string; amount: number; occurred_on: string };
 
@@ -128,7 +129,7 @@ function BudgetPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("budgets")
-        .select("id,category,monthly_limit,label,start_at,end_at")
+        .select("id,category,monthly_limit,label,start_at,end_at,status")
         .order("start_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Budget[];
@@ -222,14 +223,22 @@ function BudgetPage() {
     qc.invalidateQueries({ queryKey: ["budgets"] });
   };
 
+  const autoStatus = (b: Budget): "pending" | "ongoing" | "completed" =>
+    nowIso < b.start_at ? "pending" : nowIso > b.end_at ? "completed" : "ongoing";
+  const effStatus = (b: Budget) => b.status ?? autoStatus(b);
+
+  const setStatus = async (b: Budget, s: "pending" | "ongoing" | "completed") => {
+    const next = effStatus(b) === s ? null : s;
+    const { error } = await supabase.from("budgets").update({ status: next }).eq("id", b.id);
+    if (error) { toast.error(error.message); return; }
+    qc.invalidateQueries({ queryKey: ["budgets"] });
+  };
+
   const list = bQ.data ?? [];
   const filteredList = useMemo(() => {
     if (filter === "all") return list;
     return list.filter((b) => {
-      if (filter === "pending") return nowIso < b.start_at;
-      if (filter === "ongoing") return nowIso >= b.start_at && nowIso <= b.end_at;
-      if (filter === "completed") return nowIso > b.end_at;
-      return true;
+      return effStatus(b) === filter;
     });
   }, [list, filter, nowIso]);
   const totalLimit = filteredList.reduce((s, b) => s + Number(b.monthly_limit), 0);
@@ -318,18 +327,12 @@ function BudgetPage() {
             const spent = spentFor(b);
             const pct = b.monthly_limit > 0 ? Math.min(100, (spent / b.monthly_limit) * 100) : 0;
             const over = b.monthly_limit > 0 && spent > b.monthly_limit;
-            const status: "pending" | "ongoing" | "completed" =
-              nowIso < b.start_at ? "pending" : nowIso > b.end_at ? "completed" : "ongoing";
-            const statusStyle =
-              status === "pending"
-                ? "bg-amber-50 text-amber-700 border-amber-200"
-                : status === "ongoing"
-                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                : "bg-slate-100 text-slate-600 border-slate-200";
-            const statusLabel =
-              status === "pending" ? t("অপেক্ষিত", "Pending")
-              : status === "ongoing" ? t("চলমান", "Ongoing")
-              : t("শেষ", "Completed");
+            const status = effStatus(b);
+            const statusBtns: { key: "pending" | "ongoing" | "completed"; labelBn: string; labelEn: string; active: string }[] = [
+              { key: "pending", labelBn: "অপেক্ষিত", labelEn: "Pending", active: "bg-amber-500 text-white border-amber-500" },
+              { key: "ongoing", labelBn: "চলমান", labelEn: "Ongoing", active: "bg-emerald-500 text-white border-emerald-500" },
+              { key: "completed", labelBn: "শেষ", labelEn: "Completed", active: "bg-slate-500 text-white border-slate-500" },
+            ];
             return (
               <div key={b.id} className="bg-white rounded-xl border border-slate-200 p-4">
                 <div className="flex items-start justify-between gap-2 mb-2">
@@ -337,9 +340,6 @@ function BudgetPage() {
                     <div className="flex items-center gap-2 mb-1">
                       <span className="inline-block w-2.5 h-2.5 rounded-full shrink-0" style={{ background: categoryColor(b.category) }} />
                       <span className="font-semibold text-slate-800 truncate">{b.label || b.category}</span>
-                      <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] font-medium border ${statusStyle}`}>
-                        {statusLabel}
-                      </span>
                     </div>
                     {b.label && <div className="text-xs text-slate-500 ml-4.5">{t("ক্যাটাগরি", "Category")}: {b.category}</div>}
                   </div>
@@ -351,6 +351,22 @@ function BudgetPage() {
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
+                </div>
+
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                  {statusBtns.map((sb) => (
+                    <button
+                      key={sb.key}
+                      onClick={() => setStatus(b, sb.key)}
+                      className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors ${
+                        status === sb.key
+                          ? sb.active
+                          : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                      }`}
+                    >
+                      {t(sb.labelBn, sb.labelEn)}
+                    </button>
+                  ))}
                 </div>
 
                 <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-3">
