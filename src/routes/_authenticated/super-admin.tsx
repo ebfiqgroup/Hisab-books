@@ -1,0 +1,289 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { AppShell } from "@/components/AppShell";
+import { supabase } from "@/integrations/supabase/client";
+import { useIsSuperAdmin } from "@/hooks/useRole";
+import { useAuth } from "@/hooks/useAuth";
+import { Crown, Shield, ShieldCheck, ShieldOff, Users, Activity, RefreshCw, Database, AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+export const Route = createFileRoute("/_authenticated/super-admin")({
+  component: SuperAdminPage,
+});
+
+type UserRow = {
+  user_id: string;
+  full_name: string | null;
+  ref_code: string | null;
+  created_at: string;
+  status: string;
+  is_admin: boolean;
+  is_super_admin: boolean;
+};
+
+type Stats = {
+  users: number;
+  admins: number;
+  superAdmins: number;
+  pending: number;
+  suspended: number;
+  transactions: number;
+  budgets: number;
+  goals: number;
+  tickets: number;
+};
+
+function SuperAdminPage() {
+  const { user } = useAuth();
+  const isSuper = useIsSuperAdmin();
+  const [rows, setRows] = useState<UserRow[]>([]);
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [q, setQ] = useState("");
+  const [pending, setPending] = useState<{ row: UserRow; action: "grant_admin" | "revoke_admin" | "grant_super" | "revoke_super" } | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    const [overview, roles, txc, bdc, glc, tkc] = await Promise.all([
+      supabase.from("admin_user_overview").select("user_id, full_name, ref_code, created_at, status").order("created_at", { ascending: false }),
+      supabase.from("user_roles").select("user_id, role"),
+      supabase.from("transactions").select("id", { count: "exact", head: true }),
+      supabase.from("budgets").select("id", { count: "exact", head: true }),
+      supabase.from("goals").select("id", { count: "exact", head: true }),
+      supabase.from("support_tickets").select("id", { count: "exact", head: true }),
+    ]);
+    if (overview.error) toast.error(overview.error.message);
+    const roleMap = new Map<string, { admin: boolean; super: boolean }>();
+    (roles.data || []).forEach((r: any) => {
+      const cur = roleMap.get(r.user_id) || { admin: false, super: false };
+      if (r.role === "admin") cur.admin = true;
+      if (r.role === "super_admin") cur.super = true;
+      roleMap.set(r.user_id, cur);
+    });
+    const merged: UserRow[] = (overview.data || []).map((u: any) => {
+      const r = roleMap.get(u.user_id) || { admin: false, super: false };
+      return { ...u, is_admin: r.admin, is_super_admin: r.super };
+    });
+    setRows(merged);
+    let admins = 0, supers = 0, pendingC = 0, suspended = 0;
+    merged.forEach(r => {
+      if (r.is_admin) admins++;
+      if (r.is_super_admin) supers++;
+      if (r.status === "pending") pendingC++;
+      if (r.status === "suspended") suspended++;
+    });
+    setStats({
+      users: merged.length,
+      admins, superAdmins: supers, pending: pendingC, suspended,
+      transactions: txc.count || 0, budgets: bdc.count || 0, goals: glc.count || 0, tickets: tkc.count || 0,
+    });
+    setLoading(false);
+  };
+
+  useEffect(() => { if (isSuper) load(); }, [isSuper]);
+
+  const filtered = useMemo(() => rows.filter(r =>
+    !q.trim() ||
+    (r.full_name || "").toLowerCase().includes(q.toLowerCase()) ||
+    (r.ref_code || "").toLowerCase().includes(q.toLowerCase()) ||
+    r.user_id.includes(q)
+  ), [rows, q]);
+
+  const confirm = async () => {
+    if (!pending) return;
+    setBusy(true);
+    const t = toast.loading("আপডেট হচ্ছে…");
+    try {
+      const { row, action } = pending;
+      const fn = action.startsWith("grant") ? "admin_grant_role" : "admin_revoke_role";
+      const role = action.endsWith("super") ? "super_admin" : "admin";
+      const { error } = await supabase.rpc(fn, { _user_id: row.user_id, _role: role });
+      if (error) throw error;
+      toast.success("সম্পন্ন হয়েছে", { id: t });
+      setPending(null);
+      await load();
+    } catch (e: any) {
+      toast.error(e?.message || "ব্যর্থ", { id: t });
+    } finally { setBusy(false); }
+  };
+
+  if (isSuper === null) return <AppShell title="সুপার অ্যাডমিন"><div className="p-8 text-slate-500">লোড হচ্ছে…</div></AppShell>;
+
+  if (!isSuper) {
+    return (
+      <AppShell title="সুপার অ্যাডমিন">
+        <div className="max-w-xl mx-auto mt-10 brand-card p-8 text-center">
+          <AlertTriangle className="w-12 h-12 mx-auto mb-3 text-rose-500" />
+          <h2 className="text-xl font-semibold mb-2" style={{ fontFamily: "var(--font-display)" }}>অ্যাক্সেস নেই</h2>
+          <p className="text-sm text-slate-600">এই পেজটি দেখতে সুপার অ্যাডমিন অনুমতি লাগবে।</p>
+        </div>
+      </AppShell>
+    );
+  }
+
+  const fmt = (n: number) => new Intl.NumberFormat("bn-BD").format(n || 0);
+
+  return (
+    <AppShell
+      title="সুপার অ্যাডমিন"
+      actions={
+        <button onClick={load} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border text-sm hover:shadow-sm" style={{ borderColor: "var(--brand-line)" }}>
+          <RefreshCw className="w-4 h-4" /> রিফ্রেশ
+        </button>
+      }
+    >
+      <div className="brand-card p-5 mb-6 flex items-center gap-4" style={{ background: "linear-gradient(135deg, color-mix(in oklab, var(--brand-gold-500) 14%, transparent), transparent)" }}>
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "var(--gradient-brand)" }}>
+          <Crown className="w-6 h-6 text-white" />
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold" style={{ fontFamily: "var(--font-display)" }}>সুপার অ্যাডমিন প্যানেল</h2>
+          <p className="text-sm text-slate-600">রোল ম্যানেজমেন্ট এবং সিস্টেম-ব্যাপী নিয়ন্ত্রণ</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <StatCard icon={<Users className="w-5 h-5" />} label="মোট ব্যবহারকারী" value={fmt(stats?.users || 0)} />
+        <StatCard icon={<ShieldCheck className="w-5 h-5" />} label="অ্যাডমিন" value={fmt(stats?.admins || 0)} />
+        <StatCard icon={<Crown className="w-5 h-5" />} label="সুপার অ্যাডমিন" value={fmt(stats?.superAdmins || 0)} />
+        <StatCard icon={<Activity className="w-5 h-5" />} label="পেন্ডিং" value={fmt(stats?.pending || 0)} />
+        <StatCard icon={<Database className="w-5 h-5" />} label="মোট লেনদেন" value={fmt(stats?.transactions || 0)} />
+        <StatCard icon={<Database className="w-5 h-5" />} label="বাজেট" value={fmt(stats?.budgets || 0)} />
+        <StatCard icon={<Database className="w-5 h-5" />} label="লক্ষ্য" value={fmt(stats?.goals || 0)} />
+        <StatCard icon={<Database className="w-5 h-5" />} label="টিকেট" value={fmt(stats?.tickets || 0)} />
+      </div>
+
+      <div className="brand-card p-4 md:p-6">
+        <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
+          <h3 className="text-lg font-semibold" style={{ fontFamily: "var(--font-display)" }}>রোল ব্যবস্থাপনা</h3>
+          <input
+            value={q}
+            onChange={e => setQ(e.target.value)}
+            placeholder="নাম, রেফারেন্স বা আইডি…"
+            className="px-3 py-2 rounded-lg border text-sm w-full md:w-64"
+            style={{ borderColor: "var(--brand-line)" }}
+          />
+        </div>
+
+        {loading ? (
+          <div className="py-10 text-center text-slate-500">লোড হচ্ছে…</div>
+        ) : filtered.length === 0 ? (
+          <div className="py-10 text-center text-slate-500">কেউ পাওয়া যায়নি</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs uppercase tracking-wider text-slate-500 border-b" style={{ borderColor: "var(--brand-line)" }}>
+                  <th className="py-2 pr-3">ব্যবহারকারী</th>
+                  <th className="py-2 pr-3">রেফারেন্স</th>
+                  <th className="py-2 pr-3">যোগদান</th>
+                  <th className="py-2 pr-3">বর্তমান রোল</th>
+                  <th className="py-2 text-right">কার্যক্রম</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(r => {
+                  const isSelf = r.user_id === user?.id;
+                  return (
+                    <tr key={r.user_id} className="border-b last:border-0 hover:bg-slate-50/60" style={{ borderColor: "var(--brand-line)" }}>
+                      <td className="py-3 pr-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: "var(--gradient-brand)" }}>
+                            {(r.full_name || "?").charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <div className="font-medium">{r.full_name || "—"} {isSelf && <span className="text-xs text-slate-400">(আপনি)</span>}</div>
+                            <div className="text-[11px] text-slate-400 font-mono">{r.user_id.slice(0, 8)}…</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3 pr-3 font-mono text-xs text-slate-600">{r.ref_code || "—"}</td>
+                      <td className="py-3 pr-3 text-slate-600">{new Date(r.created_at).toLocaleDateString("bn-BD")}</td>
+                      <td className="py-3 pr-3">
+                        <div className="flex gap-1 flex-wrap">
+                          {r.is_super_admin && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium" style={{ background: "color-mix(in oklab, var(--brand-gold-500) 25%, transparent)", color: "var(--brand-emerald-900)" }}>
+                              <Crown className="w-3 h-3" /> সুপার
+                            </span>
+                          )}
+                          {r.is_admin && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                              <ShieldCheck className="w-3 h-3" /> অ্যাডমিন
+                            </span>
+                          )}
+                          {!r.is_admin && !r.is_super_admin && <span className="text-xs text-slate-500">সাধারণ</span>}
+                        </div>
+                      </td>
+                      <td className="py-3 text-right">
+                        <div className="flex gap-1.5 justify-end flex-wrap">
+                          {!r.is_admin ? (
+                            <button onClick={() => setPending({ row: r, action: "grant_admin" })} className="text-xs px-2.5 py-1.5 rounded-md border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 inline-flex items-center gap-1">
+                              <Shield className="w-3 h-3" /> অ্যাডমিন বানাও
+                            </button>
+                          ) : (
+                            <button onClick={() => setPending({ row: r, action: "revoke_admin" })} className="text-xs px-2.5 py-1.5 rounded-md border bg-white inline-flex items-center gap-1" style={{ borderColor: "var(--brand-line)" }}>
+                              <ShieldOff className="w-3 h-3" /> অ্যাডমিন সরাও
+                            </button>
+                          )}
+                          {!r.is_super_admin ? (
+                            <button onClick={() => setPending({ row: r, action: "grant_super" })} className="text-xs px-2.5 py-1.5 rounded-md border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 inline-flex items-center gap-1">
+                              <Crown className="w-3 h-3" /> সুপার বানাও
+                            </button>
+                          ) : (
+                            <button disabled={isSelf} onClick={() => setPending({ row: r, action: "revoke_super" })} className="text-xs px-2.5 py-1.5 rounded-md border bg-white inline-flex items-center gap-1 disabled:opacity-40" style={{ borderColor: "var(--brand-line)" }}>
+                              <ShieldOff className="w-3 h-3" /> সুপার সরাও
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <AlertDialog open={!!pending} onOpenChange={(o) => !o && setPending(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>আপনি কি নিশ্চিত?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pending && (
+                <>
+                  <strong>{pending.row.full_name || "এই ব্যবহারকারী"}</strong>-কে{" "}
+                  {pending.action === "grant_admin" && "অ্যাডমিন বানানো হবে।"}
+                  {pending.action === "revoke_admin" && "অ্যাডমিন রোল থেকে সরানো হবে।"}
+                  {pending.action === "grant_super" && "সুপার অ্যাডমিন বানানো হবে — সম্পূর্ণ নিয়ন্ত্রণ পাবে!"}
+                  {pending.action === "revoke_super" && "সুপার অ্যাডমিন থেকে সরানো হবে।"}
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={busy}>বাতিল</AlertDialogCancel>
+            <AlertDialogAction disabled={busy} onClick={confirm}>{busy ? "অপেক্ষা…" : "নিশ্চিত"}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </AppShell>
+  );
+}
+
+function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="brand-card p-4">
+      <div className="flex items-center gap-2 text-slate-500 text-xs mb-1">
+        <span style={{ color: "var(--brand-emerald-700)" }}>{icon}</span>
+        {label}
+      </div>
+      <div className="text-2xl font-bold" style={{ fontFamily: "var(--font-display)" }}>{value}</div>
+    </div>
+  );
+}
