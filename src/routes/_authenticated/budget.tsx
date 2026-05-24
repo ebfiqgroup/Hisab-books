@@ -121,7 +121,9 @@ function BudgetPage() {
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<FormState>(() => emptyForm(cats[0] ?? ""));
-  const [filter, setFilter] = useState<"all" | "pending" | "ongoing" | "completed">("all");
+  const validFilter = (v: string | undefined): "all" | "pending" | "ongoing" | "completed" =>
+    v === "pending" || v === "ongoing" || v === "completed" ? v : "all";
+  const [filter, setFilter] = useState<"all" | "pending" | "ongoing" | "completed">(() => validFilter(search.filter));
 
   const nowIso = new Date().toISOString();
 
