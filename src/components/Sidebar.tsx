@@ -36,14 +36,12 @@ export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean;
     document.body.style.overflow = "hidden";
     return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
   }, [mobileOpen, onClose]);
-  const items = isAdmin
-    ? [
-        ...navItems,
-        { icon: ShieldCheck, key: "nav.admin" as TKey, to: "/admin" as const },
-        ...(isSuperAdmin ? [{ icon: Crown, key: "nav.superAdmin" as TKey, to: "/super-admin" as const }] : []),
-        { icon: Activity, key: "nav.audit" as TKey, to: "/audit" as const },
-      ]
-    : navItems;
+  const items = [
+    ...navItems,
+    { icon: ShieldCheck, key: "nav.admin" as TKey, to: "/admin" as const },
+    { icon: Crown, key: "nav.superAdmin" as TKey, to: "/super-admin" as const },
+    ...(isAdmin ? [{ icon: Activity, key: "nav.audit" as TKey, to: "/audit" as const }] : []),
+  ];
   return (
     <>
       {mobileOpen && (
