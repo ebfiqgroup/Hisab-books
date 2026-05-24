@@ -96,9 +96,16 @@ function Dashboard() {
   const budgetsQ = useQuery({
     queryKey: ["budgets", "ai"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("budgets").select("category,monthly_limit");
+      const { data, error } = await supabase
+        .from("budgets")
+        .select("id,category,monthly_limit,label,start_at,end_at,status")
+        .order("start_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as { category: string; monthly_limit: number }[];
+      return (data ?? []) as {
+        id: string; category: string; monthly_limit: number;
+        label: string | null; start_at: string; end_at: string;
+        status: "pending" | "ongoing" | "completed" | null;
+      }[];
     },
   });
 
