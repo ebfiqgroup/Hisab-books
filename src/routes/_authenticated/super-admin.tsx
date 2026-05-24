@@ -10,6 +10,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/super-admin")({
   component: SuperAdminPage,
@@ -49,6 +51,8 @@ type RoleRequest = {
   full_name?: string | null;
 };
 
+type DetailKey = "users" | "admins" | "supers" | "pending" | "transactions" | "budgets" | "goals" | "tickets";
+
 function SuperAdminPage() {
   const { user } = useAuth();
   const isSuper = useIsSuperAdmin();
@@ -59,6 +63,7 @@ function SuperAdminPage() {
   const [pending, setPending] = useState<{ row: UserRow; action: "grant_admin" | "revoke_admin" | "grant_super" | "revoke_super" } | null>(null);
   const [busy, setBusy] = useState(false);
   const [requests, setRequests] = useState<RoleRequest[]>([]);
+  const [detail, setDetail] = useState<DetailKey | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -156,14 +161,14 @@ function SuperAdminPage() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <StatCard icon={<Users className="w-5 h-5" />} label="মোট ব্যবহারকারী" value={fmt(stats?.users || 0)} />
-        <StatCard icon={<ShieldCheck className="w-5 h-5" />} label="অ্যাডমিন" value={fmt(stats?.admins || 0)} />
-        <StatCard icon={<Crown className="w-5 h-5" />} label="সুপার অ্যাডমিন" value={fmt(stats?.superAdmins || 0)} />
-        <StatCard icon={<Activity className="w-5 h-5" />} label="পেন্ডিং" value={fmt(stats?.pending || 0)} />
-        <StatCard icon={<Database className="w-5 h-5" />} label="মোট লেনদেন" value={fmt(stats?.transactions || 0)} />
-        <StatCard icon={<Database className="w-5 h-5" />} label="বাজেট" value={fmt(stats?.budgets || 0)} />
-        <StatCard icon={<Database className="w-5 h-5" />} label="লক্ষ্য" value={fmt(stats?.goals || 0)} />
-        <StatCard icon={<Database className="w-5 h-5" />} label="টিকেট" value={fmt(stats?.tickets || 0)} />
+        <StatCard icon={<Users className="w-5 h-5" />} label="মোট ব্যবহারকারী" value={fmt(stats?.users || 0)} onClick={() => setDetail("users")} />
+        <StatCard icon={<ShieldCheck className="w-5 h-5" />} label="অ্যাডমিন" value={fmt(stats?.admins || 0)} onClick={() => setDetail("admins")} />
+        <StatCard icon={<Crown className="w-5 h-5" />} label="সুপার অ্যাডমিন" value={fmt(stats?.superAdmins || 0)} onClick={() => setDetail("supers")} />
+        <StatCard icon={<Activity className="w-5 h-5" />} label="পেন্ডিং" value={fmt(stats?.pending || 0)} onClick={() => setDetail("pending")} />
+        <StatCard icon={<Database className="w-5 h-5" />} label="মোট লেনদেন" value={fmt(stats?.transactions || 0)} onClick={() => setDetail("transactions")} />
+        <StatCard icon={<Database className="w-5 h-5" />} label="বাজেট" value={fmt(stats?.budgets || 0)} onClick={() => setDetail("budgets")} />
+        <StatCard icon={<Database className="w-5 h-5" />} label="লক্ষ্য" value={fmt(stats?.goals || 0)} onClick={() => setDetail("goals")} />
+        <StatCard icon={<Database className="w-5 h-5" />} label="টিকেট" value={fmt(stats?.tickets || 0)} onClick={() => setDetail("tickets")} />
       </div>
 
       <div className="brand-card p-4 md:p-6">
@@ -283,19 +288,21 @@ function SuperAdminPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <DetailDialog detail={detail} onClose={() => setDetail(null)} rows={rows} />
     </AppShell>
   );
 }
 
-function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function StatCard({ icon, label, value, onClick }: { icon: React.ReactNode; label: string; value: string; onClick?: () => void }) {
   return (
-    <div className="brand-card p-4">
+    <button type="button" onClick={onClick} className="brand-card p-4 text-left transition hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 cursor-pointer">
       <div className="flex items-center gap-2 text-slate-500 text-xs mb-1">
         <span style={{ color: "var(--brand-emerald-700)" }}>{icon}</span>
         {label}
       </div>
       <div className="text-2xl font-bold" style={{ fontFamily: "var(--font-display)" }}>{value}</div>
-    </div>
+      <div className="text-[10px] text-slate-400 mt-1">বিস্তারিত দেখুন →</div>
+    </button>
   );
 }
 
@@ -505,5 +512,152 @@ function RequestsInbox({ requests, onChange }: { requests: RoleRequest[]; onChan
         </div>
       )}
     </div>
+  );
+}
+
+function DetailDialog({ detail, onClose, rows }: { detail: DetailKey | null; onClose: () => void; rows: UserRow[] }) {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const titleMap: Record<DetailKey, string> = {
+    users: "মোট ব্যবহারকারী",
+    admins: "অ্যাডমিন তালিকা",
+    supers: "সুপার অ্যাডমিন তালিকা",
+    pending: "পেন্ডিং ব্যবহারকারী",
+    transactions: "সাম্প্রতিক লেনদেন",
+    budgets: "সাম্প্রতিক বাজেট",
+    goals: "সাম্প্রতিক লক্ষ্য",
+    tickets: "সাপোর্ট টিকেট",
+  };
+
+  useEffect(() => {
+    if (!detail) return;
+    const nameMap = new Map(rows.map(r => [r.user_id, r.full_name || r.ref_code || r.user_id.slice(0, 8)]));
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        if (detail === "users") setData(rows);
+        else if (detail === "admins") setData(rows.filter(r => r.is_admin));
+        else if (detail === "supers") setData(rows.filter(r => r.is_super_admin));
+        else if (detail === "pending") setData(rows.filter(r => r.status === "pending"));
+        else if (detail === "transactions") {
+          const { data: t } = await supabase.from("transactions")
+            .select("id, user_id, type, category, amount, occurred_on, note")
+            .order("occurred_on", { ascending: false }).limit(100);
+          setData((t || []).map((x: any) => ({ ...x, name: nameMap.get(x.user_id) || "—" })));
+        } else if (detail === "budgets") {
+          const { data: t } = await supabase.from("budgets")
+            .select("id, user_id, category, monthly_limit, label, created_at")
+            .order("created_at", { ascending: false }).limit(100);
+          setData((t || []).map((x: any) => ({ ...x, name: nameMap.get(x.user_id) || "—" })));
+        } else if (detail === "goals") {
+          const { data: t } = await supabase.from("goals")
+            .select("id, user_id, label, target, current, deadline, created_at")
+            .order("created_at", { ascending: false }).limit(100);
+          setData((t || []).map((x: any) => ({ ...x, name: nameMap.get(x.user_id) || "—" })));
+        } else if (detail === "tickets") {
+          const { data: t } = await supabase.from("support_tickets")
+            .select("id, user_id, subject, status, priority, created_at, updated_at")
+            .order("updated_at", { ascending: false }).limit(100);
+          setData((t || []).map((x: any) => ({ ...x, name: nameMap.get(x.user_id) || "—" })));
+        }
+      } catch (e: any) {
+        toast.error(e?.message || "লোড ব্যর্থ");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [detail, rows]);
+
+  const fmtTk = (n: number) => new Intl.NumberFormat("bn-BD", { maximumFractionDigits: 0 }).format(Number(n) || 0);
+  const fmtDate = (s: string | null) => s ? new Date(s).toLocaleDateString("bn-BD") : "—";
+
+  const isUserList = detail === "users" || detail === "admins" || detail === "supers" || detail === "pending";
+
+  return (
+    <Dialog open={!!detail} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{detail && titleMap[detail]}</DialogTitle>
+          <DialogDescription>মোট {data.length} টি রেকর্ড{loading && " — লোড হচ্ছে…"}</DialogDescription>
+        </DialogHeader>
+        {loading ? (
+          <div className="py-10 text-center text-slate-500">লোড হচ্ছে…</div>
+        ) : data.length === 0 ? (
+          <div className="py-10 text-center text-slate-500">কোনো রেকর্ড পাওয়া যায়নি</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="text-xs text-slate-500 uppercase border-b" style={{ borderColor: "var(--brand-line)" }}>
+                {isUserList && (
+                  <tr><th className="text-left py-2 pr-3">নাম</th><th className="text-left">রেফারেন্স</th><th className="text-left">স্ট্যাটাস</th><th className="text-left">রোল</th><th className="text-left">যোগদান</th><th></th></tr>
+                )}
+                {detail === "transactions" && (
+                  <tr><th className="text-left py-2 pr-3">তারিখ</th><th className="text-left">ব্যবহারকারী</th><th className="text-left">ক্যাটাগরি</th><th className="text-right">পরিমাণ</th></tr>
+                )}
+                {detail === "budgets" && (
+                  <tr><th className="text-left py-2 pr-3">ব্যবহারকারী</th><th className="text-left">ক্যাটাগরি</th><th className="text-left">লেবেল</th><th className="text-right">মাসিক সীমা</th></tr>
+                )}
+                {detail === "goals" && (
+                  <tr><th className="text-left py-2 pr-3">ব্যবহারকারী</th><th className="text-left">লক্ষ্য</th><th className="text-right">অগ্রগতি</th><th className="text-left">সময়সীমা</th></tr>
+                )}
+                {detail === "tickets" && (
+                  <tr><th className="text-left py-2 pr-3">ব্যবহারকারী</th><th className="text-left">বিষয়</th><th className="text-left">অগ্রাধিকার</th><th className="text-left">স্ট্যাটাস</th><th className="text-left">তারিখ</th></tr>
+                )}
+              </thead>
+              <tbody>
+                {isUserList && data.map((r: UserRow) => (
+                  <tr key={r.user_id} className="border-b last:border-0" style={{ borderColor: "var(--brand-line)" }}>
+                    <td className="py-2 pr-3 font-medium">{r.full_name || "—"}</td>
+                    <td className="font-mono text-xs">{r.ref_code || "—"}</td>
+                    <td className="text-xs">{r.status}</td>
+                    <td className="text-xs">{r.is_super_admin ? "সুপার" : r.is_admin ? "অ্যাডমিন" : "সাধারণ"}</td>
+                    <td className="text-xs text-slate-500">{fmtDate(r.created_at)}</td>
+                    <td className="text-right"><Link to="/admin/user/$userId" params={{ userId: r.user_id }} onClick={onClose} className="text-xs text-emerald-700 hover:underline">দেখুন →</Link></td>
+                  </tr>
+                ))}
+                {detail === "transactions" && data.map((t: any) => (
+                  <tr key={t.id} className="border-b last:border-0" style={{ borderColor: "var(--brand-line)" }}>
+                    <td className="py-2 pr-3 text-xs text-slate-500">{fmtDate(t.occurred_on)}</td>
+                    <td className="text-xs">{t.name}</td>
+                    <td>{t.category}</td>
+                    <td className={`text-right font-medium ${t.type === "income" ? "text-emerald-600" : "text-rose-500"}`}>{t.type === "income" ? "+" : "−"} ৳{fmtTk(t.amount)}</td>
+                  </tr>
+                ))}
+                {detail === "budgets" && data.map((b: any) => (
+                  <tr key={b.id} className="border-b last:border-0" style={{ borderColor: "var(--brand-line)" }}>
+                    <td className="py-2 pr-3 text-xs">{b.name}</td>
+                    <td>{b.category}</td>
+                    <td className="text-xs text-slate-500">{b.label || "—"}</td>
+                    <td className="text-right font-medium">৳{fmtTk(b.monthly_limit)}</td>
+                  </tr>
+                ))}
+                {detail === "goals" && data.map((g: any) => {
+                  const pct = Math.min(100, Math.round((Number(g.current) / Math.max(1, Number(g.target))) * 100));
+                  return (
+                    <tr key={g.id} className="border-b last:border-0" style={{ borderColor: "var(--brand-line)" }}>
+                      <td className="py-2 pr-3 text-xs">{g.name}</td>
+                      <td>{g.label}</td>
+                      <td className="text-right text-xs">৳{fmtTk(g.current)} / ৳{fmtTk(g.target)} ({pct}%)</td>
+                      <td className="text-xs text-slate-500">{fmtDate(g.deadline)}</td>
+                    </tr>
+                  );
+                })}
+                {detail === "tickets" && data.map((t: any) => (
+                  <tr key={t.id} className="border-b last:border-0" style={{ borderColor: "var(--brand-line)" }}>
+                    <td className="py-2 pr-3 text-xs">{t.name}</td>
+                    <td className="font-medium">{t.subject}</td>
+                    <td className="text-xs">{t.priority}</td>
+                    <td className="text-xs"><span className={`px-1.5 py-0.5 rounded ${t.status === "open" ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>{t.status}</span></td>
+                    <td className="text-xs text-slate-500">{fmtDate(t.updated_at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
