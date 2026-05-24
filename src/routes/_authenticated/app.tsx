@@ -8,7 +8,7 @@ import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
 } from "recharts";
 import {
-  Wallet, Users, TrendingDown,
+  Wallet, Users, TrendingDown, Search,
   ArrowDown, ArrowUp, PiggyBank, StickyNote, Plus, Pencil, Trash2, Check, X, Target,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
@@ -214,8 +214,14 @@ function Dashboard() {
 
   // Notes
   const [noteInput, setNoteInput] = useState("");
+  const [noteSearch, setNoteSearch] = useState("");
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editNoteInput, setEditNoteInput] = useState("");
+  const filteredNotes = useMemo(() => {
+    const q = noteSearch.trim().toLowerCase();
+    if (!q) return notes;
+    return notes.filter((n) => n.body.toLowerCase().includes(q));
+  }, [notes, noteSearch]);
   const saveNote = async () => {
     const body = noteInput.trim();
     if (!body) return;
@@ -488,10 +494,19 @@ function Dashboard() {
         </div>
 
         <div className="bg-white rounded-xl p-5 border border-slate-200">
-          <div className="flex items-center gap-2 mb-4"><StickyNote className="w-5 h-5 text-amber-500" /><h3 className="font-bold text-slate-800">{t("দ্রুত নোট", "Quick notes")}</h3></div>
+          <div className="flex items-center gap-2 mb-3"><StickyNote className="w-5 h-5 text-amber-500" /><h3 className="font-bold text-slate-800">{t("দ্রুত নোট", "Quick notes")}</h3></div>
+          <div className="relative mb-2">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+            <input
+              value={noteSearch}
+              onChange={(e) => setNoteSearch(e.target.value)}
+              placeholder={t("নোট খুঁজুন...", "Search notes...")}
+              className="w-full pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-amber-300"
+            />
+          </div>
           <div className="space-y-2 mb-3 max-h-40 overflow-y-auto">
-            {notes.length === 0 && <div className="text-xs text-slate-400 text-center py-3">{t("কোনো নোট নেই", "No notes")}</div>}
-            {notes.map((n) => (
+            {filteredNotes.length === 0 && <div className="text-xs text-slate-400 text-center py-3">{noteSearch ? t("কোনো নোট পাওয়া যায়নি", "No notes found") : t("কোনো নোট নেই", "No notes")}</div>}
+            {filteredNotes.map((n) => (
               editingNoteId === n.id ? (
                 <div key={n.id} className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg p-2">
                   <input
