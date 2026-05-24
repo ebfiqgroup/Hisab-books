@@ -8,7 +8,7 @@ import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
 } from "recharts";
 import {
-  Wallet, Users, TrendingDown,
+  Wallet, Users, TrendingDown, Search,
   ArrowDown, ArrowUp, PiggyBank, StickyNote, Plus, Pencil, Trash2, Check, X, Target,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
