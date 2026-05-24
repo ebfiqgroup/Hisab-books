@@ -2,19 +2,18 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
 import {
   Home, Wallet, TrendingDown, ArrowLeftRight, Clock, Target,
-  Users, BarChart3, Calendar, Settings, ShieldCheck, Activity, LifeBuoy, X, StickyNote, CalendarClock,
+  Users, BarChart3, Calendar, Settings, ShieldCheck, Activity, LifeBuoy, X, StickyNote,
 } from "lucide-react";
 import { useIsAdmin } from "@/hooks/useRole";
 import { RefCodeBadge } from "./RefCodeBadge";
 import { useLanguage, type TKey } from "@/hooks/useLanguage";
 
-const navItems: { icon: typeof Home; key: TKey; to: string; search?: Record<string, string> }[] = [
+const navItems: { icon: typeof Home; key: TKey; to: string }[] = [
   { icon: Home, key: "nav.dashboard", to: "/app" },
   { icon: Wallet, key: "nav.income", to: "/income" },
   { icon: TrendingDown, key: "nav.expense", to: "/expense" },
   { icon: ArrowLeftRight, key: "nav.transactions", to: "/transactions" },
   { icon: Clock, key: "nav.budget", to: "/budget" },
-  { icon: CalendarClock, key: "nav.upcomingBudget", to: "/budget", search: { filter: "pending" } },
   { icon: Target, key: "nav.goals", to: "/goals" },
   { icon: Users, key: "nav.debts", to: "/debts" },
   { icon: BarChart3, key: "nav.report", to: "/report" },
@@ -84,15 +83,11 @@ export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean;
       </div>
       <nav className="flex-1 p-3 space-y-0.5">
         {items.map((n, i) => {
-          const hasSearch = !!n.search;
-          const active = hasSearch
-            ? path === n.to && new URLSearchParams(window.location.search).get("filter") === n.search!.filter
-            : path === n.to && !new URLSearchParams(window.location.search).get("filter");
+          const active = path === n.to;
           return (
             <Link
               key={i}
               to={n.to}
-              search={n.search}
               onClick={onClose}
               className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${active ? "text-white shadow-md" : "text-white/65 hover:text-white hover:bg-white/5"}`}
               style={active ? { background: "color-mix(in oklab, var(--brand-gold-500) 18%, transparent)", border: "1px solid color-mix(in oklab, var(--brand-gold-500) 35%, transparent)" } : undefined}
