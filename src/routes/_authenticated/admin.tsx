@@ -4,7 +4,7 @@ import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/useRole";
 import { useAuth } from "@/hooks/useAuth";
-import { Shield, ShieldCheck, ShieldOff, Users, Wallet, TrendingDown, RefreshCw, Database, Trash2, UserCog, Clock, CheckCircle2, Ban, LayoutDashboard } from "lucide-react";
+import { Shield, ShieldCheck, ShieldOff, Users, Wallet, TrendingDown, RefreshCw, Database, Trash2, UserCog, Clock, CheckCircle2, Ban, LayoutDashboard, Crown, UserCircle2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -45,6 +45,21 @@ function AdminPage() {
   const [deleting, setDeleting] = useState(false);
   const [statusBusy, setStatusBusy] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved" | "suspended">("all");
+  const [anyAdmin, setAnyAdmin] = useState<boolean | null>(null);
+  const [myRoles, setMyRoles] = useState<string[]>([]);
+
+  // Check if any admin exists in the system + load current user's roles
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const [{ count }, { data: roles }] = await Promise.all([
+        supabase.from("user_roles").select("user_id", { count: "exact", head: true }).in("role", ["admin", "super_admin"]),
+        supabase.from("user_roles").select("role").eq("user_id", user.id),
+      ]);
+      setAnyAdmin((count ?? 0) > 0);
+      setMyRoles((roles || []).map((r: any) => r.role));
+    })();
+  }, [user?.id, isAdmin]);
 
   const load = async () => {
     setLoading(true);
@@ -62,34 +77,95 @@ function AdminPage() {
   if (isAdmin === null) return <AppShell title="অ্যাডমিন"><div className="p-8 text-slate-500">লোড হচ্ছে…</div></AppShell>;
 
   if (!isAdmin) {
+    const isSuper = myRoles.includes("super_admin");
+    const roleLabel = isSuper ? "সুপার অ্যাডমিন" : myRoles.includes("admin") ? "অ্যাডমিন" : "সাধারণ ব্যবহারকারী";
+    const roleIcon = isSuper ? <Crown className="w-4 h-4" /> : myRoles.includes("admin") ? <ShieldCheck className="w-4 h-4" /> : <UserCircle2 className="w-4 h-4" />;
+    const roleClass = isSuper
+      ? "bg-amber-100 text-amber-800 border-amber-300"
+      : myRoles.includes("admin")
+      ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+      : "bg-slate-100 text-slate-700 border-slate-300";
     return (
       <AppShell title="অ্যাডমিন">
-        <div className="max-w-xl mx-auto mt-10 brand-card p-8 text-center">
-          <Shield className="w-12 h-12 mx-auto mb-3" style={{ color: "var(--brand-emerald-700)" }} />
-          <h2 className="text-xl font-semibold mb-2" style={{ fontFamily: "var(--font-display)" }}>অ্যাক্সেস নেই</h2>
-          <p className="text-sm text-slate-600 mb-5">এই পেজটি দেখতে অ্যাডমিন অনুমতি লাগবে।</p>
-          <p className="text-xs text-slate-500 mb-4">
-            যদি এখনো কেউ অ্যাডমিন না হয়ে থাকে, আপনি প্রথম অ্যাডমিন হিসেবে নিজেকে যুক্ত করতে পারেন।
-          </p>
-          <button
-            disabled={claiming}
-            onClick={async () => {
-              setClaiming(true);
-              const { data, error } = await supabase.rpc("claim_admin_if_none");
-              setClaiming(false);
-              if (error) { toast.error(error.message); return; }
-              if (data === true) {
-                toast.success("আপনি এখন অ্যাডমিন!");
-                const { notifyRolesChanged } = await import("@/hooks/useRole");
-                notifyRolesChanged();
-              }
-              else toast.error("ইতিমধ্যে অ্যাডমিন বিদ্যমান।");
-            }}
-            className="px-5 py-2.5 rounded-lg text-white font-medium disabled:opacity-50"
-            style={{ background: "var(--gradient-brand)" }}
-          >
-            {claiming ? "অনুরোধ পাঠানো হচ্ছে…" : "আমাকে অ্যাডমিন বানাও"}
-          </button>
+        <div className="max-w-2xl mx-auto mt-6 space-y-5">
+          {/* Current role status card */}
+          <div className="brand-card p-5">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white" style={{ background: "var(--gradient-brand)" }}>
+                  {(user?.email || "?").charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <div className="text-xs text-slate-500">আপনার বর্তমান স্ট্যাটাস</div>
+                  <div className="font-medium text-sm">{user?.email}</div>
+                </div>
+              </div>
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${roleClass}`}>
+                {roleIcon} {roleLabel}
+              </span>
+            </div>
+          </div>
+
+          {/* Access denied + claim card */}
+          <div className="brand-card p-8 text-center">
+            <div className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4" style={{ background: "color-mix(in oklab, var(--brand-gold-500) 15%, transparent)", border: "1px solid color-mix(in oklab, var(--brand-gold-500) 30%, transparent)" }}>
+              <Shield className="w-8 h-8" style={{ color: "var(--brand-emerald-700)" }} />
+            </div>
+            <h2 className="text-xl font-semibold mb-2" style={{ fontFamily: "var(--font-display)" }}>অ্যাডমিন প্যানেলে অ্যাক্সেস নেই</h2>
+            <p className="text-sm text-slate-600 mb-6">
+              এই পেজটি দেখতে <strong>অ্যাডমিন</strong> অনুমতি প্রয়োজন।
+            </p>
+
+            {anyAdmin === null ? (
+              <div className="text-xs text-slate-400">চেক করা হচ্ছে…</div>
+            ) : !anyAdmin ? (
+              <div className="space-y-4">
+                <div className="rounded-lg p-4 text-left" style={{ background: "color-mix(in oklab, var(--brand-gold-500) 10%, transparent)", border: "1px solid color-mix(in oklab, var(--brand-gold-500) 30%, transparent)" }}>
+                  <div className="flex items-start gap-2">
+                    <Sparkles className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: "var(--brand-gold-500)" }} />
+                    <div className="text-xs text-slate-700">
+                      <strong>সুসংবাদ!</strong> এখনো কেউ অ্যাডমিন হয়নি। আপনি এখনই নিজেকে প্রথম অ্যাডমিন + সুপার অ্যাডমিন হিসেবে যুক্ত করতে পারেন।
+                    </div>
+                  </div>
+                </div>
+                <button
+                  disabled={claiming}
+                  onClick={async () => {
+                    setClaiming(true);
+                    const { data, error } = await supabase.rpc("claim_admin_if_none");
+                    setClaiming(false);
+                    if (error) { toast.error(error.message); return; }
+                    if (data === true) {
+                      toast.success("অভিনন্দন! আপনি এখন অ্যাডমিন ও সুপার অ্যাডমিন!");
+                      const { notifyRolesChanged } = await import("@/hooks/useRole");
+                      notifyRolesChanged();
+                    } else {
+                      toast.error("ইতিমধ্যে অ্যাডমিন বিদ্যমান।");
+                      setAnyAdmin(true);
+                    }
+                  }}
+                  className="w-full px-6 py-3.5 rounded-xl text-white font-semibold text-base disabled:opacity-50 inline-flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-shadow"
+                  style={{ background: "var(--gradient-brand)" }}
+                >
+                  <Crown className="w-5 h-5" />
+                  {claiming ? "অনুরোধ পাঠানো হচ্ছে…" : "আমাকে অ্যাডমিন বানাও"}
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="text-xs text-slate-500">
+                  ইতিমধ্যে একজন অ্যাডমিন বিদ্যমান। অ্যাডমিন অনুমতির জন্য সুপার অ্যাডমিনের কাছে রিকোয়েস্ট পাঠান।
+                </div>
+                <Link
+                  to="/super-admin"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-white font-medium"
+                  style={{ background: "var(--gradient-brand)" }}
+                >
+                  <Crown className="w-4 h-4" /> রিকোয়েস্ট পাঠান
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
       </AppShell>
     );
