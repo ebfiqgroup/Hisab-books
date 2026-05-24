@@ -2,19 +2,18 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
 import {
   Home, Wallet, TrendingDown, ArrowLeftRight, Clock, Target,
-  Users, BarChart3, Calendar, Settings, ShieldCheck, Activity, LifeBuoy, X, StickyNote, CalendarClock,
+  Users, BarChart3, Calendar, Settings, ShieldCheck, Activity, LifeBuoy, X, StickyNote,
 } from "lucide-react";
 import { useIsAdmin } from "@/hooks/useRole";
 import { RefCodeBadge } from "./RefCodeBadge";
 import { useLanguage, type TKey } from "@/hooks/useLanguage";
 
-const navItems: { icon: typeof Home; key: TKey; to: string; search?: Record<string, string> }[] = [
+const navItems: { icon: typeof Home; key: TKey; to: string }[] = [
   { icon: Home, key: "nav.dashboard", to: "/app" },
   { icon: Wallet, key: "nav.income", to: "/income" },
   { icon: TrendingDown, key: "nav.expense", to: "/expense" },
   { icon: ArrowLeftRight, key: "nav.transactions", to: "/transactions" },
   { icon: Clock, key: "nav.budget", to: "/budget" },
-  { icon: CalendarClock, key: "nav.upcomingBudget", to: "/budget", search: { filter: "pending" } },
   { icon: Target, key: "nav.goals", to: "/goals" },
   { icon: Users, key: "nav.debts", to: "/debts" },
   { icon: BarChart3, key: "nav.report", to: "/report" },
