@@ -223,9 +223,25 @@ function BudgetPage() {
   };
 
   const list = bQ.data ?? [];
-  const totalLimit = list.reduce((s, b) => s + Number(b.monthly_limit), 0);
-  const totalSpent = list.reduce((s, b) => s + spentFor(b), 0);
+  const filteredList = useMemo(() => {
+    if (filter === "all") return list;
+    return list.filter((b) => {
+      if (filter === "pending") return nowIso < b.start_at;
+      if (filter === "ongoing") return nowIso >= b.start_at && nowIso <= b.end_at;
+      if (filter === "completed") return nowIso > b.end_at;
+      return true;
+    });
+  }, [list, filter, nowIso]);
+  const totalLimit = filteredList.reduce((s, b) => s + Number(b.monthly_limit), 0);
+  const totalSpent = filteredList.reduce((s, b) => s + spentFor(b), 0);
   const totalPct = totalLimit > 0 ? Math.min(100, (totalSpent / totalLimit) * 100) : 0;
+
+  const filterBtns: { key: typeof filter; labelBn: string; labelEn: string }[] = [
+    { key: "all", labelBn: "পতিটি বিষয়", labelEn: "All" },
+    { key: "pending", labelBn: "অপেক্ষিত", labelEn: "Pending" },
+    { key: "ongoing", labelBn: "চলমান", labelEn: "Ongoing" },
+    { key: "completed", labelBn: "শেষ", labelEn: "Completed" },
+  ];
 
   return (
     <AppShell title={t("বাজেট", "Budget")}>

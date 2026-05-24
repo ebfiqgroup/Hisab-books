@@ -70,6 +70,24 @@ function GoalsPage() {
   };
 
   const list = q.data ?? [];
+  const filteredList = useMemo(() => {
+    if (filter === "all") return list;
+    return list.filter((g) => {
+      const current = Number(g.current);
+      const target = Number(g.target);
+      if (filter === "pending") return current === 0;
+      if (filter === "ongoing") return current > 0 && current < target;
+      if (filter === "completed") return current >= target;
+      return true;
+    });
+  }, [list, filter]);
+
+  const filterBtns: { key: typeof filter; labelBn: string; labelEn: string }[] = [
+    { key: "all", labelBn: "পতিটি বিষয়", labelEn: "All" },
+    { key: "pending", labelBn: "অপেক্ষিত", labelEn: "Pending" },
+    { key: "ongoing", labelBn: "চলমান", labelEn: "Ongoing" },
+    { key: "completed", labelBn: "শেষ", labelEn: "Completed" },
+  ];
 
   return (
     <AppShell title={t("সঞ্চয় লক্ষ্য", "Savings goals")} actions={
