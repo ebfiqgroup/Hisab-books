@@ -214,6 +214,8 @@ function Dashboard() {
 
   // Notes
   const [noteInput, setNoteInput] = useState("");
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [editNoteInput, setEditNoteInput] = useState("");
   const saveNote = async () => {
     const body = noteInput.trim();
     if (!body) return;
@@ -222,6 +224,23 @@ function Dashboard() {
     const { error } = await supabase.from("notes").insert({ user_id: user.id, body });
     if (error) { toast.error(error.message); return; }
     setNoteInput("");
+    qc.invalidateQueries({ queryKey: ["notes"] });
+  };
+  const startEditNote = (n: Note) => {
+    setEditingNoteId(n.id);
+    setEditNoteInput(n.body);
+  };
+  const cancelEditNote = () => {
+    setEditingNoteId(null);
+    setEditNoteInput("");
+  };
+  const updateNote = async () => {
+    const body = editNoteInput.trim();
+    if (!body || !editingNoteId) return;
+    const { error } = await supabase.from("notes").update({ body }).eq("id", editingNoteId);
+    if (error) { toast.error(error.message); return; }
+    setEditingNoteId(null);
+    setEditNoteInput("");
     qc.invalidateQueries({ queryKey: ["notes"] });
   };
   const removeNote = async (id: string) => {
