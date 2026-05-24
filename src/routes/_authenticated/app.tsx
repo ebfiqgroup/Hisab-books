@@ -455,6 +455,29 @@ function Dashboard() {
           </div>
           <div className="space-y-2.5 max-h-80 overflow-y-auto pr-1">
             {adding && renderDraft()}
+            {budgetRows
+              .filter((b) => b.status === "pending")
+              .slice(0, 5)
+              .map((b) => (
+                <Link
+                  key={`bud-${b.id}`}
+                  to="/budget"
+                  className="group flex items-center gap-3 p-2.5 rounded-lg border border-indigo-100 bg-indigo-50/40 hover:bg-indigo-50"
+                >
+                  <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center flex-shrink-0">
+                    <Wallet className="w-3.5 h-3.5 text-indigo-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium truncate text-slate-800">{b.label || b.category}</div>
+                    <div className="text-xs text-slate-500 mt-0.5">
+                      {t("শুরু", "Starts")}: {toBn(b.start_at.slice(0, 10))} · {fmtTk(b.monthly_limit)}
+                    </div>
+                  </div>
+                  <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0 bg-amber-50 text-amber-600">
+                    {t("অপেক্ষিত", "Pending")}
+                  </span>
+                </Link>
+              ))}
             {tasks.map((t) => editingId === t.id ? (
               <div key={t.id}>{renderDraft()}</div>
             ) : (
@@ -471,7 +494,9 @@ function Dashboard() {
                 </div>
               </div>
             ))}
-            {tasks.length === 0 && !adding && <div className="text-center text-sm text-slate-400 py-6">{t("কোনো পরিকল্পনা নেই", "No plans")}</div>}
+            {tasks.length === 0 && budgetRows.filter((b) => b.status === "pending").length === 0 && !adding && (
+              <div className="text-center text-sm text-slate-400 py-6">{t("কোনো পরিকল্পনা নেই", "No plans")}</div>
+            )}
           </div>
         </div>
       </div>
