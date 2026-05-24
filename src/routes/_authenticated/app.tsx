@@ -487,10 +487,27 @@ function Dashboard() {
           <div className="space-y-2 mb-3 max-h-40 overflow-y-auto">
             {notes.length === 0 && <div className="text-xs text-slate-400 text-center py-3">{t("কোনো নোট নেই", "No notes")}</div>}
             {notes.map((n) => (
-              <div key={n.id} className="group flex items-start gap-2 bg-amber-50 border border-amber-100 rounded-lg p-2 text-xs text-slate-700">
-                <span className="flex-1">{n.body}</span>
-                <button onClick={() => removeNote(n.id)} className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-600"><Trash2 className="w-3.5 h-3.5" /></button>
-              </div>
+              editingNoteId === n.id ? (
+                <div key={n.id} className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg p-2">
+                  <input
+                    autoFocus
+                    value={editNoteInput}
+                    onChange={(e) => setEditNoteInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && updateNote()}
+                    className="flex-1 px-2 py-1 text-xs border border-slate-200 rounded-md bg-white"
+                  />
+                  <button onClick={updateNote} className="p-1 rounded-md hover:bg-emerald-50 text-emerald-600"><Check className="w-3.5 h-3.5" /></button>
+                  <button onClick={cancelEditNote} className="p-1 rounded-md hover:bg-rose-50 text-rose-500"><X className="w-3.5 h-3.5" /></button>
+                </div>
+              ) : (
+                <div key={n.id} className="group flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-lg p-2 text-xs text-slate-700">
+                  <span className="flex-1">{n.body}</span>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
+                    <button onClick={() => startEditNote(n)} className="p-1 rounded-md hover:bg-indigo-50 text-slate-400 hover:text-indigo-600"><Pencil className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => removeNote(n.id)} className="p-1 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600"><Trash2 className="w-3.5 h-3.5" /></button>
+                  </div>
+                </div>
+              )
             ))}
           </div>
           <div className="flex gap-2">
