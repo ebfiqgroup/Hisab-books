@@ -17,10 +17,10 @@ const navItems: { icon: typeof Home; key: TKey; to: string }[] = [
   { icon: Target, key: "nav.goals", to: "/goals" },
   { icon: Users, key: "nav.debts", to: "/debts" },
   { icon: BarChart3, key: "nav.report", to: "/report" },
-  { icon: Calendar, key: "nav.calendar", to: "/calendar" },
   { icon: StickyNote, key: "nav.notes", to: "/notes" },
   { icon: LifeBuoy, key: "nav.support", to: "/support" },
   { icon: Settings, key: "nav.settings", to: "/settings" },
+  { icon: Calendar, key: "nav.calendar", to: "/calendar" },
 ];
 
 export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean; onClose?: () => void } = {}) {
