@@ -10,6 +10,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/super-admin")({
   component: SuperAdminPage,
@@ -59,6 +61,7 @@ function SuperAdminPage() {
   const [pending, setPending] = useState<{ row: UserRow; action: "grant_admin" | "revoke_admin" | "grant_super" | "revoke_super" } | null>(null);
   const [busy, setBusy] = useState(false);
   const [requests, setRequests] = useState<RoleRequest[]>([]);
+  const [detail, setDetail] = useState<DetailKey | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -156,14 +159,14 @@ function SuperAdminPage() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <StatCard icon={<Users className="w-5 h-5" />} label="মোট ব্যবহারকারী" value={fmt(stats?.users || 0)} />
-        <StatCard icon={<ShieldCheck className="w-5 h-5" />} label="অ্যাডমিন" value={fmt(stats?.admins || 0)} />
-        <StatCard icon={<Crown className="w-5 h-5" />} label="সুপার অ্যাডমিন" value={fmt(stats?.superAdmins || 0)} />
-        <StatCard icon={<Activity className="w-5 h-5" />} label="পেন্ডিং" value={fmt(stats?.pending || 0)} />
-        <StatCard icon={<Database className="w-5 h-5" />} label="মোট লেনদেন" value={fmt(stats?.transactions || 0)} />
-        <StatCard icon={<Database className="w-5 h-5" />} label="বাজেট" value={fmt(stats?.budgets || 0)} />
-        <StatCard icon={<Database className="w-5 h-5" />} label="লক্ষ্য" value={fmt(stats?.goals || 0)} />
-        <StatCard icon={<Database className="w-5 h-5" />} label="টিকেট" value={fmt(stats?.tickets || 0)} />
+        <StatCard icon={<Users className="w-5 h-5" />} label="মোট ব্যবহারকারী" value={fmt(stats?.users || 0)} onClick={() => setDetail("users")} />
+        <StatCard icon={<ShieldCheck className="w-5 h-5" />} label="অ্যাডমিন" value={fmt(stats?.admins || 0)} onClick={() => setDetail("admins")} />
+        <StatCard icon={<Crown className="w-5 h-5" />} label="সুপার অ্যাডমিন" value={fmt(stats?.superAdmins || 0)} onClick={() => setDetail("supers")} />
+        <StatCard icon={<Activity className="w-5 h-5" />} label="পেন্ডিং" value={fmt(stats?.pending || 0)} onClick={() => setDetail("pending")} />
+        <StatCard icon={<Database className="w-5 h-5" />} label="মোট লেনদেন" value={fmt(stats?.transactions || 0)} onClick={() => setDetail("transactions")} />
+        <StatCard icon={<Database className="w-5 h-5" />} label="বাজেট" value={fmt(stats?.budgets || 0)} onClick={() => setDetail("budgets")} />
+        <StatCard icon={<Database className="w-5 h-5" />} label="লক্ষ্য" value={fmt(stats?.goals || 0)} onClick={() => setDetail("goals")} />
+        <StatCard icon={<Database className="w-5 h-5" />} label="টিকেট" value={fmt(stats?.tickets || 0)} onClick={() => setDetail("tickets")} />
       </div>
 
       <div className="brand-card p-4 md:p-6">
@@ -283,19 +286,21 @@ function SuperAdminPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <DetailDialog detail={detail} onClose={() => setDetail(null)} rows={rows} />
     </AppShell>
   );
 }
 
-function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function StatCard({ icon, label, value, onClick }: { icon: React.ReactNode; label: string; value: string; onClick?: () => void }) {
   return (
-    <div className="brand-card p-4">
+    <button type="button" onClick={onClick} className="brand-card p-4 text-left transition hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 cursor-pointer">
       <div className="flex items-center gap-2 text-slate-500 text-xs mb-1">
         <span style={{ color: "var(--brand-emerald-700)" }}>{icon}</span>
         {label}
       </div>
       <div className="text-2xl font-bold" style={{ fontFamily: "var(--font-display)" }}>{value}</div>
-    </div>
+      <div className="text-[10px] text-slate-400 mt-1">বিস্তারিত দেখুন →</div>
+    </button>
   );
 }
 
