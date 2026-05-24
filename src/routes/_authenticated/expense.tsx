@@ -71,8 +71,9 @@ function ExpensePage() {
         </div>
       </div>
       {/* Desktop table */}
-      <div className="hidden md:block bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="hidden lg:block bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[640px]">
           <thead className="bg-slate-50 text-slate-600 text-xs">
             <tr>
               <th className="text-left px-4 py-3 font-medium">{t("ক্যাটাগরি", "Category")}</th>
@@ -105,9 +106,10 @@ function ExpensePage() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
       {/* Mobile card list */}
-      <div className="md:hidden space-y-2">
+      <div className="lg:hidden space-y-2">
         {q.isLoading && <div className="bg-white rounded-xl border border-slate-200 p-6 text-center text-slate-400 text-sm">{t("লোড হচ্ছে...", "Loading...")}</div>}
         {!q.isLoading && list.length === 0 && <div className="bg-white rounded-xl border border-slate-200 p-6 text-center text-slate-400 text-sm">{t("কোনো ব্যয় নেই", "No expenses yet")}</div>}
         {list.map((t) => (
