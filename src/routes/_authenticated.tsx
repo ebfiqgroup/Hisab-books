@@ -1,4 +1,5 @@
 import { createFileRoute, redirect, Outlet, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Clock, Ban, LogOut } from "lucide-react";
@@ -17,17 +18,23 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthGate() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   // Optimistic: render the app immediately after beforeLoad confirms session.
   // Profile status is verified in background; only block if explicitly pending/suspended.
   const [status, setStatus] = useState<"approved" | "pending" | "suspended">("approved");
   const [userId, setUserId] = useState<string | undefined>(undefined);
+  const [authReady, setAuthReady] = useState(false);
 
   useEffect(() => {
     let cancel = false;
     const check = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { navigate({ to: "/auth" }); return; }
-      if (!cancel) setUserId(session.user.id);
+      if (!cancel) {
+        setUserId(session.user.id);
+        setAuthReady(true);
+        queryClient.invalidateQueries({ refetchType: "active" });
+      }
       const { data } = await supabase.from("profiles").select("status").eq("id", session.user.id).maybeSingle();
       if (cancel) return;
       const s = (data?.status as "approved" | "pending" | "suspended" | null) || "approved";
@@ -37,11 +44,21 @@ function AuthGate() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
       if (!s) { navigate({ to: "/auth" }); return; }
       setUserId(s.user.id);
+      setAuthReady(true);
+      queryClient.invalidateQueries({ refetchType: "active" });
     });
     return () => { cancel = true; subscription.unsubscribe(); };
-  }, [navigate]);
+  }, [navigate, queryClient]);
 
   const rtStatus = useRealtimeSync(userId);
+
+  if (!authReady || !userId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-sm font-medium text-slate-500">ডাটা প্রস্তুত হচ্ছে…</div>
+      </div>
+    );
+  }
 
   if (status === "pending" || status === "suspended") {
     const isPending = status === "pending";
