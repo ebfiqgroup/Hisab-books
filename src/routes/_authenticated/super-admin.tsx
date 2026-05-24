@@ -62,13 +62,14 @@ function SuperAdminPage() {
 
   const load = async () => {
     setLoading(true);
-    const [overview, roles, txc, bdc, glc, tkc] = await Promise.all([
+    const [overview, roles, txc, bdc, glc, tkc, reqs] = await Promise.all([
       supabase.from("admin_user_overview").select("user_id, full_name, ref_code, created_at, status").order("created_at", { ascending: false }),
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("transactions").select("id", { count: "exact", head: true }),
       supabase.from("budgets").select("id", { count: "exact", head: true }),
       supabase.from("goals").select("id", { count: "exact", head: true }),
       supabase.from("support_tickets").select("id", { count: "exact", head: true }),
+      supabase.from("role_requests").select("*").order("created_at", { ascending: false }),
     ]);
     if (overview.error) toast.error(overview.error.message);
     const roleMap = new Map<string, { admin: boolean; super: boolean }>();
@@ -95,6 +96,8 @@ function SuperAdminPage() {
       admins, superAdmins: supers, pending: pendingC, suspended,
       transactions: txc.count || 0, budgets: bdc.count || 0, goals: glc.count || 0, tickets: tkc.count || 0,
     });
+    const nameMap = new Map(merged.map(m => [m.user_id, m.full_name]));
+    setRequests(((reqs.data as any[]) || []).map(r => ({ ...r, full_name: nameMap.get(r.user_id) || null })));
     setLoading(false);
   };
 
