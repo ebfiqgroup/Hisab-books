@@ -60,6 +60,7 @@ function emptyForm(defaultCat: string): FormState {
 function BudgetPage() {
   const { t } = useLanguage();
   const qc = useQueryClient();
+  const search = useSearch({ from: "/_authenticated/budget" }) as { filter?: string };
   const { forType } = useCustomCategories();
   // One-time clear of any pre-existing expense categories so the budget
   // page starts fresh and the user defines categories from scratch here.
