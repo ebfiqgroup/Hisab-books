@@ -476,6 +476,57 @@ function Dashboard() {
         </div>
       </div>
 
+      {/* Budgets overview */}
+      <div className="bg-white rounded-xl p-5 border border-slate-200 mb-4">
+        <div className="flex items-center justify-between mb-4 gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <Wallet className="w-5 h-5 text-indigo-600 shrink-0" />
+            <h3 className="font-bold text-slate-800 truncate">{t("চলমান বাজেট", "Active budgets")}</h3>
+            {activeBudgets.length > 0 && (
+              <span className="text-xs text-slate-500 shrink-0">
+                {fmtTk(totalBudgetSpent)} / {fmtTk(totalBudgetLimit)}
+              </span>
+            )}
+          </div>
+          <Link to="/budget" className="text-sm text-indigo-600 shrink-0">{t("সব দেখুন →", "View all →")}</Link>
+        </div>
+        {activeBudgets.length === 0 ? (
+          <div className="text-sm text-slate-400 text-center py-6">
+            {t("কোনো চলমান বাজেট নেই", "No active budgets")} ·{" "}
+            <Link to="/budget" className="text-indigo-600">{t("নতুন তৈরি করুন", "Create one")}</Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {activeBudgets.map((b) => {
+              const pct = b.monthly_limit > 0 ? Math.min(100, (b.spent / b.monthly_limit) * 100) : 0;
+              const over = b.monthly_limit > 0 && b.spent > b.monthly_limit;
+              const color = categoryColor(b.category);
+              return (
+                <div key={b.id} className="p-3 rounded-lg border border-slate-100 hover:bg-slate-50/60">
+                  <div className="flex items-center justify-between mb-1.5 gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
+                      <span className="text-sm font-medium text-slate-800 truncate">{b.label || b.category}</span>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full shrink-0 ${b.status === "ongoing" ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"}`}>
+                        {b.status === "ongoing" ? t("চলমান", "Ongoing") : t("অপেক্ষিত", "Pending")}
+                      </span>
+                    </div>
+                    <span className={`text-xs font-semibold shrink-0 ${over ? "text-rose-500" : "text-slate-600"}`}>{toBn(pct.toFixed(0))}%</span>
+                  </div>
+                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${pct}%`, background: over ? "#f43f5e" : color }} />
+                  </div>
+                  <div className="flex items-center justify-between mt-1.5 text-xs">
+                    <span className={over ? "text-rose-500 font-medium" : "text-slate-500"}>{fmtTk(b.spent)}</span>
+                    <span className="text-slate-400">/ {fmtTk(b.monthly_limit)}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
       {/* Bottom */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="bg-white rounded-xl p-5 border border-slate-200">
