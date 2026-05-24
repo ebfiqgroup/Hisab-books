@@ -38,8 +38,8 @@ export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean;
   }, [mobileOpen, onClose]);
   const items = [
     ...navItems,
-    { icon: ShieldCheck, key: "nav.admin" as TKey, to: "/admin" as const },
-    { icon: Crown, key: "nav.superAdmin" as TKey, to: "/super-admin" as const },
+    ...(isAdmin ? [{ icon: ShieldCheck, key: "nav.admin" as TKey, to: "/admin" as const }] : []),
+    ...(isSuperAdmin ? [{ icon: Crown, key: "nav.superAdmin" as TKey, to: "/super-admin" as const }] : []),
     ...(isAdmin ? [{ icon: Activity, key: "nav.audit" as TKey, to: "/audit" as const }] : []),
   ];
   return (
