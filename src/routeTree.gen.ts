@@ -18,6 +18,7 @@ import { Route as AuthenticatedTransactionsRouteImport } from './routes/_authent
 import { Route as AuthenticatedSupportRouteImport } from './routes/_authenticated/support'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedReportRouteImport } from './routes/_authenticated/report'
+import { Route as AuthenticatedNotesRouteImport } from './routes/_authenticated/notes'
 import { Route as AuthenticatedIncomeRouteImport } from './routes/_authenticated/income'
 import { Route as AuthenticatedGoalsRouteImport } from './routes/_authenticated/goals'
 import { Route as AuthenticatedExpenseRouteImport } from './routes/_authenticated/expense'
@@ -72,6 +73,11 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
 const AuthenticatedReportRoute = AuthenticatedReportRouteImport.update({
   id: '/report',
   path: '/report',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedNotesRoute = AuthenticatedNotesRouteImport.update({
+  id: '/notes',
+  path: '/notes',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedIncomeRoute = AuthenticatedIncomeRouteImport.update({
@@ -140,6 +146,7 @@ export interface FileRoutesByFullPath {
   '/expense': typeof AuthenticatedExpenseRoute
   '/goals': typeof AuthenticatedGoalsRoute
   '/income': typeof AuthenticatedIncomeRoute
+  '/notes': typeof AuthenticatedNotesRoute
   '/report': typeof AuthenticatedReportRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/support': typeof AuthenticatedSupportRoute
@@ -160,6 +167,7 @@ export interface FileRoutesByTo {
   '/expense': typeof AuthenticatedExpenseRoute
   '/goals': typeof AuthenticatedGoalsRoute
   '/income': typeof AuthenticatedIncomeRoute
+  '/notes': typeof AuthenticatedNotesRoute
   '/report': typeof AuthenticatedReportRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/support': typeof AuthenticatedSupportRoute
@@ -182,6 +190,7 @@ export interface FileRoutesById {
   '/_authenticated/expense': typeof AuthenticatedExpenseRoute
   '/_authenticated/goals': typeof AuthenticatedGoalsRoute
   '/_authenticated/income': typeof AuthenticatedIncomeRoute
+  '/_authenticated/notes': typeof AuthenticatedNotesRoute
   '/_authenticated/report': typeof AuthenticatedReportRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/support': typeof AuthenticatedSupportRoute
@@ -204,6 +213,7 @@ export interface FileRouteTypes {
     | '/expense'
     | '/goals'
     | '/income'
+    | '/notes'
     | '/report'
     | '/settings'
     | '/support'
@@ -224,6 +234,7 @@ export interface FileRouteTypes {
     | '/expense'
     | '/goals'
     | '/income'
+    | '/notes'
     | '/report'
     | '/settings'
     | '/support'
@@ -245,6 +256,7 @@ export interface FileRouteTypes {
     | '/_authenticated/expense'
     | '/_authenticated/goals'
     | '/_authenticated/income'
+    | '/_authenticated/notes'
     | '/_authenticated/report'
     | '/_authenticated/settings'
     | '/_authenticated/support'
@@ -323,6 +335,13 @@ declare module '@tanstack/react-router' {
       path: '/report'
       fullPath: '/report'
       preLoaderRoute: typeof AuthenticatedReportRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/notes': {
+      id: '/_authenticated/notes'
+      path: '/notes'
+      fullPath: '/notes'
+      preLoaderRoute: typeof AuthenticatedNotesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/income': {
@@ -419,6 +438,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedExpenseRoute: typeof AuthenticatedExpenseRoute
   AuthenticatedGoalsRoute: typeof AuthenticatedGoalsRoute
   AuthenticatedIncomeRoute: typeof AuthenticatedIncomeRoute
+  AuthenticatedNotesRoute: typeof AuthenticatedNotesRoute
   AuthenticatedReportRoute: typeof AuthenticatedReportRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedSupportRoute: typeof AuthenticatedSupportRoute
@@ -435,6 +455,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedExpenseRoute: AuthenticatedExpenseRoute,
   AuthenticatedGoalsRoute: AuthenticatedGoalsRoute,
   AuthenticatedIncomeRoute: AuthenticatedIncomeRoute,
+  AuthenticatedNotesRoute: AuthenticatedNotesRoute,
   AuthenticatedReportRoute: AuthenticatedReportRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedSupportRoute: AuthenticatedSupportRoute,
