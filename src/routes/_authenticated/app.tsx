@@ -348,7 +348,7 @@ function Dashboard() {
                   <button onClick={() => setDonutView("income")} className={`px-3 py-1 rounded-md ${!isExp ? "bg-white shadow text-slate-800" : "text-slate-500"}`}>{t("আয়", "Income")}</button>
                 </div>
               </div>
-              <div className="flex items-center gap-6">
+              <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
                 <div className="relative w-44 h-44 flex-shrink-0">
                   <div className="w-full h-full rounded-full" style={{ background: `conic-gradient(${donut.segs})` }}></div>
                   <div className="absolute inset-6 bg-white rounded-full flex flex-col items-center justify-center">
@@ -356,7 +356,7 @@ function Dashboard() {
                     <div className="font-bold text-slate-800">{fmtTk(totalVal)}</div>
                   </div>
                 </div>
-                <div className="flex-1 space-y-2.5 max-h-44 overflow-y-auto pr-1">
+                <div className="w-full flex-1 space-y-2.5 max-h-44 overflow-y-auto pr-1">
                   {items.length === 0 && <div className="text-sm text-slate-400">{t("কোনো ক্যাটাগরি নেই", "No categories")}</div>}
                   {items.map((e) => (
                     <div key={e.label} className="flex items-center text-sm">
