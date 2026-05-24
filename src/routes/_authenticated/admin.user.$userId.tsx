@@ -163,14 +163,19 @@ function AdminUserView() {
           {/* Stat cards */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
             {cards.map(s => (
-              <div key={s.label} className="bg-white rounded-xl p-4 border border-slate-200">
+              <button
+                key={s.label}
+                onClick={() => setDetail({ key: s.key, title: s.label })}
+                className="bg-white rounded-xl p-4 border border-slate-200 text-left hover:shadow-md hover:border-emerald-300 transition"
+              >
                 <div className="flex items-center gap-2 mb-2">
                   <div className={`w-9 h-9 rounded-full flex items-center justify-center ${cBg[s.c]}`}><s.Icon className="w-4 h-4" /></div>
                   <div className="text-xs text-slate-500">{s.label}</div>
                 </div>
                 <div className="text-lg font-bold text-slate-800">{s.value}</div>
                 {s.last && <div className="text-[11px] text-slate-400 mt-1">{s.last}</div>}
-              </div>
+                <div className="text-[10px] text-emerald-600 mt-1.5">বিস্তারিত দেখুন →</div>
+              </button>
             ))}
           </div>
 
