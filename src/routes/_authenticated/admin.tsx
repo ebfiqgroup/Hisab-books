@@ -78,7 +78,11 @@ function AdminPage() {
               const { data, error } = await supabase.rpc("claim_admin_if_none");
               setClaiming(false);
               if (error) { toast.error(error.message); return; }
-              if (data === true) { toast.success("আপনি এখন অ্যাডমিন!"); window.location.reload(); }
+              if (data === true) {
+                toast.success("আপনি এখন অ্যাডমিন!");
+                const { notifyRolesChanged } = await import("@/hooks/useRole");
+                notifyRolesChanged();
+              }
               else toast.error("ইতিমধ্যে অ্যাডমিন বিদ্যমান।");
             }}
             className="px-5 py-2.5 rounded-lg text-white font-medium disabled:opacity-50"
