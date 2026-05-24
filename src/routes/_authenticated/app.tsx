@@ -4,12 +4,14 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { categoryColor, toBn, fmtTk, monthBounds, pctChange, BN_MONTHS } from "@/lib/finance";
 import { useCustomCategories } from "@/hooks/useCustomCategories";
+import { useIsAdmin } from "@/hooks/useRole";
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
 } from "recharts";
 import {
   Wallet, Users, TrendingDown, Search,
   ArrowDown, ArrowUp, PiggyBank, StickyNote, Plus, Pencil, Trash2, Check, X, Target,
+  ShieldCheck,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { TxnDialog, type EditTxn } from "@/components/dashboard/TxnDialog";
@@ -307,8 +309,30 @@ function Dashboard() {
     </div>
   );
 
+  const isAdmin = useIsAdmin();
+
   return (
     <AppShell title={t("ড্যাশবোর্ড", "Dashboard")}>
+      {/* Admin Panel Link (only for admins) */}
+      {isAdmin && (
+        <div className="mb-4">
+          <Link
+            to="/admin"
+            className="flex items-center gap-3 px-4 py-3 rounded-xl border bg-white hover:shadow-md transition"
+            style={{ borderColor: "var(--brand-line)" }}
+          >
+            <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center">
+              <ShieldCheck className="w-5 h-5 text-emerald-600" />
+            </div>
+            <div className="flex-1">
+              <div className="font-semibold text-sm text-slate-800">{t("অ্যাডমিন প্যানেল", "Admin Panel")}</div>
+              <div className="text-xs text-slate-500">{t("ব্যবহারকারী, রোল ও সিস্টেম ম্যানেজমেন্ট", "User, role & system management")}</div>
+            </div>
+            <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">{t("ওপেন করুন", "Open")} →</span>
+          </Link>
+        </div>
+      )}
+
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-6">
         {statCards.map((s) => (
