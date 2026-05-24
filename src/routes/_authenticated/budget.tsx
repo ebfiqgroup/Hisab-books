@@ -7,7 +7,7 @@ import { fmtTk, toBn, categoryColor } from "@/lib/finance";
 import { useCustomCategories } from "@/hooks/useCustomCategories";
 import { loadCustomCats, saveCustomCats } from "@/lib/finance";
 import { toast } from "sonner";
-import { Plus, Trash2, Pencil, Wallet, CalendarClock, X } from "lucide-react";
+import { Plus, Trash2, Pencil, Wallet, CalendarClock, X, ListFilter } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 
 export const Route = createFileRoute("/_authenticated/budget")({ component: BudgetPage });
@@ -119,6 +119,9 @@ function BudgetPage() {
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<FormState>(() => emptyForm(cats[0] ?? ""));
+  const [filter, setFilter] = useState<"all" | "pending" | "ongoing" | "completed">("all");
+
+  const nowIso = new Date().toISOString();
 
   const bQ = useQuery({
     queryKey: ["budgets"],
@@ -220,9 +223,25 @@ function BudgetPage() {
   };
 
   const list = bQ.data ?? [];
-  const totalLimit = list.reduce((s, b) => s + Number(b.monthly_limit), 0);
-  const totalSpent = list.reduce((s, b) => s + spentFor(b), 0);
+  const filteredList = useMemo(() => {
+    if (filter === "all") return list;
+    return list.filter((b) => {
+      if (filter === "pending") return nowIso < b.start_at;
+      if (filter === "ongoing") return nowIso >= b.start_at && nowIso <= b.end_at;
+      if (filter === "completed") return nowIso > b.end_at;
+      return true;
+    });
+  }, [list, filter, nowIso]);
+  const totalLimit = filteredList.reduce((s, b) => s + Number(b.monthly_limit), 0);
+  const totalSpent = filteredList.reduce((s, b) => s + spentFor(b), 0);
   const totalPct = totalLimit > 0 ? Math.min(100, (totalSpent / totalLimit) * 100) : 0;
+
+  const filterBtns: { key: typeof filter; labelBn: string; labelEn: string }[] = [
+    { key: "all", labelBn: "পতিটি বিষয়", labelEn: "All" },
+    { key: "pending", labelBn: "অপেক্ষিত", labelEn: "Pending" },
+    { key: "ongoing", labelBn: "চলমান", labelEn: "Ongoing" },
+    { key: "completed", labelBn: "শেষ", labelEn: "Completed" },
+  ];
 
   return (
     <AppShell title={t("বাজেট", "Budget")}>
@@ -256,19 +275,46 @@ function BudgetPage() {
         </div>
       </div>
 
+      {/* Filter tabs */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        <div className="flex items-center gap-1.5 text-xs text-slate-500 mr-1">
+          <ListFilter className="w-3.5 h-3.5" />
+          <span>{t("ফিল্টার", "Filter")}:</span>
+        </div>
+        {filterBtns.map((f) => (
+          <button
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+              filter === f.key
+                ? "bg-indigo-600 text-white"
+                : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+            }`}
+          >
+            {t(f.labelBn, f.labelEn)}
+          </button>
+        ))}
+      </div>
+
       {/* List */}
-      {list.length === 0 ? (
+      {filteredList.length === 0 ? (
         <div className="bg-white rounded-xl border border-dashed border-slate-300 p-10 text-center">
           <Wallet className="w-10 h-10 mx-auto text-slate-300 mb-3" />
-          <p className="text-slate-600 text-sm mb-3">{t("এখনো কোনো বাজেট নেই", "No budgets yet")}</p>
-          <button onClick={openCreate}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg">
-            <Plus className="w-4 h-4" /> {t("প্রথম বাজেট যুক্ত করুন", "Add first budget")}
-          </button>
+          <p className="text-slate-600 text-sm mb-3">
+            {filter === "all"
+              ? t("এখনো কোনো বাজেট নেই", "No budgets yet")
+              : t("এই ফিল্টারে কোনো বাজেট পাওয়া যায়নি", "No budgets match this filter")}
+          </p>
+          {filter === "all" && (
+            <button onClick={openCreate}
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg">
+              <Plus className="w-4 h-4" /> {t("প্রথম বাজেট যুক্ত করুন", "Add first budget")}
+            </button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {list.map((b) => {
+          {filteredList.map((b) => {
             const spent = spentFor(b);
             const pct = b.monthly_limit > 0 ? Math.min(100, (spent / b.monthly_limit) * 100) : 0;
             const over = b.monthly_limit > 0 && spent > b.monthly_limit;
