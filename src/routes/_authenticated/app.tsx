@@ -221,6 +221,11 @@ function Dashboard() {
     if (!body) return;
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
+    const exists = notes.some((n) => n.body.trim() === body);
+    if (exists) {
+      toast.warning(t("এই নোট ইতিমধ্যে আছে।", "This note already exists."));
+      return;
+    }
     const { error } = await supabase.from("notes").insert({ user_id: user.id, body });
     if (error) { toast.error(error.message); return; }
     setNoteInput("");
