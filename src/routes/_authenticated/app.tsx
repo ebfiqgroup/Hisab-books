@@ -333,7 +333,7 @@ function Dashboard() {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         {(() => {
           const isExp = donutView === "expense";
           const items = isExp ? expenses : incomes;
@@ -411,7 +411,7 @@ function Dashboard() {
       </div>
 
       {/* Recent + Plan */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         <div className="bg-white rounded-xl p-5 border border-slate-200">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-slate-800">{t("সাম্প্রতিক লেনদেন", "Recent transactions")}</h3>
