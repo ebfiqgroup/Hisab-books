@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
 import {
   Home, Wallet, TrendingDown, ArrowLeftRight, Clock, Target,
-  Users, BarChart3, Calendar, Settings, ShieldCheck, Activity, LifeBuoy, X,
+  Users, BarChart3, Calendar, Settings, ShieldCheck, Activity, LifeBuoy, X, StickyNote,
 } from "lucide-react";
 import { useIsAdmin } from "@/hooks/useRole";
 import { RefCodeBadge } from "./RefCodeBadge";
@@ -18,6 +18,7 @@ const navItems: { icon: typeof Home; key: TKey; to: string }[] = [
   { icon: Users, key: "nav.debts", to: "/debts" },
   { icon: BarChart3, key: "nav.report", to: "/report" },
   { icon: Calendar, key: "nav.calendar", to: "/calendar" },
+  { icon: StickyNote, key: "nav.notes", to: "/notes" },
   { icon: LifeBuoy, key: "nav.support", to: "/support" },
   { icon: Settings, key: "nav.settings", to: "/settings" },
 ];
