@@ -39,6 +39,7 @@ const dict = {
     "nav.expense": "Expense",
     "nav.transactions": "Transactions",
     "nav.budget": "Budget",
+    "nav.upcomingBudget": "Upcoming Budget & Plans",
     "nav.goals": "Goals",
     "nav.debts": "Debts",
     "nav.report": "Report",
