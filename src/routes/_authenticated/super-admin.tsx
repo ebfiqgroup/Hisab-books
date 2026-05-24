@@ -178,6 +178,9 @@ function SuperAdminPage() {
           />
         </div>
 
+        <RequestsInbox requests={requests} onChange={load} />
+
+
         {loading ? (
           <div className="py-10 text-center text-slate-500">লোড হচ্ছে…</div>
         ) : filtered.length === 0 ? (
