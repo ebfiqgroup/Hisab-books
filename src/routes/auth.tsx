@@ -39,9 +39,11 @@ function AuthPage() {
   };
 
   useEffect(() => {
+    let cancel = false;
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/app" });
+      if (!cancel && data.session) navigate({ to: "/app", replace: true });
     });
+    return () => { cancel = true; };
   }, [navigate]);
 
   const submit = async (e: React.FormEvent) => {
