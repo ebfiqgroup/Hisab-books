@@ -404,8 +404,14 @@ function GoalsPage() {
           <div className="space-y-3">
             <input value={form.label} onChange={(e) => setForm({ ...form, label: e.target.value })} placeholder={t("লক্ষ্যের নাম", "Goal name")} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
             <div className="grid grid-cols-2 gap-2">
-              <input type="number" value={form.target} onChange={(e) => setForm({ ...form, target: e.target.value })} placeholder={t("লক্ষ্য ৳", "Target ৳")} className="px-3 py-2 border border-slate-200 rounded-lg text-sm" />
-              <input type="number" value={form.current} onChange={(e) => setForm({ ...form, current: e.target.value })} placeholder={t("বর্তমান ৳", "Current ৳")} className="px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+              <div>
+                <label className="block text-xs text-slate-600 mb-1">{t("মোট টাকা (৳)", "Total (৳)")}</label>
+                <input type="number" value={form.target} onChange={(e) => setForm({ ...form, target: e.target.value })} placeholder="0" className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-600 mb-1">{t("বর্তমান টাকা (৳)", "Current (৳)")}</label>
+                <input type="number" value={form.current} onChange={(e) => setForm({ ...form, current: e.target.value })} placeholder="0" className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
