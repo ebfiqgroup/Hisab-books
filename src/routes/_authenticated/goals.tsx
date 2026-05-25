@@ -463,14 +463,68 @@ function GoalsPage() {
               </div>
               {cats.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mt-2">
-                  {cats.map((c) => (
-                    <button key={c} type="button" onClick={() => setForm({ ...form, category: form.category === c ? "" : c })}
-                      className={`px-2.5 py-1 rounded-full text-xs border ${form.category === c ? "bg-indigo-600 text-white border-indigo-600" : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"}`}>
-                      {c}
-                    </button>
-                  ))}
+                  {cats.map((c) => {
+                    const isEditing = editingCat === c;
+                    const isSelected = form.category === c;
+                    if (isEditing) {
+                      return (
+                        <div key={c} className="inline-flex items-center gap-1 border border-indigo-300 rounded-full pl-2 pr-1 py-0.5 bg-white">
+                          <input
+                            autoFocus
+                            value={editingCatName}
+                            onChange={(e) => setEditingCatName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") { e.preventDefault(); renameCategory(c, editingCatName); }
+                              if (e.key === "Escape") setEditingCat(null);
+                            }}
+                            className="text-xs w-24 outline-none bg-transparent"
+                          />
+                          <button type="button" onClick={() => renameCategory(c, editingCatName)}
+                            className="text-xs px-1.5 py-0.5 rounded-full bg-indigo-600 text-white">{t("ঠিক", "OK")}</button>
+                          <button type="button" onClick={() => setEditingCat(null)}
+                            className="p-0.5 text-slate-400 hover:text-slate-600"><X className="w-3 h-3" /></button>
+                        </div>
+                      );
+                    }
+                    return (
+                      <div key={c}
+                        className={`inline-flex items-center rounded-full border text-xs ${isSelected ? "bg-indigo-600 text-white border-indigo-600" : "border-slate-200 text-slate-700"}`}>
+                        <button type="button" onClick={() => setForm({ ...form, category: isSelected ? "" : c })}
+                          className={`pl-2.5 pr-1.5 py-1 ${isSelected ? "" : "hover:bg-slate-50 rounded-l-full"}`}>
+                          {c}
+                        </button>
+                        <button type="button" title={t("এডিট", "Edit")}
+                          onClick={() => { setEditingCat(c); setEditingCatName(c); }}
+                          className={`p-1 ${isSelected ? "text-indigo-100 hover:text-white" : "text-slate-400 hover:text-slate-700"}`}>
+                          <Pencil className="w-3 h-3" />
+                        </button>
+                        <button type="button" title={t("মুছুন", "Delete")}
+                          onClick={() => removeCategory(c)}
+                          className={`p-1 pr-2 ${isSelected ? "text-indigo-100 hover:text-white" : "text-slate-400 hover:text-rose-600"}`}>
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
+            </div>
+            <div className="flex flex-wrap gap-2 pt-1">
+              {[
+                { label: t("৭ দিন", "7 days"), days: 7 },
+                { label: t("৩০ দিন", "30 days"), days: 30 },
+                { label: t("৯০ দিন", "90 days"), days: 90 },
+                { label: t("১ বছর", "1 year"), days: 365 },
+              ].map((p) => (
+                <button key={p.days} type="button" onClick={() => {
+                  const s = new Date();
+                  const e = new Date(s.getTime() + p.days * 86400000);
+                  const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+                  setForm({ ...form, start_date: fmt(s), deadline: fmt(e) });
+                }} className="px-2.5 py-1 text-xs border border-slate-200 rounded-full hover:bg-slate-50">
+                  {p.label}
+                </button>
+              ))}
             </div>
             <div className="flex gap-2">
               {COLORS.map((c) => (
