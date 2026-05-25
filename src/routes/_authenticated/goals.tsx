@@ -323,17 +323,6 @@ function GoalsPage() {
               </div>
               <div className="font-bold text-slate-800 mb-1 text-base">{g.label}</div>
               {g.category && <div className="inline-block text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 mb-1">{g.category}</div>}
-              {/* Total / Current two-column */}
-              <div className="grid grid-cols-2 gap-2 mb-3 mt-2">
-                <div className="rounded-lg border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-2.5">
-                  <div className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">{t("মোট টাকা", "Total")}</div>
-                  <div className="text-sm font-extrabold text-slate-800 tabular-nums">{fmtTk(Number(g.target))}</div>
-                </div>
-                <div className="rounded-lg border p-2.5" style={{ borderColor: completed ? "#fcd34d" : "rgba(16,185,129,0.25)", background: completed ? "linear-gradient(135deg,#fffbeb,#fef3c7)" : "linear-gradient(135deg,#ecfdf5,#f0fdfa)" }}>
-                  <div className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: completed ? "#b45309" : "#059669" }}>{t("বর্তমান টাকা", "Current")}</div>
-                  <div className="text-sm font-extrabold tabular-nums" style={{ color: completed ? "#b45309" : "#065f46" }}>{fmtTk(Number(g.current))}</div>
-                </div>
-              </div>
               <div className="flex flex-wrap gap-1.5 mb-3">
                 {statusBtns.map((sb) => (
                   <button
