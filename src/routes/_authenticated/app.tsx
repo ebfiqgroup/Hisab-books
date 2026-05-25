@@ -317,7 +317,7 @@ function Dashboard() {
   return (
     <AppShell title={t("ড্যাশবোর্ড", "Dashboard")}>
       {/* Hero Welcome Banner */}
-      <div className="relative overflow-hidden rounded-2xl mb-6 p-5 sm:p-7 text-white shadow-lg">
+      <div className="relative overflow-hidden rounded-2xl mb-5 p-5 sm:p-7 text-white shadow-lg">
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600" />
         <div className="absolute -top-10 -right-10 w-56 h-56 rounded-full bg-white/10 blur-3xl" />
         <div className="absolute -bottom-10 -left-10 w-56 h-56 rounded-full bg-fuchsia-400/20 blur-3xl" />
@@ -344,7 +344,7 @@ function Dashboard() {
 
       {/* Admin Panel Link (only for admins) */}
       {isAdmin && (
-        <div className="mb-4">
+        <div className="mb-5">
           <Link
             to="/admin"
             className="flex items-center gap-3 px-4 py-3 rounded-xl border bg-white hover:shadow-md transition"
@@ -363,7 +363,7 @@ function Dashboard() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5 mb-5">
         {statCards.map((s) => (
           <div key={s.label} className={`group relative bg-gradient-to-br from-white to-slate-50/50 rounded-2xl p-5 border border-slate-200/70 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.06)] hover:shadow-[0_12px_28px_-8px_rgba(15,23,42,0.15)] hover:-translate-y-1 transition-all duration-300 overflow-hidden`}>
             {/* top accent bar */}
@@ -396,7 +396,7 @@ function Dashboard() {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
         {(() => {
           const isExp = donutView === "expense";
           const items = isExp ? expenses : incomes;
@@ -484,7 +484,7 @@ function Dashboard() {
       </div>
 
       {/* Recent + Plan */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
         <div className="bg-white rounded-2xl p-5 border border-slate-200/70 shadow-sm hover:shadow-md transition">
           <div className="flex items-center justify-between mb-4 gap-2">
             <div className="flex items-center gap-2 min-w-0">
@@ -578,7 +578,7 @@ function Dashboard() {
       </div>
 
       {/* Bottom */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
         <div className="bg-white rounded-2xl p-5 border border-slate-200/70 shadow-sm hover:shadow-md transition">
           <div className="flex items-center justify-between mb-4 gap-2">
             <div className="flex items-center gap-2 min-w-0">
