@@ -57,6 +57,8 @@ function GoalsPage() {
   const [cats, setCats] = useState<string[]>(() => loadGoalCats());
   const [newCat, setNewCat] = useState("");
   const [catManagerOpen, setCatManagerOpen] = useState(false);
+  const [editingCat, setEditingCat] = useState<string | null>(null);
+  const [editingCatName, setEditingCatName] = useState("");
 
   useEffect(() => {
     const refresh = () => setCats(loadGoalCats());
@@ -78,6 +80,22 @@ function GoalsPage() {
     saveGoalCats(loadGoalCats().filter((c) => c !== name));
     if (form.category === name) setForm({ ...form, category: "" });
     if (catFilter === name) setCatFilter("all");
+  };
+
+  const renameCategory = async (oldName: string, rawNew: string) => {
+    const newName = rawNew.trim();
+    if (!newName) { toast.error(t("নাম খালি হতে পারবে না", "Name cannot be empty")); return; }
+    if (newName === oldName) { setEditingCat(null); return; }
+    const list = loadGoalCats();
+    if (list.includes(newName)) { toast.error(t("এই নাম ইতোমধ্যে আছে", "This name already exists")); return; }
+    saveGoalCats(list.map((c) => (c === oldName ? newName : c)));
+    const { error } = await supabase.from("goals").update({ category: newName }).eq("category", oldName).eq("user_id", uid);
+    if (error) { toast.error(error.message); return; }
+    if (form.category === oldName) setForm({ ...form, category: newName });
+    if (catFilter === oldName) setCatFilter(newName);
+    setEditingCat(null);
+    toast.success(t("ক্যাটাগরি আপডেট হয়েছে", "Category updated"));
+    qc.invalidateQueries({ queryKey: ["goals"] });
   };
 
   const q = useQuery({
