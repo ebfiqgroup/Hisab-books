@@ -161,6 +161,12 @@ function GoalsPage() {
     { key: "completed", labelBn: "শেষ", labelEn: "Completed" },
   ];
 
+  const totalTarget = filteredList.reduce((s, g) => s + Number(g.target), 0);
+  const totalCurrent = filteredList.reduce((s, g) => s + Number(g.current), 0);
+  const totalPct = totalTarget > 0 ? Math.min(100, (totalCurrent / totalTarget) * 100) : 0;
+  const totalRemaining = Math.max(0, totalTarget - totalCurrent);
+  const completedCount = filteredList.filter((g) => Number(g.current) >= Number(g.target) && Number(g.target) > 0).length;
+
   return (
     <AppShell title={t("সঞ্চয় লক্ষ্য", "Savings goals")} actions={
       <div className="flex items-center gap-2">
@@ -177,6 +183,48 @@ function GoalsPage() {
         <div className="bg-white rounded-xl border border-slate-200 p-12 text-center text-slate-500">
           <Target className="w-10 h-10 mx-auto mb-3 text-slate-300" />
           {t('এখনো কোনো লক্ষ্য নেই। "নতুন লক্ষ্য" দিয়ে শুরু করুন।', 'No goals yet. Start with "New goal".')}
+        </div>
+      )}
+
+      {/* Summary hero — total target / current */}
+      {list.length > 0 && (
+        <div className="relative overflow-hidden rounded-2xl p-5 sm:p-6 mb-5 text-white shadow-2xl shadow-emerald-500/30"
+          style={{ background: "linear-gradient(135deg,#059669 0%,#0d9488 50%,#0891b2 100%)" }}>
+          <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/15 blur-3xl" />
+          <div className="absolute -bottom-20 -left-10 w-72 h-72 rounded-full bg-cyan-300/20 blur-3xl" />
+          <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "20px 20px" }} />
+          <div className="relative">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center"><Target className="w-5 h-5" /></div>
+              <div>
+                <div className="text-[11px] uppercase tracking-wider font-semibold opacity-90">{t("মোট অর্জিত / মোট লক্ষ্য", "Total achieved / Total target")}</div>
+                <div className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                  {fmtTk(totalCurrent)} <span className="opacity-70 text-base font-bold">/ {fmtTk(totalTarget)}</span>
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-3">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 sm:p-3 border border-white/15">
+                <div className="text-[10px] uppercase tracking-wider opacity-80 font-semibold">{t("বর্তমান", "Current")}</div>
+                <div className="text-sm sm:text-lg font-extrabold tracking-tight tabular-nums">{fmtTk(totalCurrent)}</div>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 sm:p-3 border border-white/15">
+                <div className="text-[10px] uppercase tracking-wider opacity-80 font-semibold">{t("বাকি", "Remaining")}</div>
+                <div className="text-sm sm:text-lg font-extrabold tracking-tight tabular-nums">{fmtTk(totalRemaining)}</div>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 sm:p-3 border border-white/15">
+                <div className="text-[10px] uppercase tracking-wider opacity-80 font-semibold">{t("পূর্ণ লক্ষ্য", "Completed")}</div>
+                <div className="text-sm sm:text-lg font-extrabold tracking-tight tabular-nums">{toBn(completedCount)} / {toBn(filteredList.length)}</div>
+              </div>
+            </div>
+            <div className="h-2.5 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
+              <div className="h-full bg-white rounded-full shadow-lg transition-all" style={{ width: `${totalPct}%` }} />
+            </div>
+            <div className="flex justify-between text-xs mt-1.5 opacity-90 font-medium">
+              <span>{toBn(totalPct.toFixed(1))}% {t("অর্জিত", "achieved")}</span>
+              <span>{t("বাকি", "Remaining")}: {fmtTk(totalRemaining)}</span>
+            </div>
+          </div>
         </div>
       )}
 
