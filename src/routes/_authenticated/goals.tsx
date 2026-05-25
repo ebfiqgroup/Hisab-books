@@ -291,19 +291,60 @@ function GoalsPage() {
                   </button>
                 ))}
               </div>
-              <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden mb-1.5 shadow-inner">
-                <div className="h-full rounded-full transition-all shadow-sm" style={{ width: `${pct}%`, background: grad }} />
-              </div>
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span className="font-bold" style={{ color: pct >= 100 ? "#059669" : undefined }}>{toBn(pct.toFixed(0))}%</span>
+              {/* Money progress */}
+              <div className="flex items-center justify-between text-[11px] mb-1">
+                <span className="text-slate-500 font-medium">💰 {t("টাকা", "Money")}</span>
                 <span className="text-slate-400">{t("বাকি", "Left")}: {fmtTk(Math.max(0, Number(g.target) - Number(g.current)))}</span>
               </div>
-              {(g.start_date || g.deadline) && (
-                <div className="flex items-center gap-1 text-[11px] text-slate-400">
-                  <CalendarClock className="w-3 h-3" />
-                  <span>{g.start_date ? toBn(g.start_date) : "—"} → {g.deadline ? toBn(g.deadline) : "—"}</span>
-                </div>
-              )}
+              <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden mb-1 shadow-inner">
+                <div className="h-full rounded-full transition-all shadow-sm" style={{ width: `${pct}%`, background: grad }} />
+              </div>
+              <div className="text-[11px] mb-3">
+                <span className="font-bold" style={{ color: pct >= 100 ? "#059669" : undefined }}>{toBn(pct.toFixed(0))}% {t("অর্জিত", "achieved")}</span>
+              </div>
+
+              {/* Time progress */}
+              {(g.start_date || g.deadline) && (() => {
+                const startMs = g.start_date ? new Date(g.start_date).getTime() : null;
+                const endMs = g.deadline ? new Date(g.deadline).getTime() : null;
+                const nowMs = Date.now();
+                let timePct = 0;
+                let remainingDays: number | null = null;
+                if (startMs !== null && endMs !== null && endMs > startMs) {
+                  timePct = Math.max(0, Math.min(100, ((nowMs - startMs) / (endMs - startMs)) * 100));
+                  remainingDays = Math.max(0, Math.ceil((endMs - nowMs) / 86400000));
+                } else if (endMs !== null) {
+                  remainingDays = Math.max(0, Math.ceil((endMs - nowMs) / 86400000));
+                  timePct = nowMs >= endMs ? 100 : 0;
+                }
+                const ahead = pct >= timePct + 1;
+                const behind = pct < timePct - 1 && pct < 100;
+                return (
+                  <>
+                    <div className="flex items-center justify-between text-[11px] mb-1">
+                      <span className="text-slate-500 font-medium">⏱ {t("সময়", "Time")}</span>
+                      <span className="text-slate-400">
+                        {remainingDays !== null
+                          ? remainingDays > 0 ? `${toBn(remainingDays)} ${t("দিন বাকি", "days left")}` : t("সময় শেষ", "Time up")
+                          : "—"}
+                      </span>
+                    </div>
+                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden mb-1 shadow-inner">
+                      <div className="h-full rounded-full transition-all bg-gradient-to-r from-amber-400 to-orange-500" style={{ width: `${timePct}%` }} />
+                    </div>
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="font-bold text-amber-600">{toBn(timePct.toFixed(0))}% {t("সময় পার", "time passed")}</span>
+                      {ahead ? <span className="px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-600 font-semibold">✓ {t("এগিয়ে", "Ahead")}</span>
+                        : behind ? <span className="px-1.5 py-0.5 rounded-full bg-rose-50 text-rose-600 font-semibold">⚠ {t("পিছিয়ে", "Behind")}</span>
+                        : <span className="px-1.5 py-0.5 rounded-full bg-slate-50 text-slate-500 font-semibold">{t("সঠিক গতি", "On track")}</span>}
+                    </div>
+                    <div className="flex items-center gap-1 text-[11px] text-slate-400 mt-2">
+                      <CalendarClock className="w-3 h-3" />
+                      <span>{g.start_date ? toBn(g.start_date) : "—"} → {g.deadline ? toBn(g.deadline) : "—"}</span>
+                    </div>
+                  </>
+                );
+              })()}
               </div>
             </div>
           );
