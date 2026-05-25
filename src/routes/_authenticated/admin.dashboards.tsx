@@ -1,10 +1,10 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/useRole";
 import { fmtTk, categoryColor, monthBounds } from "@/lib/finance";
-import { Shield, Search, RefreshCw, Wallet, ArrowDown, PiggyBank, Users as UsersIcon, ExternalLink, LayoutDashboard } from "lucide-react";
+import { Shield, Search, RefreshCw, Wallet, ArrowDown, PiggyBank, Users as UsersIcon, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/admin/dashboards")({
@@ -28,7 +28,6 @@ type Debt = { user_id: string; kind: "receivable" | "payable"; amount: number; s
 
 function AllDashboardsPage() {
   const isAdmin = useIsAdmin();
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<Overview[]>([]);
   const [txns, setTxns] = useState<Txn[]>([]);
