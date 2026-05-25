@@ -402,6 +402,18 @@ function BudgetPage() {
                   <span className="truncate">{fmtBnDateTime(b.start_at)} → {fmtBnDateTime(b.end_at)}</span>
                 </div>
 
+                {/* Total / Current two-column */}
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  <div className="rounded-lg border border-indigo-100 bg-gradient-to-br from-indigo-50 to-violet-50/40 p-2.5">
+                    <div className="text-[10px] uppercase tracking-wider text-indigo-600 font-semibold">{t("মোট টাকা", "Total")}</div>
+                    <div className="text-sm font-extrabold text-slate-800 tabular-nums">{fmtTk(b.monthly_limit)}</div>
+                  </div>
+                  <div className={`rounded-lg border p-2.5 ${over ? "border-rose-100 bg-gradient-to-br from-rose-50 to-pink-50/40" : "border-emerald-100 bg-gradient-to-br from-emerald-50 to-teal-50/40"}`}>
+                    <div className={`text-[10px] uppercase tracking-wider font-semibold ${over ? "text-rose-600" : "text-emerald-600"}`}>{t("বর্তমান টাকা", "Current")}</div>
+                    <div className={`text-sm font-extrabold tabular-nums ${over ? "text-rose-600" : "text-slate-800"}`}>{fmtTk(spent)}</div>
+                  </div>
+                </div>
+
                 {(() => {
                   const startMs = new Date(b.start_at).getTime();
                   const endMs = new Date(b.end_at).getTime();
