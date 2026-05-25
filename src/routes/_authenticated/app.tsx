@@ -441,6 +441,11 @@ function Dashboard() {
               <div className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 mb-1">{s.label}</div>
               <div className={`text-2xl font-extrabold tracking-tight ${s.val} leading-tight`}>{s.value}</div>
             </div>
+            {sparkData[s.label] && (
+              <div className="relative mt-2 -mx-1 opacity-80 group-hover:opacity-100 transition">
+                <Sparkline data={sparkData[s.label]!} color={sparkColor[s.label]} />
+              </div>
+            )}
             <div className="relative mt-3 pt-3 border-t border-dashed border-slate-200/80 text-[11px] text-slate-500">
               {t("গত মাস", "Last month")}: <span className="font-medium text-slate-700">{s.last}</span>
             </div>
