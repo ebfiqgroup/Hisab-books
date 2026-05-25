@@ -95,12 +95,18 @@ function NotesPage() {
             </div>
             <h2 className="font-bold text-slate-800">{t("নতুন নোট যোগ করুন", "Add a new note")}</h2>
           </div>
-          <div className="flex gap-2">
-            <input
+          <div className="flex gap-2 items-end">
+            <textarea
               value={noteInput}
               onChange={(e) => setNoteInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && saveNote()}
-              className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-amber-300"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  saveNote();
+                }
+              }}
+              rows={3}
+              className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-amber-300 resize-none"
               placeholder={t("নোট লিখুন...", "Write a note...")}
             />
             <button
@@ -136,13 +142,19 @@ function NotesPage() {
             )}
             {filteredNotes.map((n) =>
               editingNoteId === n.id ? (
-                <div key={n.id} className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3">
-                  <input
+                <div key={n.id} className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                  <textarea
                     autoFocus
                     value={editNoteInput}
                     onChange={(e) => setEditNoteInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && updateNote()}
-                    className="flex-1 px-2 py-1.5 text-sm border border-slate-200 rounded-md bg-white"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        updateNote();
+                      }
+                    }}
+                    rows={2}
+                    className="flex-1 px-2 py-1.5 text-sm border border-slate-200 rounded-md bg-white resize-none"
                   />
                   <button onClick={updateNote} className="p-1.5 rounded-md hover:bg-emerald-50 text-emerald-600">
                     <Check className="w-4 h-4" />
