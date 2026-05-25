@@ -385,14 +385,66 @@ function BudgetPage() {
                   <span className="truncate">{fmtBnDateTime(b.start_at)} → {fmtBnDateTime(b.end_at)}</span>
                 </div>
 
-                <div className="flex items-baseline justify-between mb-1.5">
-                  <span className={`text-sm font-semibold ${over ? "text-rose-500" : "text-slate-800"}`}>{fmtTk(spent)}</span>
-                  <span className="text-xs text-slate-500">/ {fmtTk(b.monthly_limit)}</span>
-                </div>
-                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <div className={`h-full ${over ? "bg-rose-500" : "bg-indigo-500"}`} style={{ width: `${pct}%` }} />
-                </div>
-                <div className={`text-xs mt-1 ${over ? "text-rose-500" : "text-slate-500"}`}>{toBn(pct.toFixed(0))}% {t("ব্যবহৃত", "used")}</div>
+                {(() => {
+                  const startMs = new Date(b.start_at).getTime();
+                  const endMs = new Date(b.end_at).getTime();
+                  const nowMs = Date.now();
+                  const totalMs = Math.max(1, endMs - startMs);
+                  const elapsedMs = Math.max(0, Math.min(totalMs, nowMs - startMs));
+                  const timePct = (elapsedMs / totalMs) * 100;
+                  const remainingMs = Math.max(0, endMs - nowMs);
+                  const days = Math.floor(remainingMs / 86400000);
+                  const hours = Math.floor((remainingMs % 86400000) / 3600000);
+                  const ahead = pct < timePct - 1;
+                  const behind = pct > timePct + 1;
+                  const remainingMoney = b.monthly_limit - spent;
+                  return (
+                    <>
+                      {/* Money progress */}
+                      <div className="flex items-baseline justify-between mb-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <Wallet className="w-3.5 h-3.5 text-indigo-500" />
+                          <span className="text-[11px] text-slate-500 font-medium">{t("টাকা", "Money")}</span>
+                        </div>
+                        <div>
+                          <span className={`text-sm font-semibold ${over ? "text-rose-500" : "text-slate-800"}`}>{fmtTk(spent)}</span>
+                          <span className="text-xs text-slate-500"> / {fmtTk(b.monthly_limit)}</span>
+                        </div>
+                      </div>
+                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full transition-all ${over ? "bg-gradient-to-r from-rose-500 to-pink-500" : "bg-gradient-to-r from-indigo-500 to-violet-500"}`} style={{ width: `${pct}%` }} />
+                      </div>
+                      <div className="flex items-center justify-between text-[11px] mt-1 mb-3">
+                        <span className={`font-bold ${over ? "text-rose-500" : "text-indigo-600"}`}>{toBn(pct.toFixed(0))}% {t("ব্যবহৃত", "used")}</span>
+                        <span className="text-slate-500">{remainingMoney >= 0 ? t("বাকি", "Left") : t("অতিরিক্ত", "Over")}: {fmtTk(Math.abs(remainingMoney))}</span>
+                      </div>
+
+                      {/* Time progress */}
+                      <div className="flex items-baseline justify-between mb-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <CalendarClock className="w-3.5 h-3.5 text-amber-500" />
+                          <span className="text-[11px] text-slate-500 font-medium">{t("সময়", "Time")}</span>
+                        </div>
+                        <span className="text-[11px] text-slate-500">
+                          {remainingMs > 0
+                            ? `${toBn(days)} ${t("দিন", "d")} ${toBn(hours)} ${t("ঘন্টা বাকি", "h left")}`
+                            : t("শেষ", "Ended")}
+                        </span>
+                      </div>
+                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all bg-gradient-to-r from-amber-400 to-orange-500" style={{ width: `${timePct}%` }} />
+                      </div>
+                      <div className="flex items-center justify-between text-[11px] mt-1">
+                        <span className="font-bold text-amber-600">{toBn(timePct.toFixed(0))}% {t("সময় পার", "time passed")}</span>
+                        {b.monthly_limit > 0 && (
+                          ahead ? <span className="px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-600 font-semibold">✓ {t("সাশ্রয়ে", "On pace")}</span>
+                          : behind ? <span className="px-1.5 py-0.5 rounded-full bg-rose-50 text-rose-600 font-semibold">⚠ {t("দ্রুত খরচ", "Spending fast")}</span>
+                          : <span className="px-1.5 py-0.5 rounded-full bg-slate-50 text-slate-500 font-semibold">{t("সঠিক গতি", "On track")}</span>
+                        )}
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             );
           })}
