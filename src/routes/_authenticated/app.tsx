@@ -365,24 +365,31 @@ function Dashboard() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-6">
         {statCards.map((s) => (
-          <div key={s.label} className={`group relative bg-white rounded-2xl p-5 border border-slate-200/70 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 ring-1 ${s.ring} overflow-hidden`}>
-            <div className={`absolute -top-12 -right-12 w-28 h-28 rounded-full bg-gradient-to-br ${s.grad} opacity-10 group-hover:opacity-20 transition`} />
-            <div className="relative flex items-start gap-3 mb-3">
-              <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${s.grad} flex items-center justify-center shadow-md shadow-slate-200`}>
-                <s.Icon className="w-5 h-5 text-white" />
+          <div key={s.label} className={`group relative bg-gradient-to-br from-white to-slate-50/50 rounded-2xl p-5 border border-slate-200/70 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.06)] hover:shadow-[0_12px_28px_-8px_rgba(15,23,42,0.15)] hover:-translate-y-1 transition-all duration-300 overflow-hidden`}>
+            {/* top accent bar */}
+            <div className={`absolute top-0 inset-x-0 h-1 bg-gradient-to-r ${s.grad}`} />
+            {/* glow blob */}
+            <div className={`absolute -top-16 -right-16 w-36 h-36 rounded-full bg-gradient-to-br ${s.grad} opacity-[0.08] group-hover:opacity-[0.18] blur-2xl transition-opacity duration-500`} />
+            {/* subtle sheen on hover */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/0 to-white/0 group-hover:via-white/40 transition-all duration-700 pointer-events-none" />
+
+            <div className="relative flex items-start justify-between gap-2 mb-4">
+              <div className={`relative w-12 h-12 rounded-xl bg-gradient-to-br ${s.grad} flex items-center justify-center shadow-lg shadow-slate-300/40 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300`}>
+                <s.Icon className="w-5 h-5 text-white drop-shadow" />
+                <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 transition" />
               </div>
-              <div className="min-w-0">
-                <div className="text-xs font-medium text-slate-500 truncate">{s.label}</div>
-                <div className={`text-xl font-extrabold tracking-tight ${s.val}`}>{s.value}</div>
-              </div>
-            </div>
-            <div className="relative flex items-center justify-between pt-3 border-t border-dashed border-slate-200/80 text-xs">
-              <span className="text-slate-500">{t("গত মাস", "Last month")}: {s.last}</span>
               {s.pct.value && (
-                <span className={`flex items-center gap-0.5 font-semibold px-1.5 py-0.5 rounded-md ${s.pct.up ? "text-emerald-600 bg-emerald-50" : "text-rose-500 bg-rose-50"}`}>
+                <span className={`flex items-center gap-0.5 text-[11px] font-semibold px-2 py-0.5 rounded-full backdrop-blur-sm ${s.pct.up ? "text-emerald-700 bg-emerald-100/80 ring-1 ring-emerald-200" : "text-rose-600 bg-rose-100/80 ring-1 ring-rose-200"}`}>
                   {s.pct.up ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}{s.pct.value}
                 </span>
               )}
+            </div>
+            <div className="relative">
+              <div className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 mb-1">{s.label}</div>
+              <div className={`text-2xl font-extrabold tracking-tight ${s.val} leading-tight`}>{s.value}</div>
+            </div>
+            <div className="relative mt-3 pt-3 border-t border-dashed border-slate-200/80 text-[11px] text-slate-500">
+              {t("গত মাস", "Last month")}: <span className="font-medium text-slate-700">{s.last}</span>
             </div>
           </div>
         ))}
