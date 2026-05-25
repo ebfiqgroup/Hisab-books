@@ -801,19 +801,45 @@ function Dashboard() {
                   <button onClick={cancelEditNote} className="p-1 rounded-md hover:bg-rose-50 text-rose-500"><X className="w-3.5 h-3.5" /></button>
                 </div>
               ) : (
-                <div key={n.id} className="group flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-lg p-2 text-xs text-slate-700">
-                  <span className="flex-1">{n.body}</span>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
-                    <button onClick={() => startEditNote(n)} className="p-1 rounded-md hover:bg-indigo-50 text-slate-400 hover:text-indigo-600"><Pencil className="w-3.5 h-3.5" /></button>
-                    <button onClick={() => removeNote(n.id)} className="p-1 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600"><Trash2 className="w-3.5 h-3.5" /></button>
+                <div key={n.id} className="group relative bg-gradient-to-br from-amber-50 to-yellow-50/60 border border-amber-100 rounded-lg p-2.5 text-xs text-slate-700 hover:shadow-sm hover:border-amber-200 transition">
+                  <div className="flex items-start gap-2">
+                    <span className="mt-0.5 w-1 self-stretch rounded-full bg-gradient-to-b from-amber-400 to-orange-400 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-slate-800 leading-relaxed break-words">{n.body}</div>
+                      <div className="text-[9px] text-amber-700/70 mt-1 uppercase tracking-wider">{toBn(n.created_at.slice(0, 10))}</div>
+                    </div>
+                    <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition shrink-0">
+                      <button onClick={() => startEditNote(n)} className="p-1 rounded-md hover:bg-indigo-50 text-slate-400 hover:text-indigo-600"><Pencil className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => removeNote(n.id)} className="p-1 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
                   </div>
                 </div>
               )
             ))}
           </div>
-          <div className="flex gap-2">
-            <input value={noteInput} onChange={(e) => setNoteInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && saveNote()} className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm" placeholder={t("নোট লিখুন...", "Write a note...")} />
-            <button onClick={saveNote} className="px-4 py-2 bg-emerald-500 text-white rounded-lg text-sm font-medium hover:bg-emerald-600">{t("সেভ", "Save")}</button>
+          <div className="relative">
+            <div className="flex gap-2">
+              <input
+                value={noteInput}
+                onChange={(e) => setNoteInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && saveNote()}
+                maxLength={280}
+                className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-amber-300 transition"
+                placeholder={t("নোট লিখুন...", "Write a note...")}
+              />
+              <button
+                onClick={saveNote}
+                disabled={!noteInput.trim()}
+                className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg text-sm font-semibold shadow hover:shadow-md hover:scale-[1.03] disabled:opacity-40 disabled:hover:scale-100 transition"
+              >
+                {t("সেভ", "Save")}
+              </button>
+            </div>
+            {noteInput.length > 0 && (
+              <div className={`mt-1 text-[10px] text-right ${noteInput.length > 250 ? "text-rose-500" : "text-slate-400"}`}>
+                {toBn(noteInput.length)} / {toBn(280)}
+              </div>
+            )}
           </div>
         </div>
       </div>
