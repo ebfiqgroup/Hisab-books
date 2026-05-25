@@ -724,14 +724,42 @@ function Dashboard() {
             <Link to="/debts" className="text-sm text-indigo-600">{t("বিস্তারিত →", "Details →")}</Link>
           </div>
           <div className="space-y-3">
-            <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50/40 border border-emerald-100 flex items-center gap-3 hover:shadow-sm transition">
-              <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center"><Users className="w-5 h-5 text-emerald-600" /></div>
-              <div><div className="text-xs text-slate-600">{t("মোট পাওনা", "Total receivable")}</div><div className="font-bold text-emerald-700">{fmtTk(receivable)}</div></div>
-            </div>
-            <div className="p-4 rounded-xl bg-gradient-to-br from-rose-50 to-pink-50/40 border border-rose-100 flex items-center gap-3 hover:shadow-sm transition">
-              <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center"><Users className="w-5 h-5 text-rose-500" /></div>
-              <div><div className="text-xs text-slate-600">{t("মোট দেনা", "Total payable")}</div><div className="font-bold text-rose-600">{fmtTk(payable)}</div></div>
-            </div>
+            {(() => {
+              const net = receivable - payable;
+              const total = receivable + payable || 1;
+              const recPct = (receivable / total) * 100;
+              return (
+                <>
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50/40 border border-emerald-100 flex items-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition group/r">
+                    <div className="w-11 h-11 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 shadow-md flex items-center justify-center group-hover/r:scale-110 transition">
+                      <ArrowUp className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">{t("মোট পাওনা", "Total receivable")}</div>
+                      <div className="font-extrabold text-emerald-700 text-lg leading-tight">{fmtTk(receivable)}</div>
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-rose-50 to-pink-50/40 border border-rose-100 flex items-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition group/p">
+                    <div className="w-11 h-11 rounded-full bg-gradient-to-br from-rose-400 to-pink-500 shadow-md flex items-center justify-center group-hover/p:scale-110 transition">
+                      <ArrowDown className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">{t("মোট দেনা", "Total payable")}</div>
+                      <div className="font-extrabold text-rose-600 text-lg leading-tight">{fmtTk(payable)}</div>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-dashed border-slate-200">
+                    <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1.5">
+                      <span className="flex items-center gap-1"><Zap className="w-3 h-3" />{t("নেট ব্যালেন্স", "Net balance")}</span>
+                      <span className={`font-bold ${net >= 0 ? "text-emerald-600" : "text-rose-500"}`}>{fmtTk(net)}</span>
+                    </div>
+                    <div className="h-1.5 bg-rose-100 rounded-full overflow-hidden flex">
+                      <div className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 transition-all duration-700" style={{ width: `${recPct}%` }} />
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
 
