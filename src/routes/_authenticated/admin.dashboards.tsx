@@ -10,9 +10,7 @@ import {
   Plus, Trash2, Check, Pause, Clock, X, Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
-} from "recharts";
+import { UserDashboardView } from "@/components/admin/UserDashboardView";
 
 export const Route = createFileRoute("/_authenticated/admin/dashboards")({
   component: AllDashboardsPage,
@@ -32,7 +30,6 @@ type Overview = {
 
 type Txn = { user_id: string; type: "income" | "expense"; category: string; amount: number; occurred_on: string };
 type Debt = { user_id: string; kind: "receivable" | "payable"; amount: number; settled: boolean };
-type RecentTxn = { id: string; type: "income" | "expense"; category: string; amount: number; occurred_on: string; note: string | null };
 
 function AllDashboardsPage() {
   const isAdmin = useIsAdmin();
@@ -185,12 +182,10 @@ function UserCard({
 }) {
   const [expanded, setExpanded] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
-  const [recent, setRecent] = useState<RecentTxn[]>([]);
-  const [series, setSeries] = useState<{ month: string; income: number; expense: number }[]>([]);
-  const [loadingDetail, setLoadingDetail] = useState(false);
   const [statusBusy, setStatusBusy] = useState(false);
   const [delBusy, setDelBusy] = useState(false);
   const [confirmDel, setConfirmDel] = useState(false);
+  const [viewKey, setViewKey] = useState(0);
 
   const rem = b.mInc - b.mExp;
   const statusBadge =
@@ -199,47 +194,8 @@ function UserCard({
     "bg-rose-50 text-rose-700 border-rose-200";
   const statusLabel = u.status === "approved" ? "অনুমোদিত" : u.status === "pending" ? "পেন্ডিং" : "সাসপেন্ড";
 
-  const loadDetail = async () => {
-    setLoadingDetail(true);
-    const since = new Date();
-    since.setMonth(since.getMonth() - 5);
-    since.setDate(1);
-    const sinceISO = since.toISOString().slice(0, 10);
-    const [rec, ser] = await Promise.all([
-      supabase.from("transactions").select("id,type,category,amount,occurred_on,note")
-        .eq("user_id", u.user_id).order("occurred_on", { ascending: false }).limit(5),
-      supabase.from("transactions").select("type,amount,occurred_on")
-        .eq("user_id", u.user_id).gte("occurred_on", sinceISO),
-    ]);
-    if (rec.error) toast.error(rec.error.message);
-    if (ser.error) toast.error(ser.error.message);
-    setRecent((rec.data as RecentTxn[]) || []);
-    const buckets = new Map<string, { income: number; expense: number }>();
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(1);
-      d.setMonth(d.getMonth() - i);
-      buckets.set(d.toISOString().slice(0, 7), { income: 0, expense: 0 });
-    }
-    for (const t of (ser.data || []) as { type: string; amount: number; occurred_on: string }[]) {
-      const k = t.occurred_on.slice(0, 7);
-      const cur = buckets.get(k);
-      if (!cur) continue;
-      if (t.type === "income") cur.income += Number(t.amount);
-      else cur.expense += Number(t.amount);
-    }
-    setSeries(Array.from(buckets.entries()).map(([month, v]) => ({
-      month: month.slice(5) + "/" + month.slice(2, 4),
-      ...v,
-    })));
-    setLoadingDetail(false);
-  };
-
-  const toggleExpand = async () => {
-    const next = !expanded;
-    setExpanded(next);
-    if (next && recent.length === 0) await loadDetail();
-  };
+  const toggleExpand = () => setExpanded((v) => !v);
+  const reloadInline = () => setViewKey((k) => k + 1);
 
   const setStatus = async (status: "pending" | "approved" | "suspended") => {
     setStatusBusy(true);
@@ -270,15 +226,6 @@ function UserCard({
     } finally {
       setDelBusy(false);
     }
-  };
-
-  const deleteTxn = async (id: string) => {
-    const t = toast.loading("মুছছি…");
-    const { error } = await supabase.from("transactions").delete().eq("id", id).eq("user_id", u.user_id);
-    if (error) { toast.error(error.message, { id: t }); return; }
-    toast.success("মুছে ফেলা হয়েছে", { id: t });
-    await loadDetail();
-    onChanged();
   };
 
   return (
@@ -363,7 +310,7 @@ function UserCard({
       {showAdd && (
         <QuickAddTxn
           userId={u.user_id}
-          onDone={() => { setShowAdd(false); onChanged(); if (expanded) loadDetail(); }}
+          onDone={() => { setShowAdd(false); onChanged(); reloadInline(); }}
           onCancel={() => setShowAdd(false)}
         />
       )}
@@ -407,59 +354,14 @@ function UserCard({
       </div>
 
       {expanded && (
-        <div className="border-t border-slate-100 pt-3 space-y-3">
-          <div className="text-[11px] text-slate-500">৬ মাসের আয়/ব্যয়</div>
-          {loadingDetail ? (
-            <div className="h-32 flex items-center justify-center text-xs text-slate-400">
-              <Loader2 className="w-4 h-4 animate-spin" />
-            </div>
-          ) : (
-            <div className="h-32 -ml-2">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={series}>
-                  <defs>
-                    <linearGradient id={`gi-${u.user_id}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.4} />
-                      <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id={`ge-${u.user_id}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.4} />
-                      <stop offset="100%" stopColor="#f43f5e" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis dataKey="month" tick={{ fontSize: 10 }} stroke="#94a3b8" />
-                  <YAxis tick={{ fontSize: 10 }} stroke="#94a3b8" width={40} />
-                  <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8 }} formatter={(v: number) => fmtTk(v)} />
-                  <Area type="monotone" dataKey="income" stroke="#10b981" fill={`url(#gi-${u.user_id})`} strokeWidth={2} />
-                  <Area type="monotone" dataKey="expense" stroke="#f43f5e" fill={`url(#ge-${u.user_id})`} strokeWidth={2} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-
-          <div>
-            <div className="text-[11px] text-slate-500 mb-1.5">সাম্প্রতিক ৫টি লেনদেন</div>
-            {recent.length === 0 ? (
-              <div className="text-xs text-slate-400">কোনো লেনদেন নেই</div>
-            ) : (
-              <div className="space-y-1">
-                {recent.map((t) => (
-                  <div key={t.id} className="flex items-center gap-2 text-[11px] rounded-md bg-slate-50 px-2 py-1.5">
-                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${t.type === "income" ? "bg-emerald-500" : "bg-rose-500"}`} />
-                    <span className="truncate flex-1">{t.category}{t.note ? ` · ${t.note}` : ""}</span>
-                    <span className="text-slate-400 font-mono">{t.occurred_on.slice(5)}</span>
-                    <span className={`font-mono font-semibold ${t.type === "income" ? "text-emerald-600" : "text-rose-600"}`}>
-                      {t.type === "income" ? "+" : "−"}{fmtTk(t.amount)}
-                    </span>
-                    <button onClick={() => deleteTxn(t.id)} className="text-rose-500 hover:text-rose-700 p-0.5" title="মুছুন">
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+        <div className="border-t border-slate-100 pt-3 -mx-1">
+          <UserDashboardView
+            key={viewKey}
+            userId={u.user_id}
+            showHeader={false}
+            showToolbar={false}
+            compact
+          />
         </div>
       )}
 
