@@ -145,6 +145,59 @@ function Dashboard() {
     { label: t("মোট দেনা", "Total payable"), value: fmtTk(payable), last: "—", pct: { value: "", up: false }, Icon: TrendingDown, grad: "from-fuchsia-500 to-rose-500", ring: "ring-rose-100", val: "text-rose-600" },
   ];
 
+  // 7-day sparkline series per card type
+  const spark7 = useMemo(() => {
+    const start = new Date(now); start.setDate(start.getDate() - 6);
+    const days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(start); d.setDate(start.getDate() + i);
+      return d.toISOString().slice(0, 10);
+    });
+    const inc = days.map((iso) => all.filter((t) => t.occurred_on === iso && t.type === "income").reduce((s, t) => s + Number(t.amount), 0));
+    const exp = days.map((iso) => all.filter((t) => t.occurred_on === iso && t.type === "expense").reduce((s, t) => s + Number(t.amount), 0));
+    const rem = inc.map((v, i) => v - exp[i]);
+    return { inc, exp, rem };
+  }, [all]);
+  const sparkData: Record<string, number[] | null> = {
+    [t("মোট আয়", "Total income")]: spark7.inc,
+    [t("মোট ব্যয়", "Total expense")]: spark7.exp,
+    [t("অবশিষ্ট", "Remaining")]: spark7.rem,
+    [t("মোট পাওনা", "Total receivable")]: null,
+    [t("মোট দেনা", "Total payable")]: null,
+  };
+  const sparkColor: Record<string, string> = {
+    [t("মোট আয়", "Total income")]: "#10b981",
+    [t("মোট ব্যয়", "Total expense")]: "#f43f5e",
+    [t("অবশিষ্ট", "Remaining")]: "#3b82f6",
+    [t("মোট পাওনা", "Total receivable")]: "#f59e0b",
+    [t("মোট দেনা", "Total payable")]: "#e11d48",
+  };
+
+  const Sparkline = ({ data, color }: { data: number[]; color: string }) => {
+    const w = 100, h = 28;
+    const min = Math.min(...data, 0), max = Math.max(...data, 1);
+    const range = max - min || 1;
+    const step = w / (data.length - 1 || 1);
+    const pts = data.map((v, i) => `${i * step},${h - ((v - min) / range) * h}`).join(" ");
+    const area = `0,${h} ${pts} ${w},${h}`;
+    const gid = `sg-${color.replace("#", "")}`;
+    return (
+      <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="w-full h-7">
+        <defs>
+          <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity="0.35" />
+            <stop offset="100%" stopColor={color} stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <polygon points={area} fill={`url(#${gid})`} />
+        <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+      </svg>
+    );
+  };
+
+  // Helpers for budget time-progress
+  const daysBetween = (a: string, b: string) => Math.max(0, Math.ceil((new Date(b).getTime() - new Date(a).getTime()) / 86400000));
+  const todayIso = now.toISOString().slice(0, 10);
+
   const expCats = forType("expense");
   const expByCat = new Map<string, number>();
   expCats.forEach((k) => expByCat.set(k, 0));
