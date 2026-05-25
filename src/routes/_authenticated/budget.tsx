@@ -260,30 +260,37 @@ function BudgetPage() {
     <AppShell title={t("বাজেট", "Budget")}>
       <div className="flex items-center justify-between gap-2 mb-4">
         <div>
-          <h2 className="text-lg font-semibold text-slate-800">{t("আমার বাজেট", "My budgets")}</h2>
+          <h2 className="text-lg font-bold text-slate-800">{t("আমার বাজেট", "My budgets")}</h2>
           <p className="text-xs text-slate-500">{t("কাস্টম তারিখ ও সময় রেঞ্জ সহ বাজেট পরিচালনা", "Manage budgets with custom date/time ranges")}</p>
         </div>
         <button onClick={openCreate}
-          className="inline-flex items-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg shadow-sm">
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold rounded-lg shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.02] transition-all">
           <Plus className="w-4 h-4" /> {t("নতুন বাজেট", "New budget")}
         </button>
       </div>
 
-      {/* Summary */}
-      <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200 mb-4">
-        <div className="flex items-center gap-3 sm:gap-4">
-          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-indigo-50 flex items-center justify-center shrink-0">
-            <Wallet className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600" />
+      {/* Summary hero */}
+      <div className="relative overflow-hidden rounded-2xl p-5 sm:p-6 mb-5 text-white shadow-2xl shadow-indigo-500/30"
+        style={{ background: totalSpent > totalLimit && totalLimit > 0 ? "linear-gradient(135deg,#e11d48,#f97316)" : "linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#a855f7 100%)" }}>
+        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/15 blur-3xl" />
+        <div className="absolute -bottom-20 -left-10 w-72 h-72 rounded-full bg-fuchsia-300/20 blur-3xl" />
+        <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "20px 20px" }} />
+        <div className="relative">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center"><Wallet className="w-5 h-5" /></div>
+            <div>
+              <div className="text-[11px] uppercase tracking-wider font-semibold opacity-90">{t("মোট ব্যয় / মোট বাজেট", "Total spent / Total budget")}</div>
+              <div className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                {fmtTk(totalSpent)} <span className="opacity-70 text-base font-bold">/ {fmtTk(totalLimit)}</span>
+              </div>
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <div className="text-sm text-slate-500">{t("মোট ব্যয় / মোট বাজেট", "Total spent / Total budget")}</div>
-            <div className="text-lg sm:text-xl font-bold text-slate-800 truncate">
-              <span className={totalSpent > totalLimit && totalLimit > 0 ? "text-rose-500" : "text-indigo-600"}>{fmtTk(totalSpent)}</span>
-              <span className="text-slate-400 text-sm font-medium"> / {fmtTk(totalLimit)}</span>
-            </div>
-            <div className="h-2 bg-slate-100 rounded-full overflow-hidden mt-2">
-              <div className={`h-full ${totalSpent > totalLimit && totalLimit > 0 ? "bg-rose-500" : "bg-indigo-500"}`} style={{ width: `${totalPct}%` }} />
-            </div>
+          <div className="h-2.5 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
+            <div className="h-full bg-white rounded-full shadow-lg transition-all" style={{ width: `${totalPct}%` }} />
+          </div>
+          <div className="flex justify-between text-xs mt-1.5 opacity-90 font-medium">
+            <span>{toBn(totalPct.toFixed(1))}% {t("ব্যবহৃত", "used")}</span>
+            <span>{totalLimit - totalSpent >= 0 ? t("বাকি", "Remaining") : t("অতিরিক্ত", "Over")}: {fmtTk(Math.abs(totalLimit - totalSpent))}</span>
           </div>
         </div>
       </div>
