@@ -36,14 +36,17 @@ function AuthGate() {
     };
     if (initialUserId) checkStatus(initialUserId);
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
-      if (!s) {
-        if (_e === "SIGNED_OUT" || _e === "TOKEN_REFRESHED") {
-          navigate({ to: "/auth" });
-        }
+      // Only react to real sign-in/out transitions. INITIAL_SESSION and
+      // TOKEN_REFRESHED events fire frequently and would otherwise trigger
+      // a refetch storm that makes the screen jump.
+      if (_e === "SIGNED_OUT") {
+        navigate({ to: "/auth" });
         return;
       }
-      setUserId(s.user.id);
-      queryClient.invalidateQueries({ refetchType: "active" });
+      if (_e === "SIGNED_IN" && s) {
+        setUserId((prev) => (prev === s.user.id ? prev : s.user.id));
+        queryClient.invalidateQueries({ refetchType: "active" });
+      }
     });
     return () => { cancel = true; subscription.unsubscribe(); };
   }, [navigate, queryClient, initialUserId]);
