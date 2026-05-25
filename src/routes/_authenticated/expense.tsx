@@ -41,7 +41,7 @@ function ExpensePage() {
   const total = list.reduce((s, t) => s + Number(t.amount), 0);
   const remove = async (id: string) => {
     if (!confirm(t("মুছে ফেলবেন?", "Delete this?"))) return;
-    const { error } = await supabase.from("transactions").delete().eq("id", id);
+    const { error } = await supabase.from("transactions").delete().eq("id", id).eq("user_id", uid);
     if (error) { toast.error(error.message); return; }
     toast.success(t("মুছে ফেলা হয়েছে", "Deleted"));
     qc.invalidateQueries({ queryKey: ["transactions"] });
