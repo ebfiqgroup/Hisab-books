@@ -539,7 +539,7 @@ function Dashboard() {
             </div>
             <Link to="/budget" className="text-sm text-indigo-600 shrink-0">{t("সব দেখুন →", "View all →")}</Link>
           </div>
-          <div className="space-y-2.5 max-h-80 overflow-y-auto pr-1">
+          <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
             {activeBudgets.length === 0 ? (
               <div className="text-sm text-slate-400 text-center py-6">
                 {t("কোনো চলমান বাজেট নেই", "No active budgets")} ·{" "}
@@ -589,7 +589,7 @@ function Dashboard() {
             </div>
             <Link to="/goals" className="text-sm text-indigo-600">{t("সব দেখুন →", "View all →")}</Link>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-3">
             {goals.length === 0 && <div className="text-sm text-slate-400 text-center py-4">{t("কোনো লক্ষ্য নেই", "No goals")}</div>}
             {goals.map((g) => {
               const pct = g.target > 0 ? Math.min(100, (Number(g.current) / Number(g.target)) * 100) : 0;
@@ -635,7 +635,7 @@ function Dashboard() {
         </div>
 
         <div className="bg-white rounded-2xl p-5 border border-slate-200/70 shadow-sm hover:shadow-md transition">
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2 mb-4">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-yellow-500 flex items-center justify-center shadow-sm shrink-0">
               <StickyNote className="w-4 h-4 text-white" />
             </div>
@@ -650,7 +650,7 @@ function Dashboard() {
               className="w-full pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-amber-300"
             />
           </div>
-          <div className="space-y-2 mb-3 max-h-40 overflow-y-auto">
+          <div className="space-y-3 mb-4 max-h-40 overflow-y-auto">
             {filteredNotes.length === 0 && <div className="text-xs text-slate-400 text-center py-3">{noteSearch ? t("কোনো নোট পাওয়া যায়নি", "No notes found") : t("কোনো নোট নেই", "No notes")}</div>}
             {filteredNotes.map((n) => (
               editingNoteId === n.id ? (
