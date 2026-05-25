@@ -228,15 +228,6 @@ function UserCard({
     }
   };
 
-  const deleteTxn = async (id: string) => {
-    const t = toast.loading("মুছছি…");
-    const { error } = await supabase.from("transactions").delete().eq("id", id).eq("user_id", u.user_id);
-    if (error) { toast.error(error.message, { id: t }); return; }
-    toast.success("মুছে ফেলা হয়েছে", { id: t });
-    onChanged();
-    reloadInline();
-  };
-
   return (
     <div className="brand-card p-4 flex flex-col gap-3">
       <div className="flex items-start justify-between gap-2">
