@@ -60,7 +60,7 @@ function DebtsPage() {
       note: form.note || null,
     };
     if (editingId) {
-      const { error } = await supabase.from("debts").update(payload).eq("id", editingId);
+      const { error } = await supabase.from("debts").update(payload).eq("id", editingId).eq("user_id", uid);
       if (error) { toast.error(error.message); return; }
       toast.success(t("আপডেট হয়েছে", "Updated"));
     } else {
@@ -76,13 +76,13 @@ function DebtsPage() {
     setForm({ kind: "receivable", person: "", amount: "", due_date: "", note: "" });
   };
   const toggle = async (d: Debt) => {
-    const { error } = await supabase.from("debts").update({ settled: !d.settled }).eq("id", d.id);
+    const { error } = await supabase.from("debts").update({ settled: !d.settled }).eq("id", d.id).eq("user_id", uid);
     if (error) { toast.error(error.message); return; }
     qc.invalidateQueries({ queryKey: ["debts"] });
   };
   const remove = async (id: string) => {
     if (!confirm(t("মুছে ফেলবেন?", "Delete this?"))) return;
-    const { error } = await supabase.from("debts").delete().eq("id", id);
+    const { error } = await supabase.from("debts").delete().eq("id", id).eq("user_id", uid);
     if (error) { toast.error(error.message); return; }
     toast.success(t("মুছে ফেলা হয়েছে", "Deleted"));
     qc.invalidateQueries({ queryKey: ["debts"] });

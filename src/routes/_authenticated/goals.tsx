@@ -56,7 +56,7 @@ function GoalsPage() {
       color: form.color,
     };
     const { error } = edit
-      ? await supabase.from("goals").update(payload).eq("id", edit.id)
+      ? await supabase.from("goals").update(payload).eq("id", edit.id).eq("user_id", uid)
       : await supabase.from("goals").insert({ ...payload, user_id: user.id });
     if (error) { toast.error(error.message); return; }
     toast.success(t("সংরক্ষিত", "Saved"));
@@ -65,7 +65,7 @@ function GoalsPage() {
   };
   const remove = async (id: string) => {
     if (!confirm(t("লক্ষ্যটি মুছে ফেলবেন?", "Delete this goal?"))) return;
-    const { error } = await supabase.from("goals").delete().eq("id", id);
+    const { error } = await supabase.from("goals").delete().eq("id", id).eq("user_id", uid);
     if (error) { toast.error(error.message); return; }
     toast.success(t("মুছে ফেলা হয়েছে", "Deleted"));
     qc.invalidateQueries({ queryKey: ["goals"] });
@@ -80,7 +80,7 @@ function GoalsPage() {
 
   const setStatus = async (g: Goal, s: "pending" | "ongoing" | "completed") => {
     const next = effStatus(g) === s ? null : s;
-    const { error } = await supabase.from("goals").update({ status: next }).eq("id", g.id);
+    const { error } = await supabase.from("goals").update({ status: next }).eq("id", g.id).eq("user_id", uid);
     if (error) { toast.error(error.message); return; }
     qc.invalidateQueries({ queryKey: ["goals"] });
   };

@@ -72,7 +72,7 @@ function NotesPage() {
   const updateNote = async () => {
     const body = editNoteInput.trim();
     if (!body || !editingNoteId) return;
-    const { error } = await supabase.from("notes").update({ body }).eq("id", editingNoteId);
+    const { error } = await supabase.from("notes").update({ body }).eq("id", editingNoteId).eq("user_id", uid);
     if (error) { toast.error(error.message); return; }
     setEditingNoteId(null);
     setEditNoteInput("");
@@ -80,7 +80,7 @@ function NotesPage() {
   };
 
   const removeNote = async (id: string) => {
-    const { error } = await supabase.from("notes").delete().eq("id", id);
+    const { error } = await supabase.from("notes").delete().eq("id", id).eq("user_id", uid);
     if (error) { toast.error(error.message); return; }
     qc.invalidateQueries({ queryKey: ["notes"] });
   };
