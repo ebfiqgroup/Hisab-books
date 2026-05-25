@@ -11,7 +11,7 @@ import {
 import {
   Wallet, Users, TrendingDown, Search,
   ArrowDown, ArrowUp, PiggyBank, StickyNote, Plus, Pencil, Trash2, Check, X, Target,
-  ShieldCheck,
+  ShieldCheck, Sparkles, BarChart3, Receipt, ListChecks,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { TxnDialog, type EditTxn } from "@/components/dashboard/TxnDialog";
@@ -138,11 +138,11 @@ function Dashboard() {
   const payable = debts.filter((d) => d.kind === "payable").reduce((s, d) => s + Number(d.amount), 0);
 
   const statCards = [
-    { label: t("মোট আয়", "Total income"), value: fmtTk(curInc), last: fmtTk(prevInc), pct: pctChange(curInc, prevInc), Icon: Wallet, bg: "bg-emerald-50", fg: "text-emerald-600", val: "text-emerald-600" },
-    { label: t("মোট ব্যয়", "Total expense"), value: fmtTk(curExp), last: fmtTk(prevExp), pct: pctChange(curExp, prevExp), Icon: ArrowDown, bg: "bg-rose-50", fg: "text-rose-500", val: "text-rose-500" },
-    { label: t("অবশিষ্ট", "Remaining"), value: fmtTk(curSav), last: fmtTk(prevSav), pct: pctChange(curSav, prevSav), Icon: PiggyBank, bg: "bg-blue-50", fg: "text-blue-600", val: "text-blue-600" },
-    { label: t("মোট পাওনা", "Total receivable"), value: fmtTk(receivable), last: "—", pct: { value: "", up: true }, Icon: Users, bg: "bg-orange-50", fg: "text-orange-500", val: "text-orange-500" },
-    { label: t("মোট দেনা", "Total payable"), value: fmtTk(payable), last: "—", pct: { value: "", up: false }, Icon: TrendingDown, bg: "bg-rose-50", fg: "text-rose-500", val: "text-rose-600" },
+    { label: t("মোট আয়", "Total income"), value: fmtTk(curInc), last: fmtTk(prevInc), pct: pctChange(curInc, prevInc), Icon: Wallet, grad: "from-emerald-500 to-teal-500", ring: "ring-emerald-100", val: "text-emerald-600" },
+    { label: t("মোট ব্যয়", "Total expense"), value: fmtTk(curExp), last: fmtTk(prevExp), pct: pctChange(curExp, prevExp), Icon: ArrowDown, grad: "from-rose-500 to-pink-500", ring: "ring-rose-100", val: "text-rose-500" },
+    { label: t("অবশিষ্ট", "Remaining"), value: fmtTk(curSav), last: fmtTk(prevSav), pct: pctChange(curSav, prevSav), Icon: PiggyBank, grad: "from-blue-500 to-indigo-500", ring: "ring-blue-100", val: "text-blue-600" },
+    { label: t("মোট পাওনা", "Total receivable"), value: fmtTk(receivable), last: "—", pct: { value: "", up: true }, Icon: Users, grad: "from-amber-500 to-orange-500", ring: "ring-orange-100", val: "text-orange-500" },
+    { label: t("মোট দেনা", "Total payable"), value: fmtTk(payable), last: "—", pct: { value: "", up: false }, Icon: TrendingDown, grad: "from-fuchsia-500 to-rose-500", ring: "ring-rose-100", val: "text-rose-600" },
   ];
 
   const expCats = forType("expense");
@@ -316,6 +316,32 @@ function Dashboard() {
 
   return (
     <AppShell title={t("ড্যাশবোর্ড", "Dashboard")}>
+      {/* Hero Welcome Banner */}
+      <div className="relative overflow-hidden rounded-2xl mb-6 p-5 sm:p-7 text-white shadow-lg">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600" />
+        <div className="absolute -top-10 -right-10 w-56 h-56 rounded-full bg-white/10 blur-3xl" />
+        <div className="absolute -bottom-10 -left-10 w-56 h-56 rounded-full bg-fuchsia-400/20 blur-3xl" />
+        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-white/80">
+              <Sparkles className="w-3.5 h-3.5" />
+              {`${BN_MONTHS[now.getMonth()]} ${toBn(now.getFullYear())}`}
+            </div>
+            <h2 className="mt-2 text-xl sm:text-2xl font-bold">{t("স্বাগতম! আপনার আর্থিক সারাংশ", "Welcome back! Your financial overview")}</h2>
+            <p className="mt-1 text-sm text-white/80">{t("এক নজরে আয়, ব্যয়, সঞ্চয় ও পরিকল্পনা।", "Income, expenses, savings & plans at a glance.")}</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <div className="px-3 py-2 rounded-xl bg-white/15 backdrop-blur-sm border border-white/20">
+              <div className="text-[10px] uppercase tracking-wider text-white/70">{t("এই মাসের অবশিষ্ট", "This month net")}</div>
+              <div className="text-lg font-bold">{fmtTk(curSav)}</div>
+            </div>
+            <button onClick={() => { setEditingTxn(null); setTxnOpen(true); }} className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white text-indigo-700 text-sm font-semibold shadow hover:shadow-md hover:scale-[1.02] transition">
+              <Plus className="w-4 h-4" /> {t("নতুন লেনদেন", "New transaction")}
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Admin Panel Link (only for admins) */}
       {isAdmin && (
         <div className="mb-4">
@@ -339,18 +365,21 @@ function Dashboard() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-6">
         {statCards.map((s) => (
-          <div key={s.label} className="bg-white rounded-xl p-5 border border-slate-200">
-            <div className="flex items-center gap-3 mb-3">
-              <div className={`w-11 h-11 rounded-full ${s.bg} flex items-center justify-center`}><s.Icon className={`w-5 h-5 ${s.fg}`} /></div>
-              <div>
-                <div className="text-sm text-slate-500">{s.label}</div>
-                <div className={`text-xl font-bold ${s.val}`}>{s.value}</div>
+          <div key={s.label} className={`group relative bg-white rounded-2xl p-5 border border-slate-200/70 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 ring-1 ${s.ring} overflow-hidden`}>
+            <div className={`absolute -top-12 -right-12 w-28 h-28 rounded-full bg-gradient-to-br ${s.grad} opacity-10 group-hover:opacity-20 transition`} />
+            <div className="relative flex items-start gap-3 mb-3">
+              <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${s.grad} flex items-center justify-center shadow-md shadow-slate-200`}>
+                <s.Icon className="w-5 h-5 text-white" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs font-medium text-slate-500 truncate">{s.label}</div>
+                <div className={`text-xl font-extrabold tracking-tight ${s.val}`}>{s.value}</div>
               </div>
             </div>
-            <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs">
+            <div className="relative flex items-center justify-between pt-3 border-t border-dashed border-slate-200/80 text-xs">
               <span className="text-slate-500">{t("গত মাস", "Last month")}: {s.last}</span>
               {s.pct.value && (
-                <span className={`flex items-center gap-1 ${s.pct.up ? "text-emerald-600" : "text-rose-500"}`}>
+                <span className={`flex items-center gap-0.5 font-semibold px-1.5 py-0.5 rounded-md ${s.pct.up ? "text-emerald-600 bg-emerald-50" : "text-rose-500 bg-rose-50"}`}>
                   {s.pct.up ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}{s.pct.value}
                 </span>
               )}
@@ -367,9 +396,14 @@ function Dashboard() {
           const donut = isExp ? expDonut : incDonut;
           const totalVal = isExp ? curExp : curInc;
           return (
-            <div className="bg-white rounded-xl p-5 border border-slate-200">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-slate-800">{isExp ? t("ব্যয়ের খাতভিত্তিক বিশ্লেষণ", "Expense breakdown by category") : t("আয়ের খাতভিত্তিক বিশ্লেষণ", "Income breakdown by category")}</h3>
+            <div className="bg-white rounded-2xl p-5 border border-slate-200/70 shadow-sm hover:shadow-md transition">
+              <div className="flex items-center justify-between mb-4 gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-sm shrink-0">
+                    <BarChart3 className="w-4 h-4 text-white" />
+                  </div>
+                  <h3 className="font-bold text-slate-800 truncate">{isExp ? t("ব্যয়ের খাতভিত্তিক বিশ্লেষণ", "Expense breakdown") : t("আয়ের খাতভিত্তিক বিশ্লেষণ", "Income breakdown")}</h3>
+                </div>
                 <div className="flex bg-slate-100 rounded-lg p-1 text-xs">
                   <button onClick={() => setDonutView("expense")} className={`px-3 py-1 rounded-md ${isExp ? "bg-white shadow text-slate-800" : "text-slate-500"}`}>{t("ব্যয়", "Expense")}</button>
                   <button onClick={() => setDonutView("income")} className={`px-3 py-1 rounded-md ${!isExp ? "bg-white shadow text-slate-800" : "text-slate-500"}`}>{t("আয়", "Income")}</button>
@@ -399,9 +433,14 @@ function Dashboard() {
           );
         })()}
 
-        <div className="bg-white rounded-xl p-5 border border-slate-200">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-slate-800">{t("আয় / ব্যয় চার্ট", "Income / Expense chart")}</h3>
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/70 shadow-sm hover:shadow-md transition">
+          <div className="flex items-center justify-between mb-4 gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-sm shrink-0">
+                <TrendingDown className="w-4 h-4 text-white rotate-180" />
+              </div>
+              <h3 className="font-bold text-slate-800 truncate">{t("আয় / ব্যয় চার্ট", "Income / Expense")}</h3>
+            </div>
             <div className="flex bg-slate-100 rounded-lg p-1 text-xs">
               {(["সাপ্তাহিক", "মাসিক", "বার্ষিক"] as const).map((r) => {
                 const lbl = r === "সাপ্তাহিক" ? t("সাপ্তাহিক", "Weekly") : r === "মাসিক" ? t("মাসিক", "Monthly") : t("বার্ষিক", "Yearly");
@@ -439,12 +478,17 @@ function Dashboard() {
 
       {/* Recent + Plan */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-        <div className="bg-white rounded-xl p-5 border border-slate-200">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-slate-800">{t("সাম্প্রতিক লেনদেন", "Recent transactions")}</h3>
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/70 shadow-sm hover:shadow-md transition">
+          <div className="flex items-center justify-between mb-4 gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center shadow-sm shrink-0">
+                <Receipt className="w-4 h-4 text-white" />
+              </div>
+              <h3 className="font-bold text-slate-800 truncate">{t("সাম্প্রতিক লেনদেন", "Recent transactions")}</h3>
+            </div>
             <div className="flex items-center gap-2">
               <Link to="/transactions" className="text-sm text-indigo-600 hover:underline">{t("সব দেখুন", "View all")}</Link>
-              <button onClick={() => { setEditingTxn(null); setTxnOpen(true); }} className="flex items-center gap-1 px-2.5 py-1.5 text-xs bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+              <button onClick={() => { setEditingTxn(null); setTxnOpen(true); }} className="flex items-center gap-1 px-2.5 py-1.5 text-xs bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-md hover:shadow-md transition">
                 <Plus className="w-3 h-3" /> {t("নতুন", "New")}
               </button>
             </div>
@@ -473,10 +517,12 @@ function Dashboard() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-5 border border-slate-200">
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/70 shadow-sm hover:shadow-md transition">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2 min-w-0">
-              <Wallet className="w-5 h-5 text-indigo-600 shrink-0" />
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-sm shrink-0">
+                <ListChecks className="w-4 h-4 text-white" />
+              </div>
               <h3 className="font-bold text-slate-800 truncate">{t("বাজেট ও পরিকল্পনা", "Budget & Plans")}</h3>
               {activeBudgets.length > 0 && (
                 <span className="text-xs text-slate-500 shrink-0">
@@ -526,9 +572,14 @@ function Dashboard() {
 
       {/* Bottom */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl p-5 border border-slate-200">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-slate-800">{t("সঞ্চয় লক্ষ্য", "Savings goals")}</h3>
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/70 shadow-sm hover:shadow-md transition">
+          <div className="flex items-center justify-between mb-4 gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center shadow-sm shrink-0">
+                <Target className="w-4 h-4 text-white" />
+              </div>
+              <h3 className="font-bold text-slate-800 truncate">{t("সঞ্চয় লক্ষ্য", "Savings goals")}</h3>
+            </div>
             <Link to="/goals" className="text-sm text-indigo-600">{t("সব দেখুন →", "View all →")}</Link>
           </div>
           <div className="space-y-4">
@@ -554,25 +605,35 @@ function Dashboard() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-5 border border-slate-200">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-slate-800">{t("দেনা / পাওনা সারাংশ", "Receivable / Payable summary")}</h3>
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/70 shadow-sm hover:shadow-md transition">
+          <div className="flex items-center justify-between mb-4 gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-rose-500 flex items-center justify-center shadow-sm shrink-0">
+                <Users className="w-4 h-4 text-white" />
+              </div>
+              <h3 className="font-bold text-slate-800 truncate">{t("দেনা / পাওনা সারাংশ", "Receivable / Payable")}</h3>
+            </div>
             <Link to="/debts" className="text-sm text-indigo-600">{t("বিস্তারিত →", "Details →")}</Link>
           </div>
           <div className="space-y-3">
-            <div className="p-4 rounded-lg bg-emerald-50/60 border border-emerald-100 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center"><Users className="w-5 h-5 text-emerald-600" /></div>
+            <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50/40 border border-emerald-100 flex items-center gap-3 hover:shadow-sm transition">
+              <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center"><Users className="w-5 h-5 text-emerald-600" /></div>
               <div><div className="text-xs text-slate-600">{t("মোট পাওনা", "Total receivable")}</div><div className="font-bold text-emerald-700">{fmtTk(receivable)}</div></div>
             </div>
-            <div className="p-4 rounded-lg bg-rose-50/60 border border-rose-100 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center"><Users className="w-5 h-5 text-rose-500" /></div>
+            <div className="p-4 rounded-xl bg-gradient-to-br from-rose-50 to-pink-50/40 border border-rose-100 flex items-center gap-3 hover:shadow-sm transition">
+              <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center"><Users className="w-5 h-5 text-rose-500" /></div>
               <div><div className="text-xs text-slate-600">{t("মোট দেনা", "Total payable")}</div><div className="font-bold text-rose-600">{fmtTk(payable)}</div></div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-5 border border-slate-200">
-          <div className="flex items-center gap-2 mb-3"><StickyNote className="w-5 h-5 text-amber-500" /><h3 className="font-bold text-slate-800">{t("দ্রুত নোট", "Quick notes")}</h3></div>
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/70 shadow-sm hover:shadow-md transition">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-yellow-500 flex items-center justify-center shadow-sm shrink-0">
+              <StickyNote className="w-4 h-4 text-white" />
+            </div>
+            <h3 className="font-bold text-slate-800">{t("দ্রুত নোট", "Quick notes")}</h3>
+          </div>
           <div className="relative mb-2">
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             <input
