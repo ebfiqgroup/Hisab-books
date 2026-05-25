@@ -11,6 +11,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { LanguageProvider } from "@/hooks/useLanguage";
 import { useEffect } from "react";
 import { attachPerfTracker } from "@/lib/perf-tracker";
+import { supabase } from "@/integrations/supabase/client";
 
 import appCss from "../styles.css?url";
 
@@ -131,6 +132,25 @@ function RootComponent() {
   useEffect(() => {
     attachPerfTracker(router);
   }, [router]);
+
+  // Clean up stale Supabase sessions when the refresh token is invalid.
+  // Without this, the user sees recurring "Invalid Refresh Token" errors
+  // and a broken auth state until they manually clear storage.
+  useEffect(() => {
+    const onRejection = (e: PromiseRejectionEvent) => {
+      const msg = String((e.reason as { message?: string } | undefined)?.message ?? "");
+      const code = String((e.reason as { code?: string } | undefined)?.code ?? "");
+      if (
+        code === "refresh_token_not_found" ||
+        msg.includes("Refresh Token Not Found") ||
+        msg.includes("Invalid Refresh Token")
+      ) {
+        supabase.auth.signOut().catch(() => { /* noop */ });
+      }
+    };
+    window.addEventListener("unhandledrejection", onRejection);
+    return () => window.removeEventListener("unhandledrejection", onRejection);
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

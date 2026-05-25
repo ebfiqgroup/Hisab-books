@@ -8,10 +8,12 @@ import { RealtimeStatusProvider } from "@/hooks/useRealtimeStatus";
 
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async () => {
-    const { data } = await supabase.auth.getSession();
-    if (!data.session) {
+    const { data, error } = await supabase.auth.getSession();
+    if (error || !data.session) {
+      try { await supabase.auth.signOut(); } catch { /* noop */ }
       throw redirect({ to: "/auth" });
     }
+    return { initialUserId: data.session.user.id };
   },
   component: AuthGate,
 });
@@ -19,40 +21,36 @@ export const Route = createFileRoute("/_authenticated")({
 function AuthGate() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  // Optimistic: render the app immediately after beforeLoad confirms session.
-  // Profile status is verified in background; only block if explicitly pending/suspended.
+  const { initialUserId } = Route.useRouteContext();
+  // beforeLoad already verified the session — render the app immediately.
   const [status, setStatus] = useState<"approved" | "pending" | "suspended">("approved");
-  const [userId, setUserId] = useState<string | undefined>(undefined);
-  const [authReady, setAuthReady] = useState(false);
+  const [userId, setUserId] = useState<string | undefined>(initialUserId);
 
   useEffect(() => {
     let cancel = false;
-    const check = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { navigate({ to: "/auth" }); return; }
-      if (!cancel) {
-        setUserId(session.user.id);
-        setAuthReady(true);
-        queryClient.invalidateQueries({ refetchType: "active" });
-      }
-      const { data } = await supabase.from("profiles").select("status").eq("id", session.user.id).maybeSingle();
+    const checkStatus = async (uid: string) => {
+      const { data } = await supabase.from("profiles").select("status").eq("id", uid).maybeSingle();
       if (cancel) return;
       const s = (data?.status as "approved" | "pending" | "suspended" | null) || "approved";
       setStatus(s);
     };
-    check();
+    if (initialUserId) checkStatus(initialUserId);
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
-      if (!s) { navigate({ to: "/auth" }); return; }
+      if (!s) {
+        if (_e === "SIGNED_OUT" || _e === "TOKEN_REFRESHED") {
+          navigate({ to: "/auth" });
+        }
+        return;
+      }
       setUserId(s.user.id);
-      setAuthReady(true);
       queryClient.invalidateQueries({ refetchType: "active" });
     });
     return () => { cancel = true; subscription.unsubscribe(); };
-  }, [navigate, queryClient]);
+  }, [navigate, queryClient, initialUserId]);
 
   const rtStatus = useRealtimeSync(userId);
 
-  if (!authReady || !userId) {
+  if (!userId) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-sm font-medium text-slate-500">ডাটা প্রস্তুত হচ্ছে…</div>
