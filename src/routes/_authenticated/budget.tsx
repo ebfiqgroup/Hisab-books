@@ -9,6 +9,7 @@ import { loadCustomCats, saveCustomCats } from "@/lib/finance";
 import { toast } from "sonner";
 import { Plus, Trash2, Pencil, Wallet, CalendarClock, X, ListFilter } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useCurrentUserId } from "@/hooks/useCurrentUserId";
 
 export const Route = createFileRoute("/_authenticated/budget")({ component: BudgetPage });
 

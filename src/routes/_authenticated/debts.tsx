@@ -8,6 +8,7 @@ import { Plus, Trash2, Check, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useCurrentUserId } from "@/hooks/useCurrentUserId";
 
 export const Route = createFileRoute("/_authenticated/debts")({ component: DebtsPage });
 
@@ -16,14 +17,15 @@ type Debt = { id: string; kind: "receivable" | "payable"; amount: number; person
 function DebtsPage() {
   const { t } = useLanguage();
   const qc = useQueryClient();
+  const uid = useCurrentUserId();
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ kind: "receivable" as "receivable" | "payable", person: "", amount: "", due_date: "", note: "" });
 
   const q = useQuery({
-    queryKey: ["debts", "all"],
+    queryKey: ["debts", "all", uid],
     queryFn: async () => {
-      const { data, error } = await supabase.from("debts").select("id,kind,amount,person,note,due_date,settled").order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("debts").select("id,kind,amount,person,note,due_date,settled").eq("user_id", uid).order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Debt[];
     },

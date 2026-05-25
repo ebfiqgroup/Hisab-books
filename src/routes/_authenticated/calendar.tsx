@@ -8,6 +8,7 @@ import { ChevronLeft, ChevronRight, Plus, Pencil, Trash2 } from "lucide-react";
 import { TxnDialog, type EditTxn } from "@/components/dashboard/TxnDialog";
 import { toast } from "sonner";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useCurrentUserId } from "@/hooks/useCurrentUserId";
 
 export const Route = createFileRoute("/_authenticated/calendar")({ component: CalendarPage });
 
@@ -19,6 +20,7 @@ const EN_DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 function CalendarPage() {
   const { t, lang } = useLanguage();
   const qc = useQueryClient();
+  const uid = useCurrentUserId();
   const [cursor, setCursor] = useState(() => { const d = new Date(); d.setDate(1); return d; });
   const [selected, setSelected] = useState<string | null>(null);
   const [txnOpen, setTxnOpen] = useState(false);
@@ -30,9 +32,9 @@ function CalendarPage() {
   const endISO = new Date(y, m + 1, 1).toISOString().slice(0, 10);
 
   const q = useQuery({
-    queryKey: ["transactions", "month", startISO],
+    queryKey: ["transactions", "month", uid, startISO],
     queryFn: async () => {
-      const { data, error } = await supabase.from("transactions").select("id,type,amount,occurred_on,category,note").gte("occurred_on", startISO).lt("occurred_on", endISO);
+      const { data, error } = await supabase.from("transactions").select("id,type,amount,occurred_on,category,note").eq("user_id", uid).gte("occurred_on", startISO).lt("occurred_on", endISO);
       if (error) throw error;
       return (data ?? []) as Txn[];
     },
@@ -44,7 +46,7 @@ function CalendarPage() {
   };
   const remove = async (id: string) => {
     if (!confirm(t("লেনদেনটি মুছে ফেলবেন?", "Delete this transaction?"))) return;
-    const { error } = await supabase.from("transactions").delete().eq("id", id);
+    const { error } = await supabase.from("transactions").delete().eq("id", id).eq("user_id", uid);
     if (error) { toast.error(error.message); return; }
     toast.success(t("মুছে ফেলা হয়েছে", "Deleted"));
     refresh();

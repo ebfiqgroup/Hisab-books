@@ -6,6 +6,7 @@ import { StickyNote, Search, Pencil, Trash2, Check, X, Plus } from "lucide-react
 import { AppShell } from "@/components/AppShell";
 import { toast } from "sonner";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useCurrentUserId } from "@/hooks/useCurrentUserId";
 
 export const Route = createFileRoute("/_authenticated/notes")({ component: NotesPage });
 
@@ -14,13 +15,15 @@ type Note = { id: string; body: string; created_at: string };
 function NotesPage() {
   const { t } = useLanguage();
   const qc = useQueryClient();
+  const uid = useCurrentUserId();
 
   const notesQ = useQuery({
-    queryKey: ["notes"],
+    queryKey: ["notes", uid],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("notes")
         .select("id,body,created_at")
+        .eq("user_id", uid)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Note[];

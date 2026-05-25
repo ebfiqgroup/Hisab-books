@@ -8,6 +8,7 @@ import { Plus, Trash2, Target, Pencil, ListFilter } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useCurrentUserId } from "@/hooks/useCurrentUserId";
 
 export const Route = createFileRoute("/_authenticated/goals")({ component: GoalsPage });
 
@@ -25,15 +26,16 @@ const colorOf = (k: string) => COLORS.find((c) => c.key === k) ?? COLORS[0];
 function GoalsPage() {
   const { t } = useLanguage();
   const qc = useQueryClient();
+  const uid = useCurrentUserId();
   const [open, setOpen] = useState(false);
   const [edit, setEdit] = useState<Goal | null>(null);
   const [form, setForm] = useState({ label: "", target: "", current: "", deadline: "", color: "emerald" });
   const [filter, setFilter] = useState<"all" | "pending" | "ongoing" | "completed">("all");
 
   const q = useQuery({
-    queryKey: ["goals"],
+    queryKey: ["goals", uid],
     queryFn: async () => {
-      const { data, error } = await supabase.from("goals").select("id,label,target,current,deadline,color,status").order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("goals").select("id,label,target,current,deadline,color,status").eq("user_id", uid).order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Goal[];
     },
