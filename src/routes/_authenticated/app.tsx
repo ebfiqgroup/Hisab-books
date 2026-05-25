@@ -18,6 +18,7 @@ import { TxnDialog, type EditTxn } from "@/components/dashboard/TxnDialog";
 import { AiSuggestions } from "@/components/dashboard/AiSuggestions";
 import { toast } from "sonner";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useCurrentUserId } from "@/hooks/useCurrentUserId";
 
 export const Route = createFileRoute("/_authenticated/app")({ component: Dashboard });
 
@@ -34,6 +35,7 @@ function Dashboard() {
   const tr = t;
   const { forType } = useCustomCategories();
   const qc = useQueryClient();
+  const uid = useCurrentUserId();
   const [chartRange, setChartRange] = useState<"সাপ্তাহিক" | "মাসিক" | "বার্ষিক">(() => {
     if (typeof window === "undefined") return "সাপ্তাহিক";
     const v = localStorage.getItem("dashboard_chart_range");
@@ -56,51 +58,52 @@ function Dashboard() {
   const { startISO, endISO, prevStartISO } = useMemo(() => monthBounds(now), []);
 
   const txnQ = useQuery({
-    queryKey: ["transactions", "all"],
+    queryKey: ["transactions", "all", uid],
     queryFn: async () => {
-      const { data, error } = await supabase.from("transactions").select("id,type,category,amount,occurred_on,note").order("occurred_on", { ascending: false }).limit(1000);
+      const { data, error } = await supabase.from("transactions").select("id,type,category,amount,occurred_on,note").eq("user_id", uid).order("occurred_on", { ascending: false }).limit(1000);
       if (error) throw error;
       return (data ?? []) as Txn[];
     },
   });
   const debtsQ = useQuery({
-    queryKey: ["debts", "active"],
+    queryKey: ["debts", "active", uid],
     queryFn: async () => {
-      const { data, error } = await supabase.from("debts").select("id,kind,amount,settled").eq("settled", false);
+      const { data, error } = await supabase.from("debts").select("id,kind,amount,settled").eq("user_id", uid).eq("settled", false);
       if (error) throw error;
       return (data ?? []) as Debt[];
     },
   });
   const goalsQ = useQuery({
-    queryKey: ["goals"],
+    queryKey: ["goals", uid],
     queryFn: async () => {
-      const { data, error } = await supabase.from("goals").select("id,label,target,current,color").order("created_at", { ascending: false }).limit(4);
+      const { data, error } = await supabase.from("goals").select("id,label,target,current,color").eq("user_id", uid).order("created_at", { ascending: false }).limit(4);
       if (error) throw error;
       return (data ?? []) as Goal[];
     },
   });
   const notesQ = useQuery({
-    queryKey: ["notes"],
+    queryKey: ["notes", uid],
     queryFn: async () => {
-      const { data, error } = await supabase.from("notes").select("id,body,created_at").order("created_at", { ascending: false }).limit(10);
+      const { data, error } = await supabase.from("notes").select("id,body,created_at").eq("user_id", uid).order("created_at", { ascending: false }).limit(10);
       if (error) throw error;
       return (data ?? []) as Note[];
     },
   });
   const tasksQ = useQuery({
-    queryKey: ["plan_tasks"],
+    queryKey: ["plan_tasks", uid],
     queryFn: async () => {
-      const { data, error } = await supabase.from("plan_tasks").select("id,task,due_text,amount_text,priority,done").order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("plan_tasks").select("id,task,due_text,amount_text,priority,done").eq("user_id", uid).order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as PlanTask[];
     },
   });
   const budgetsQ = useQuery({
-    queryKey: ["budgets", "ai"],
+    queryKey: ["budgets", "ai", uid],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("budgets")
         .select("id,category,monthly_limit,label,start_at,end_at,status")
+        .eq("user_id", uid)
         .order("start_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as {
@@ -227,19 +230,19 @@ function Dashboard() {
     if (!user) return;
     const payload = { task: draft.task.trim(), due_text: draft.due_text || null, amount_text: draft.amount_text || null, priority: draft.priority };
     const { error } = editingId
-      ? await supabase.from("plan_tasks").update(payload).eq("id", editingId)
+      ? await supabase.from("plan_tasks").update(payload).eq("id", editingId).eq("user_id", uid)
       : await supabase.from("plan_tasks").insert({ ...payload, user_id: user.id });
     if (error) { toast.error(error.message); return; }
     qc.invalidateQueries({ queryKey: ["plan_tasks"] });
     cancel();
   };
   const removeTask = async (id: string) => {
-    const { error } = await supabase.from("plan_tasks").delete().eq("id", id);
+    const { error } = await supabase.from("plan_tasks").delete().eq("id", id).eq("user_id", uid);
     if (error) { toast.error(error.message); return; }
     qc.invalidateQueries({ queryKey: ["plan_tasks"] });
   };
   const toggleTask = async (t: PlanTask) => {
-    const { error } = await supabase.from("plan_tasks").update({ done: !t.done }).eq("id", t.id);
+    const { error } = await supabase.from("plan_tasks").update({ done: !t.done }).eq("id", t.id).eq("user_id", uid);
     if (error) { toast.error(error.message); return; }
     qc.invalidateQueries({ queryKey: ["plan_tasks"] });
   };
@@ -280,14 +283,14 @@ function Dashboard() {
   const updateNote = async () => {
     const body = editNoteInput.trim();
     if (!body || !editingNoteId) return;
-    const { error } = await supabase.from("notes").update({ body }).eq("id", editingNoteId);
+    const { error } = await supabase.from("notes").update({ body }).eq("id", editingNoteId).eq("user_id", uid);
     if (error) { toast.error(error.message); return; }
     setEditingNoteId(null);
     setEditNoteInput("");
     qc.invalidateQueries({ queryKey: ["notes"] });
   };
   const removeNote = async (id: string) => {
-    const { error } = await supabase.from("notes").delete().eq("id", id);
+    const { error } = await supabase.from("notes").delete().eq("id", id).eq("user_id", uid);
     if (error) { toast.error(error.message); return; }
     qc.invalidateQueries({ queryKey: ["notes"] });
   };
