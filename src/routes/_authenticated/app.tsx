@@ -563,19 +563,25 @@ function Dashboard() {
             {!txnQ.isLoading && recent.length === 0 && <div className="text-sm text-slate-400 py-4 text-center">{t("কোনো লেনদেন নেই", "No transactions")}</div>}
             {recent.map((t) => {
               const income = t.type === "income";
+              const catColor = categoryColor(t.category);
               return (
                 <div
                   key={t.id}
                   onClick={() => { setEditingTxn({ id: t.id, type: t.type, category: t.category, amount: Number(t.amount), occurred_on: t.occurred_on, note: t.note }); setTxnOpen(true); }}
-                  className="flex items-center gap-2 py-1 cursor-pointer hover:bg-slate-50 rounded-md px-1 -mx-1"
+                  className="group/t flex items-center gap-2.5 py-2 px-2 -mx-2 cursor-pointer rounded-lg hover:bg-gradient-to-r hover:from-slate-50 hover:to-transparent transition"
                   title="Click to edit"
                 >
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${income ? "bg-emerald-50" : "bg-rose-50"}`}>
-                    {income ? <ArrowUp className="w-4 h-4 text-emerald-600" /> : <ArrowDown className="w-4 h-4 text-rose-500" />}
+                  <div className={`relative w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm ${income ? "bg-gradient-to-br from-emerald-400 to-teal-500" : "bg-gradient-to-br from-rose-400 to-pink-500"} group-hover/t:scale-110 group-hover/t:rotate-3 transition`}>
+                    {income ? <ArrowUp className="w-4 h-4 text-white" /> : <ArrowDown className="w-4 h-4 text-white" />}
+                    <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full ring-2 ring-white" style={{ background: catColor }} />
                   </div>
-                  <span className="font-medium text-slate-800 flex-1 text-sm truncate">{t.note || t.category}</span>
-                  <span className="text-xs text-slate-500">{toBn(t.occurred_on)}</span>
-                  <span className={`font-bold text-sm w-24 text-right ${income ? "text-emerald-600" : "text-rose-500"}`}>{fmtTk(Number(t.amount))}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-slate-800 text-sm truncate">{t.note || t.category}</div>
+                    <div className="text-[10px] text-slate-500 truncate">{t.category} · {toBn(t.occurred_on)}</div>
+                  </div>
+                  <span className={`font-extrabold text-sm tracking-tight w-24 text-right ${income ? "text-emerald-600" : "text-rose-500"}`}>
+                    {income ? "+" : "−"}{fmtTk(Number(t.amount))}
+                  </span>
                 </div>
               );
             })}
