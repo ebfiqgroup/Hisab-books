@@ -61,6 +61,7 @@ function emptyForm(defaultCat: string): FormState {
 function BudgetPage() {
   const { t } = useLanguage();
   const qc = useQueryClient();
+  const uid = useCurrentUserId();
   const { forType } = useCustomCategories();
   // One-time clear of any pre-existing expense categories so the budget
   // page starts fresh and the user defines categories from scratch here.
@@ -94,7 +95,7 @@ function BudgetPage() {
     if (m.expense.includes(newName)) { toast.error(t("এই নাম ইতোমধ্যে আছে", "This name already exists")); return; }
     saveCustomCats({ ...m, expense: m.expense.map((c) => (c === oldName ? newName : c)) });
     // Update affected budgets in DB
-    const { error } = await supabase.from("budgets").update({ category: newName }).eq("category", oldName);
+    const { error } = await supabase.from("budgets").update({ category: newName }).eq("category", oldName).eq("user_id", uid);
     if (error) { toast.error(error.message); return; }
     if (form.category === oldName) setForm({ ...form, category: newName });
     setEditingCat(null);
@@ -109,7 +110,7 @@ function BudgetPage() {
       : t(`"${name}" ক্যাটাগরি মুছে ফেলবেন?`, `Delete category "${name}"?`);
     if (!confirm(msg)) return;
     if (used) {
-      const { error } = await supabase.from("budgets").delete().eq("category", name);
+      const { error } = await supabase.from("budgets").delete().eq("category", name).eq("user_id", uid);
       if (error) { toast.error(error.message); return; }
     }
     const m = loadCustomCats();
@@ -126,11 +127,12 @@ function BudgetPage() {
   const nowIso = new Date().toISOString();
 
   const bQ = useQuery({
-    queryKey: ["budgets"],
+    queryKey: ["budgets", uid],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("budgets")
         .select("id,category,monthly_limit,label,start_at,end_at,status")
+        .eq("user_id", uid)
         .order("start_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Budget[];
@@ -154,12 +156,13 @@ function BudgetPage() {
   }, [bQ.data]);
 
   const tQ = useQuery({
-    queryKey: ["transactions", "budget-union", range.from, range.to],
+    queryKey: ["transactions", "budget-union", uid, range.from, range.to],
     enabled: !!bQ.data,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("transactions")
         .select("category,amount,occurred_on")
+        .eq("user_id", uid)
         .eq("type", "expense")
         .gte("occurred_on", range.from)
         .lte("occurred_on", range.to);
@@ -208,7 +211,7 @@ function BudgetPage() {
       end_at: fromLocalInput(form.end),
     };
     const { error } = form.id
-      ? await supabase.from("budgets").update(payload).eq("id", form.id)
+      ? await supabase.from("budgets").update(payload).eq("id", form.id).eq("user_id", uid)
       : await supabase.from("budgets").insert({ ...payload, user_id: user.id });
     if (error) { toast.error(error.message); return; }
     toast.success(form.id ? t("আপডেট হয়েছে", "Updated") : t("বাজেট যুক্ত হয়েছে", "Budget added"));
@@ -218,7 +221,7 @@ function BudgetPage() {
 
   const remove = async (id: string) => {
     if (!confirm(t("বাজেট মুছে ফেলবেন?", "Delete this budget?"))) return;
-    const { error } = await supabase.from("budgets").delete().eq("id", id);
+    const { error } = await supabase.from("budgets").delete().eq("id", id).eq("user_id", uid);
     if (error) { toast.error(error.message); return; }
     toast.success(t("মুছে ফেলা হয়েছে", "Deleted"));
     qc.invalidateQueries({ queryKey: ["budgets"] });
@@ -230,7 +233,7 @@ function BudgetPage() {
 
   const setStatus = async (b: Budget, s: "pending" | "ongoing" | "completed") => {
     const next = effStatus(b) === s ? null : s;
-    const { error } = await supabase.from("budgets").update({ status: next }).eq("id", b.id);
+    const { error } = await supabase.from("budgets").update({ status: next }).eq("id", b.id).eq("user_id", uid);
     if (error) { toast.error(error.message); return; }
     qc.invalidateQueries({ queryKey: ["budgets"] });
   };
