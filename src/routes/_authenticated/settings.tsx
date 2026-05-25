@@ -277,6 +277,24 @@ function SettingsPage() {
   return (
     <AppShell title={t("সেটিংস", "Settings")}>
       <div className="max-w-3xl space-y-4">
+        {/* Hero */}
+        <div className="relative overflow-hidden rounded-2xl p-5 sm:p-6 text-white shadow-xl bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600">
+          <div className="absolute -top-20 -right-20 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
+          <div className="absolute -bottom-24 -left-16 w-72 h-72 bg-fuchsia-300/20 rounded-full blur-3xl" />
+          <div className="relative flex items-center gap-4">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden ring-4 ring-white/30 bg-white/20 flex items-center justify-center text-white text-2xl sm:text-3xl font-extrabold shrink-0">
+              {avatar ? <img src={avatar} alt="" className="w-full h-full object-cover" /> : (name || user?.email || "U").charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-white/15 backdrop-blur rounded-full text-xs font-medium mb-1.5">
+                <SlidersHorizontal className="w-3.5 h-3.5" /> {t("সেটিংস", "Settings")}
+              </div>
+              <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight truncate">{name || t("আপনার অ্যাকাউন্ট", "Your account")}</h2>
+              <p className="text-white/80 text-sm truncate">{user?.email}</p>
+            </div>
+          </div>
+        </div>
+
         {/* Profile */}
         <Section icon={<UserIcon className="w-4 h-4 text-indigo-600" />} title={t("প্রোফাইল", "Profile")}>
           <div className="flex items-center gap-4 mb-4">
@@ -501,9 +519,12 @@ function SettingsPage() {
 
 function Section({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-xl p-5 border border-slate-200">
+    <div className="group bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-all relative overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500 opacity-80" />
       <div className="flex items-center gap-2 mb-4">
-        {icon}
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-50 to-violet-50 ring-1 ring-indigo-100 flex items-center justify-center">
+          {icon}
+        </div>
         <h2 className="font-bold text-slate-800">{title}</h2>
       </div>
       <div className="space-y-3">{children}</div>
@@ -522,7 +543,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function PrimaryBtn({ children, ...rest }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button {...rest} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50">
+    <button {...rest} className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg text-sm font-semibold hover:shadow-lg hover:shadow-indigo-200 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0">
       {children}
     </button>
   );
