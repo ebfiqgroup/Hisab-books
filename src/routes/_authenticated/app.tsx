@@ -11,7 +11,7 @@ import {
 import {
   Wallet, Users, TrendingDown, Search,
   ArrowDown, ArrowUp, PiggyBank, StickyNote, Plus, Pencil, Trash2, Check, X, Target,
-  ShieldCheck, Sparkles, BarChart3, Receipt, ListChecks,
+  ShieldCheck, Sparkles, BarChart3, Receipt, ListChecks, Flame, Calendar, Zap, Trophy, AlertTriangle,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { TxnDialog, type EditTxn } from "@/components/dashboard/TxnDialog";
