@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
 import {
   Home, Wallet, TrendingDown, ArrowLeftRight, Clock, Target,
-  Users, BarChart3, Calendar, Settings, ShieldCheck, Activity, LifeBuoy, X, StickyNote, Crown,
+  Users, BarChart3, Calendar, Settings, ShieldCheck, Activity, LifeBuoy, X, StickyNote, Crown, LayoutDashboard,
 } from "lucide-react";
 import { useIsAdmin, useIsSuperAdmin } from "@/hooks/useRole";
 import { RefCodeBadge } from "./RefCodeBadge";
@@ -39,6 +39,7 @@ export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean;
   const items = [
     ...navItems,
     ...(isAdmin ? [{ icon: ShieldCheck, key: "nav.admin" as TKey, to: "/admin" as const }] : []),
+    ...(isAdmin ? [{ icon: LayoutDashboard, key: "nav.allDashboards" as TKey, to: "/admin/dashboards" as const }] : []),
     ...(isSuperAdmin ? [{ icon: Crown, key: "nav.superAdmin" as TKey, to: "/super-admin" as const }] : []),
     ...(isAdmin ? [{ icon: Activity, key: "nav.audit" as TKey, to: "/audit" as const }] : []),
   ];
