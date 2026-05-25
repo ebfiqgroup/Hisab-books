@@ -127,34 +127,40 @@ export type Database = {
       }
       goals: {
         Row: {
+          category: string | null
           color: string | null
           created_at: string
           current: number
           deadline: string | null
           id: string
           label: string
+          start_date: string | null
           status: string | null
           target: number
           user_id: string
         }
         Insert: {
+          category?: string | null
           color?: string | null
           created_at?: string
           current?: number
           deadline?: string | null
           id?: string
           label: string
+          start_date?: string | null
           status?: string | null
           target: number
           user_id: string
         }
         Update: {
+          category?: string | null
           color?: string | null
           created_at?: string
           current?: number
           deadline?: string | null
           id?: string
           label?: string
+          start_date?: string | null
           status?: string | null
           target?: number
           user_id?: string
