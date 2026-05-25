@@ -248,6 +248,9 @@ function BudgetPage() {
   const totalLimit = filteredList.reduce((s, b) => s + Number(b.monthly_limit), 0);
   const totalSpent = filteredList.reduce((s, b) => s + spentFor(b), 0);
   const totalPct = totalLimit > 0 ? Math.min(100, (totalSpent / totalLimit) * 100) : 0;
+  const totalRemaining = totalLimit - totalSpent;
+  const completedCount = filteredList.filter((b) => effStatus(b) === "completed").length;
+  const overBudget = totalLimit > 0 && totalSpent > totalLimit;
 
   const filterBtns: { key: typeof filter; labelBn: string; labelEn: string }[] = [
     { key: "all", labelBn: "পতিটি বিষয়", labelEn: "All" },
@@ -271,12 +274,12 @@ function BudgetPage() {
 
       {/* Summary hero */}
       <div className="relative overflow-hidden rounded-2xl p-5 sm:p-6 mb-5 text-white shadow-2xl shadow-indigo-500/30"
-        style={{ background: totalSpent > totalLimit && totalLimit > 0 ? "linear-gradient(135deg,#e11d48,#f97316)" : "linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#a855f7 100%)" }}>
+        style={{ background: overBudget ? "linear-gradient(135deg,#e11d48,#f97316)" : "linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#a855f7 100%)" }}>
         <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/15 blur-3xl" />
         <div className="absolute -bottom-20 -left-10 w-72 h-72 rounded-full bg-fuchsia-300/20 blur-3xl" />
         <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "20px 20px" }} />
         <div className="relative">
-          <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-center gap-3 mb-4">
             <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center"><Wallet className="w-5 h-5" /></div>
             <div>
               <div className="text-[11px] uppercase tracking-wider font-semibold opacity-90">{t("মোট ব্যয় / মোট বাজেট", "Total spent / Total budget")}</div>
@@ -285,12 +288,26 @@ function BudgetPage() {
               </div>
             </div>
           </div>
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-3">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 sm:p-3 border border-white/15">
+              <div className="text-[10px] uppercase tracking-wider opacity-80 font-semibold">{t("বর্তমান ব্যয়", "Current")}</div>
+              <div className="text-sm sm:text-lg font-extrabold tracking-tight tabular-nums">{fmtTk(totalSpent)}</div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 sm:p-3 border border-white/15">
+              <div className="text-[10px] uppercase tracking-wider opacity-80 font-semibold">{totalRemaining >= 0 ? t("বাকি", "Remaining") : t("অতিরিক্ত", "Over")}</div>
+              <div className="text-sm sm:text-lg font-extrabold tracking-tight tabular-nums">{fmtTk(Math.abs(totalRemaining))}</div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 sm:p-3 border border-white/15">
+              <div className="text-[10px] uppercase tracking-wider opacity-80 font-semibold">{t("পূর্ণ বাজেট", "Completed")}</div>
+              <div className="text-sm sm:text-lg font-extrabold tracking-tight tabular-nums">{toBn(completedCount)} / {toBn(filteredList.length)}</div>
+            </div>
+          </div>
           <div className="h-2.5 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
             <div className="h-full bg-white rounded-full shadow-lg transition-all" style={{ width: `${totalPct}%` }} />
           </div>
           <div className="flex justify-between text-xs mt-1.5 opacity-90 font-medium">
             <span>{toBn(totalPct.toFixed(1))}% {t("ব্যবহৃত", "used")}</span>
-            <span>{totalLimit - totalSpent >= 0 ? t("বাকি", "Remaining") : t("অতিরিক্ত", "Over")}: {fmtTk(Math.abs(totalLimit - totalSpent))}</span>
+            <span>{totalRemaining >= 0 ? t("বাকি", "Remaining") : t("অতিরিক্ত", "Over")}: {fmtTk(Math.abs(totalRemaining))}</span>
           </div>
         </div>
       </div>
