@@ -608,24 +608,48 @@ function Dashboard() {
                 const pct = b.monthly_limit > 0 ? Math.min(100, (b.spent / b.monthly_limit) * 100) : 0;
                 const over = b.monthly_limit > 0 && b.spent > b.monthly_limit;
                 const color = categoryColor(b.category);
+                const daysLeft = daysBetween(todayIso, b.end_at.slice(0, 10));
+                const warn = !over && pct >= 80;
                 return (
-                  <Link key={b.id} to="/budget" className="block p-3 rounded-lg border border-slate-100 hover:bg-slate-50/60">
-                    <div className="flex items-center justify-between mb-1.5 gap-2">
+                  <Link key={b.id} to="/budget" className="group/b block p-3 rounded-xl border border-slate-100 hover:border-slate-200 hover:shadow-sm hover:bg-gradient-to-br hover:from-slate-50/60 hover:to-white transition">
+                    <div className="flex items-center justify-between mb-2 gap-2">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
+                        <span className="w-2.5 h-2.5 rounded-full shrink-0 ring-2 ring-white shadow" style={{ background: color }} />
                         <span className="text-sm font-medium text-slate-800 truncate">{b.label || b.category}</span>
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full shrink-0 ${b.status === "ongoing" ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"}`}>
-                          {b.status === "ongoing" ? t("চলমান", "Ongoing") : t("অপেক্ষিত", "Pending")}
-                        </span>
+                        {over ? (
+                          <span className="flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full bg-rose-50 text-rose-600 ring-1 ring-rose-200 shrink-0">
+                            <AlertTriangle className="w-2.5 h-2.5" /> {t("অতিরিক্ত", "Over")}
+                          </span>
+                        ) : warn ? (
+                          <span className="flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600 ring-1 ring-amber-200 shrink-0">
+                            <Flame className="w-2.5 h-2.5" /> {t("সতর্ক", "Warn")}
+                          </span>
+                        ) : (
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full shrink-0 ${b.status === "ongoing" ? "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200" : "bg-amber-50 text-amber-600 ring-1 ring-amber-200"}`}>
+                            {b.status === "ongoing" ? t("চলমান", "Ongoing") : t("অপেক্ষিত", "Pending")}
+                          </span>
+                        )}
                       </div>
                       <span className={`text-xs font-semibold shrink-0 ${over ? "text-rose-500" : "text-slate-600"}`}>{toBn(pct.toFixed(0))}%</span>
                     </div>
-                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full" style={{ width: `${pct}%`, background: over ? "#f43f5e" : color }} />
+                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden relative">
+                      <div
+                        className="h-full rounded-full transition-all duration-700 ease-out"
+                        style={{
+                          width: `${pct}%`,
+                          background: over
+                            ? "linear-gradient(90deg,#fb7185,#e11d48)"
+                            : `linear-gradient(90deg, ${color}99, ${color})`,
+                          boxShadow: over ? "0 0 12px rgba(244,63,94,0.45)" : `0 0 8px ${color}55`,
+                        }}
+                      />
                     </div>
                     <div className="flex items-center justify-between mt-1.5 text-xs">
-                      <span className={over ? "text-rose-500 font-medium" : "text-slate-500"}>{fmtTk(b.spent)}</span>
-                      <span className="text-slate-400">/ {fmtTk(b.monthly_limit)}</span>
+                      <span className={over ? "text-rose-500 font-medium" : "text-slate-600 font-medium"}>{fmtTk(b.spent)} <span className="text-slate-400 font-normal">/ {fmtTk(b.monthly_limit)}</span></span>
+                      <span className="flex items-center gap-1 text-[10px] text-slate-500">
+                        <Calendar className="w-3 h-3" />
+                        {b.status === "ongoing" ? `${toBn(daysLeft)} ${t("দিন বাকি", "days left")}` : t("শুরু হয়নি", "Not started")}
+                      </span>
                     </div>
                   </Link>
                 );
