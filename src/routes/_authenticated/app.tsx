@@ -675,19 +675,38 @@ function Dashboard() {
             {goals.length === 0 && <div className="text-sm text-slate-400 text-center py-4">{t("কোনো লক্ষ্য নেই", "No goals")}</div>}
             {goals.map((g) => {
               const pct = g.target > 0 ? Math.min(100, (Number(g.current) / Number(g.target)) * 100) : 0;
+              const done = pct >= 100;
+              const accent = g.color || "#6366f1";
               return (
-                <div key={g.id} className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-indigo-50 flex items-center justify-center"><Target className="w-4 h-4 text-indigo-600" /></div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between text-xs mb-1.5">
-                      <span className="font-medium text-slate-700">{g.label}</span>
-                      <span className="text-slate-500">{fmtTk(Number(g.current))} / {fmtTk(Number(g.target))}</span>
-                    </div>
-                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${pct}%` }}></div>
+                <div key={g.id} className="group/g flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-slate-50/70 transition">
+                  <div
+                    className="relative w-11 h-11 rounded-full flex items-center justify-center shrink-0"
+                    style={{ background: `conic-gradient(${accent} ${pct * 3.6}deg, #e2e8f0 0deg)` }}
+                  >
+                    <div className="absolute inset-1 rounded-full bg-white flex items-center justify-center">
+                      {done ? <Trophy className="w-4 h-4 text-amber-500" /> : <Target className="w-4 h-4" style={{ color: accent }} />}
                     </div>
                   </div>
-                  <span className="text-xs font-semibold text-slate-600 w-10 text-right">{toBn(pct.toFixed(0))}%</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between text-xs mb-1.5 gap-2">
+                      <span className="font-medium text-slate-800 truncate flex items-center gap-1.5">
+                        {g.label}
+                        {done && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 ring-1 ring-amber-200 shrink-0">{t("অর্জিত", "Achieved")}</span>}
+                      </span>
+                      <span className="text-slate-500 shrink-0 text-[11px]">{fmtTk(Number(g.current))} / {fmtTk(Number(g.target))}</span>
+                    </div>
+                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-700 ease-out"
+                        style={{
+                          width: `${pct}%`,
+                          background: `linear-gradient(90deg, ${accent}aa, ${accent})`,
+                          boxShadow: `0 0 8px ${accent}66`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <span className="text-xs font-bold w-10 text-right" style={{ color: done ? "#d97706" : accent }}>{toBn(pct.toFixed(0))}%</span>
                 </div>
               );
             })}
