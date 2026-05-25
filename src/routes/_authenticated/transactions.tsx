@@ -9,6 +9,7 @@ import { useCustomCategories } from "@/hooks/useCustomCategories";
 import { ArrowUp, ArrowDown, Plus, Trash2, ArrowLeft, Search, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useCurrentUserId } from "@/hooks/useCurrentUserId";
 
 export const Route = createFileRoute("/_authenticated/transactions")({
   component: TransactionsPage,
@@ -21,6 +22,7 @@ const PAGE_SIZE = 50;
 function TransactionsPage() {
   const { t } = useLanguage();
   const qc = useQueryClient();
+  const uid = useCurrentUserId();
   const { forType, combined } = useCustomCategories();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<EditTxn | null>(null);
@@ -35,7 +37,7 @@ function TransactionsPage() {
   }, [q]);
 
   const txnQ = useInfiniteQuery({
-    queryKey: ["transactions", "list", filter, cat, debouncedQ],
+    queryKey: ["transactions", "list", uid, filter, cat, debouncedQ],
     initialPageParam: 0,
     queryFn: async ({ pageParam }) => {
       const from = (pageParam as number) * PAGE_SIZE;
@@ -43,6 +45,7 @@ function TransactionsPage() {
       let query = supabase
         .from("transactions")
         .select("id,type,category,amount,occurred_on,note")
+        .eq("user_id", uid)
         .order("occurred_on", { ascending: false })
         .order("id", { ascending: false })
         .range(from, to);
@@ -81,7 +84,7 @@ function TransactionsPage() {
 
   const remove = async (id: string) => {
     if (!confirm(t("লেনদেনটি মুছে ফেলবেন?", "Delete this transaction?"))) return;
-    const { error } = await supabase.from("transactions").delete().eq("id", id);
+    const { error } = await supabase.from("transactions").delete().eq("id", id).eq("user_id", uid);
     if (error) { toast.error(error.message); return; }
     toast.success(t("মুছে ফেলা হয়েছে", "Deleted"));
     qc.invalidateQueries({ queryKey: ["transactions"] });

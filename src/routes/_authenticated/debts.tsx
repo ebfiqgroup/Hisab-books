@@ -8,6 +8,7 @@ import { Plus, Trash2, Check, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useCurrentUserId } from "@/hooks/useCurrentUserId";
 
 export const Route = createFileRoute("/_authenticated/debts")({ component: DebtsPage });
 
@@ -16,14 +17,15 @@ type Debt = { id: string; kind: "receivable" | "payable"; amount: number; person
 function DebtsPage() {
   const { t } = useLanguage();
   const qc = useQueryClient();
+  const uid = useCurrentUserId();
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ kind: "receivable" as "receivable" | "payable", person: "", amount: "", due_date: "", note: "" });
 
   const q = useQuery({
-    queryKey: ["debts", "all"],
+    queryKey: ["debts", "all", uid],
     queryFn: async () => {
-      const { data, error } = await supabase.from("debts").select("id,kind,amount,person,note,due_date,settled").order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("debts").select("id,kind,amount,person,note,due_date,settled").eq("user_id", uid).order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Debt[];
     },
@@ -58,7 +60,7 @@ function DebtsPage() {
       note: form.note || null,
     };
     if (editingId) {
-      const { error } = await supabase.from("debts").update(payload).eq("id", editingId);
+      const { error } = await supabase.from("debts").update(payload).eq("id", editingId).eq("user_id", uid);
       if (error) { toast.error(error.message); return; }
       toast.success(t("আপডেট হয়েছে", "Updated"));
     } else {
@@ -74,13 +76,13 @@ function DebtsPage() {
     setForm({ kind: "receivable", person: "", amount: "", due_date: "", note: "" });
   };
   const toggle = async (d: Debt) => {
-    const { error } = await supabase.from("debts").update({ settled: !d.settled }).eq("id", d.id);
+    const { error } = await supabase.from("debts").update({ settled: !d.settled }).eq("id", d.id).eq("user_id", uid);
     if (error) { toast.error(error.message); return; }
     qc.invalidateQueries({ queryKey: ["debts"] });
   };
   const remove = async (id: string) => {
     if (!confirm(t("মুছে ফেলবেন?", "Delete this?"))) return;
-    const { error } = await supabase.from("debts").delete().eq("id", id);
+    const { error } = await supabase.from("debts").delete().eq("id", id).eq("user_id", uid);
     if (error) { toast.error(error.message); return; }
     toast.success(t("মুছে ফেলা হয়েছে", "Deleted"));
     qc.invalidateQueries({ queryKey: ["debts"] });

@@ -8,6 +8,7 @@ import { Plus, Trash2, Target, Pencil, ListFilter } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useCurrentUserId } from "@/hooks/useCurrentUserId";
 
 export const Route = createFileRoute("/_authenticated/goals")({ component: GoalsPage });
 
@@ -25,15 +26,16 @@ const colorOf = (k: string) => COLORS.find((c) => c.key === k) ?? COLORS[0];
 function GoalsPage() {
   const { t } = useLanguage();
   const qc = useQueryClient();
+  const uid = useCurrentUserId();
   const [open, setOpen] = useState(false);
   const [edit, setEdit] = useState<Goal | null>(null);
   const [form, setForm] = useState({ label: "", target: "", current: "", deadline: "", color: "emerald" });
   const [filter, setFilter] = useState<"all" | "pending" | "ongoing" | "completed">("all");
 
   const q = useQuery({
-    queryKey: ["goals"],
+    queryKey: ["goals", uid],
     queryFn: async () => {
-      const { data, error } = await supabase.from("goals").select("id,label,target,current,deadline,color,status").order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("goals").select("id,label,target,current,deadline,color,status").eq("user_id", uid).order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Goal[];
     },
@@ -54,7 +56,7 @@ function GoalsPage() {
       color: form.color,
     };
     const { error } = edit
-      ? await supabase.from("goals").update(payload).eq("id", edit.id)
+      ? await supabase.from("goals").update(payload).eq("id", edit.id).eq("user_id", uid)
       : await supabase.from("goals").insert({ ...payload, user_id: user.id });
     if (error) { toast.error(error.message); return; }
     toast.success(t("সংরক্ষিত", "Saved"));
@@ -63,7 +65,7 @@ function GoalsPage() {
   };
   const remove = async (id: string) => {
     if (!confirm(t("লক্ষ্যটি মুছে ফেলবেন?", "Delete this goal?"))) return;
-    const { error } = await supabase.from("goals").delete().eq("id", id);
+    const { error } = await supabase.from("goals").delete().eq("id", id).eq("user_id", uid);
     if (error) { toast.error(error.message); return; }
     toast.success(t("মুছে ফেলা হয়েছে", "Deleted"));
     qc.invalidateQueries({ queryKey: ["goals"] });
@@ -78,7 +80,7 @@ function GoalsPage() {
 
   const setStatus = async (g: Goal, s: "pending" | "ongoing" | "completed") => {
     const next = effStatus(g) === s ? null : s;
-    const { error } = await supabase.from("goals").update({ status: next }).eq("id", g.id);
+    const { error } = await supabase.from("goals").update({ status: next }).eq("id", g.id).eq("user_id", uid);
     if (error) { toast.error(error.message); return; }
     qc.invalidateQueries({ queryKey: ["goals"] });
   };

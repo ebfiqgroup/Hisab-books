@@ -9,6 +9,7 @@ import { fmtTk, toBn } from "@/lib/finance";
 import { Plus, Trash2, Wallet, Pencil, Tags } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useCurrentUserId } from "@/hooks/useCurrentUserId";
 
 export const Route = createFileRoute("/_authenticated/income")({ component: IncomePage });
 
@@ -17,13 +18,14 @@ type Txn = { id: string; type: "income" | "expense"; category: string; amount: n
 function IncomePage() {
   const { t } = useLanguage();
   const qc = useQueryClient();
+  const uid = useCurrentUserId();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<EditTxn | null>(null);
   const [catOpen, setCatOpen] = useState(false);
   const q = useQuery({
-    queryKey: ["transactions", "income"],
+    queryKey: ["transactions", "income", uid],
     queryFn: async () => {
-      const { data, error } = await supabase.from("transactions").select("id,type,category,amount,occurred_on,note").eq("type", "income").order("occurred_on", { ascending: false });
+      const { data, error } = await supabase.from("transactions").select("id,type,category,amount,occurred_on,note").eq("user_id", uid).eq("type", "income").order("occurred_on", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Txn[];
     },
@@ -32,7 +34,7 @@ function IncomePage() {
   const total = list.reduce((s, t) => s + Number(t.amount), 0);
   const remove = async (id: string) => {
     if (!confirm(t("মুছে ফেলবেন?", "Delete this?"))) return;
-    const { error } = await supabase.from("transactions").delete().eq("id", id);
+    const { error } = await supabase.from("transactions").delete().eq("id", id).eq("user_id", uid);
     if (error) { toast.error(error.message); return; }
     toast.success(t("মুছে ফেলা হয়েছে", "Deleted"));
     qc.invalidateQueries({ queryKey: ["transactions"] });

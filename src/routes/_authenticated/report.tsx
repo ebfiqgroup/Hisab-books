@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useCurrentUserId } from "@/hooks/useCurrentUserId";
 import { AppShell } from "@/components/AppShell";
 import { fmtTk, toBn, BN_MONTHS } from "@/lib/finance";
 import { Download, BarChart3, TrendingUp, TrendingDown, PiggyBank, Calendar, ChevronDown, Printer } from "lucide-react";
@@ -39,6 +40,7 @@ function presetRange(p: Preset): { from: string; to: string } {
 }
 
 function ReportPage() {
+  const uid = useCurrentUserId();
   const [preset, setPreset] = useState<Preset>("6m");
   const [range, setRange] = useState(() => presetRange("6m"));
   const [menuOpen, setMenuOpen] = useState(false);
@@ -49,11 +51,12 @@ function ReportPage() {
   };
 
   const q = useQuery({
-    queryKey: ["transactions", "report", range.from, range.to],
+    queryKey: ["transactions", "report", uid, range.from, range.to],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("transactions")
         .select("type,amount,occurred_on")
+        .eq("user_id", uid)
         .gte("occurred_on", range.from)
         .lte("occurred_on", range.to)
         .order("occurred_on", { ascending: true });
