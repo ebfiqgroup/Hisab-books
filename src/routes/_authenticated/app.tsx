@@ -11,7 +11,7 @@ import {
 import {
   Wallet, Users, TrendingDown, Search,
   ArrowDown, ArrowUp, PiggyBank, StickyNote, Plus, Pencil, Trash2, Check, X, Target,
-  ShieldCheck, Sparkles, BarChart3, Receipt, ListChecks,
+  ShieldCheck, Sparkles, BarChart3, Receipt, ListChecks, Flame, Calendar, Zap, Trophy, AlertTriangle,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { TxnDialog, type EditTxn } from "@/components/dashboard/TxnDialog";
@@ -144,6 +144,59 @@ function Dashboard() {
     { label: t("মোট পাওনা", "Total receivable"), value: fmtTk(receivable), last: "—", pct: { value: "", up: true }, Icon: Users, grad: "from-amber-500 to-orange-500", ring: "ring-orange-100", val: "text-orange-500" },
     { label: t("মোট দেনা", "Total payable"), value: fmtTk(payable), last: "—", pct: { value: "", up: false }, Icon: TrendingDown, grad: "from-fuchsia-500 to-rose-500", ring: "ring-rose-100", val: "text-rose-600" },
   ];
+
+  // 7-day sparkline series per card type
+  const spark7 = useMemo(() => {
+    const start = new Date(now); start.setDate(start.getDate() - 6);
+    const days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(start); d.setDate(start.getDate() + i);
+      return d.toISOString().slice(0, 10);
+    });
+    const inc = days.map((iso) => all.filter((t) => t.occurred_on === iso && t.type === "income").reduce((s, t) => s + Number(t.amount), 0));
+    const exp = days.map((iso) => all.filter((t) => t.occurred_on === iso && t.type === "expense").reduce((s, t) => s + Number(t.amount), 0));
+    const rem = inc.map((v, i) => v - exp[i]);
+    return { inc, exp, rem };
+  }, [all]);
+  const sparkData: Record<string, number[] | null> = {
+    [t("মোট আয়", "Total income")]: spark7.inc,
+    [t("মোট ব্যয়", "Total expense")]: spark7.exp,
+    [t("অবশিষ্ট", "Remaining")]: spark7.rem,
+    [t("মোট পাওনা", "Total receivable")]: null,
+    [t("মোট দেনা", "Total payable")]: null,
+  };
+  const sparkColor: Record<string, string> = {
+    [t("মোট আয়", "Total income")]: "#10b981",
+    [t("মোট ব্যয়", "Total expense")]: "#f43f5e",
+    [t("অবশিষ্ট", "Remaining")]: "#3b82f6",
+    [t("মোট পাওনা", "Total receivable")]: "#f59e0b",
+    [t("মোট দেনা", "Total payable")]: "#e11d48",
+  };
+
+  const Sparkline = ({ data, color }: { data: number[]; color: string }) => {
+    const w = 100, h = 28;
+    const min = Math.min(...data, 0), max = Math.max(...data, 1);
+    const range = max - min || 1;
+    const step = w / (data.length - 1 || 1);
+    const pts = data.map((v, i) => `${i * step},${h - ((v - min) / range) * h}`).join(" ");
+    const area = `0,${h} ${pts} ${w},${h}`;
+    const gid = `sg-${color.replace("#", "")}`;
+    return (
+      <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="w-full h-7">
+        <defs>
+          <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity="0.35" />
+            <stop offset="100%" stopColor={color} stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <polygon points={area} fill={`url(#${gid})`} />
+        <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+      </svg>
+    );
+  };
+
+  // Helpers for budget time-progress
+  const daysBetween = (a: string, b: string) => Math.max(0, Math.ceil((new Date(b).getTime() - new Date(a).getTime()) / 86400000));
+  const todayIso = now.toISOString().slice(0, 10);
 
   const expCats = forType("expense");
   const expByCat = new Map<string, number>();
@@ -388,6 +441,11 @@ function Dashboard() {
               <div className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 mb-1">{s.label}</div>
               <div className={`text-2xl font-extrabold tracking-tight ${s.val} leading-tight`}>{s.value}</div>
             </div>
+            {sparkData[s.label] && (
+              <div className="relative mt-2 -mx-1 opacity-80 group-hover:opacity-100 transition">
+                <Sparkline data={sparkData[s.label]!} color={sparkColor[s.label]} />
+              </div>
+            )}
             <div className="relative mt-3 pt-3 border-t border-dashed border-slate-200/80 text-[11px] text-slate-500">
               {t("গত মাস", "Last month")}: <span className="font-medium text-slate-700">{s.last}</span>
             </div>
@@ -505,19 +563,25 @@ function Dashboard() {
             {!txnQ.isLoading && recent.length === 0 && <div className="text-sm text-slate-400 py-4 text-center">{t("কোনো লেনদেন নেই", "No transactions")}</div>}
             {recent.map((t) => {
               const income = t.type === "income";
+              const catColor = categoryColor(t.category);
               return (
                 <div
                   key={t.id}
                   onClick={() => { setEditingTxn({ id: t.id, type: t.type, category: t.category, amount: Number(t.amount), occurred_on: t.occurred_on, note: t.note }); setTxnOpen(true); }}
-                  className="flex items-center gap-2 py-1 cursor-pointer hover:bg-slate-50 rounded-md px-1 -mx-1"
+                  className="group/t flex items-center gap-2.5 py-2 px-2 -mx-2 cursor-pointer rounded-lg hover:bg-gradient-to-r hover:from-slate-50 hover:to-transparent transition"
                   title="Click to edit"
                 >
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${income ? "bg-emerald-50" : "bg-rose-50"}`}>
-                    {income ? <ArrowUp className="w-4 h-4 text-emerald-600" /> : <ArrowDown className="w-4 h-4 text-rose-500" />}
+                  <div className={`relative w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm ${income ? "bg-gradient-to-br from-emerald-400 to-teal-500" : "bg-gradient-to-br from-rose-400 to-pink-500"} group-hover/t:scale-110 group-hover/t:rotate-3 transition`}>
+                    {income ? <ArrowUp className="w-4 h-4 text-white" /> : <ArrowDown className="w-4 h-4 text-white" />}
+                    <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full ring-2 ring-white" style={{ background: catColor }} />
                   </div>
-                  <span className="font-medium text-slate-800 flex-1 text-sm truncate">{t.note || t.category}</span>
-                  <span className="text-xs text-slate-500">{toBn(t.occurred_on)}</span>
-                  <span className={`font-bold text-sm w-24 text-right ${income ? "text-emerald-600" : "text-rose-500"}`}>{fmtTk(Number(t.amount))}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-slate-800 text-sm truncate">{t.note || t.category}</div>
+                    <div className="text-[10px] text-slate-500 truncate">{t.category} · {toBn(t.occurred_on)}</div>
+                  </div>
+                  <span className={`font-extrabold text-sm tracking-tight w-24 text-right ${income ? "text-emerald-600" : "text-rose-500"}`}>
+                    {income ? "+" : "−"}{fmtTk(Number(t.amount))}
+                  </span>
                 </div>
               );
             })}
@@ -550,24 +614,48 @@ function Dashboard() {
                 const pct = b.monthly_limit > 0 ? Math.min(100, (b.spent / b.monthly_limit) * 100) : 0;
                 const over = b.monthly_limit > 0 && b.spent > b.monthly_limit;
                 const color = categoryColor(b.category);
+                const daysLeft = daysBetween(todayIso, b.end_at.slice(0, 10));
+                const warn = !over && pct >= 80;
                 return (
-                  <Link key={b.id} to="/budget" className="block p-3 rounded-lg border border-slate-100 hover:bg-slate-50/60">
-                    <div className="flex items-center justify-between mb-1.5 gap-2">
+                  <Link key={b.id} to="/budget" className="group/b block p-3 rounded-xl border border-slate-100 hover:border-slate-200 hover:shadow-sm hover:bg-gradient-to-br hover:from-slate-50/60 hover:to-white transition">
+                    <div className="flex items-center justify-between mb-2 gap-2">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
+                        <span className="w-2.5 h-2.5 rounded-full shrink-0 ring-2 ring-white shadow" style={{ background: color }} />
                         <span className="text-sm font-medium text-slate-800 truncate">{b.label || b.category}</span>
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full shrink-0 ${b.status === "ongoing" ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"}`}>
-                          {b.status === "ongoing" ? t("চলমান", "Ongoing") : t("অপেক্ষিত", "Pending")}
-                        </span>
+                        {over ? (
+                          <span className="flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full bg-rose-50 text-rose-600 ring-1 ring-rose-200 shrink-0">
+                            <AlertTriangle className="w-2.5 h-2.5" /> {t("অতিরিক্ত", "Over")}
+                          </span>
+                        ) : warn ? (
+                          <span className="flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600 ring-1 ring-amber-200 shrink-0">
+                            <Flame className="w-2.5 h-2.5" /> {t("সতর্ক", "Warn")}
+                          </span>
+                        ) : (
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full shrink-0 ${b.status === "ongoing" ? "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200" : "bg-amber-50 text-amber-600 ring-1 ring-amber-200"}`}>
+                            {b.status === "ongoing" ? t("চলমান", "Ongoing") : t("অপেক্ষিত", "Pending")}
+                          </span>
+                        )}
                       </div>
                       <span className={`text-xs font-semibold shrink-0 ${over ? "text-rose-500" : "text-slate-600"}`}>{toBn(pct.toFixed(0))}%</span>
                     </div>
-                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full" style={{ width: `${pct}%`, background: over ? "#f43f5e" : color }} />
+                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden relative">
+                      <div
+                        className="h-full rounded-full transition-all duration-700 ease-out"
+                        style={{
+                          width: `${pct}%`,
+                          background: over
+                            ? "linear-gradient(90deg,#fb7185,#e11d48)"
+                            : `linear-gradient(90deg, ${color}99, ${color})`,
+                          boxShadow: over ? "0 0 12px rgba(244,63,94,0.45)" : `0 0 8px ${color}55`,
+                        }}
+                      />
                     </div>
                     <div className="flex items-center justify-between mt-1.5 text-xs">
-                      <span className={over ? "text-rose-500 font-medium" : "text-slate-500"}>{fmtTk(b.spent)}</span>
-                      <span className="text-slate-400">/ {fmtTk(b.monthly_limit)}</span>
+                      <span className={over ? "text-rose-500 font-medium" : "text-slate-600 font-medium"}>{fmtTk(b.spent)} <span className="text-slate-400 font-normal">/ {fmtTk(b.monthly_limit)}</span></span>
+                      <span className="flex items-center gap-1 text-[10px] text-slate-500">
+                        <Calendar className="w-3 h-3" />
+                        {b.status === "ongoing" ? `${toBn(daysLeft)} ${t("দিন বাকি", "days left")}` : t("শুরু হয়নি", "Not started")}
+                      </span>
                     </div>
                   </Link>
                 );
@@ -593,19 +681,38 @@ function Dashboard() {
             {goals.length === 0 && <div className="text-sm text-slate-400 text-center py-4">{t("কোনো লক্ষ্য নেই", "No goals")}</div>}
             {goals.map((g) => {
               const pct = g.target > 0 ? Math.min(100, (Number(g.current) / Number(g.target)) * 100) : 0;
+              const done = pct >= 100;
+              const accent = g.color || "#6366f1";
               return (
-                <div key={g.id} className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-indigo-50 flex items-center justify-center"><Target className="w-4 h-4 text-indigo-600" /></div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between text-xs mb-1.5">
-                      <span className="font-medium text-slate-700">{g.label}</span>
-                      <span className="text-slate-500">{fmtTk(Number(g.current))} / {fmtTk(Number(g.target))}</span>
-                    </div>
-                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${pct}%` }}></div>
+                <div key={g.id} className="group/g flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-slate-50/70 transition">
+                  <div
+                    className="relative w-11 h-11 rounded-full flex items-center justify-center shrink-0"
+                    style={{ background: `conic-gradient(${accent} ${pct * 3.6}deg, #e2e8f0 0deg)` }}
+                  >
+                    <div className="absolute inset-1 rounded-full bg-white flex items-center justify-center">
+                      {done ? <Trophy className="w-4 h-4 text-amber-500" /> : <Target className="w-4 h-4" style={{ color: accent }} />}
                     </div>
                   </div>
-                  <span className="text-xs font-semibold text-slate-600 w-10 text-right">{toBn(pct.toFixed(0))}%</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between text-xs mb-1.5 gap-2">
+                      <span className="font-medium text-slate-800 truncate flex items-center gap-1.5">
+                        {g.label}
+                        {done && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 ring-1 ring-amber-200 shrink-0">{t("অর্জিত", "Achieved")}</span>}
+                      </span>
+                      <span className="text-slate-500 shrink-0 text-[11px]">{fmtTk(Number(g.current))} / {fmtTk(Number(g.target))}</span>
+                    </div>
+                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-700 ease-out"
+                        style={{
+                          width: `${pct}%`,
+                          background: `linear-gradient(90deg, ${accent}aa, ${accent})`,
+                          boxShadow: `0 0 8px ${accent}66`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <span className="text-xs font-bold w-10 text-right" style={{ color: done ? "#d97706" : accent }}>{toBn(pct.toFixed(0))}%</span>
                 </div>
               );
             })}
@@ -623,14 +730,42 @@ function Dashboard() {
             <Link to="/debts" className="text-sm text-indigo-600">{t("বিস্তারিত →", "Details →")}</Link>
           </div>
           <div className="space-y-3">
-            <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50/40 border border-emerald-100 flex items-center gap-3 hover:shadow-sm transition">
-              <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center"><Users className="w-5 h-5 text-emerald-600" /></div>
-              <div><div className="text-xs text-slate-600">{t("মোট পাওনা", "Total receivable")}</div><div className="font-bold text-emerald-700">{fmtTk(receivable)}</div></div>
-            </div>
-            <div className="p-4 rounded-xl bg-gradient-to-br from-rose-50 to-pink-50/40 border border-rose-100 flex items-center gap-3 hover:shadow-sm transition">
-              <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center"><Users className="w-5 h-5 text-rose-500" /></div>
-              <div><div className="text-xs text-slate-600">{t("মোট দেনা", "Total payable")}</div><div className="font-bold text-rose-600">{fmtTk(payable)}</div></div>
-            </div>
+            {(() => {
+              const net = receivable - payable;
+              const total = receivable + payable || 1;
+              const recPct = (receivable / total) * 100;
+              return (
+                <>
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50/40 border border-emerald-100 flex items-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition group/r">
+                    <div className="w-11 h-11 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 shadow-md flex items-center justify-center group-hover/r:scale-110 transition">
+                      <ArrowUp className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">{t("মোট পাওনা", "Total receivable")}</div>
+                      <div className="font-extrabold text-emerald-700 text-lg leading-tight">{fmtTk(receivable)}</div>
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-rose-50 to-pink-50/40 border border-rose-100 flex items-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition group/p">
+                    <div className="w-11 h-11 rounded-full bg-gradient-to-br from-rose-400 to-pink-500 shadow-md flex items-center justify-center group-hover/p:scale-110 transition">
+                      <ArrowDown className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">{t("মোট দেনা", "Total payable")}</div>
+                      <div className="font-extrabold text-rose-600 text-lg leading-tight">{fmtTk(payable)}</div>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-dashed border-slate-200">
+                    <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1.5">
+                      <span className="flex items-center gap-1"><Zap className="w-3 h-3" />{t("নেট ব্যালেন্স", "Net balance")}</span>
+                      <span className={`font-bold ${net >= 0 ? "text-emerald-600" : "text-rose-500"}`}>{fmtTk(net)}</span>
+                    </div>
+                    <div className="h-1.5 bg-rose-100 rounded-full overflow-hidden flex">
+                      <div className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 transition-all duration-700" style={{ width: `${recPct}%` }} />
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
 
@@ -666,19 +801,45 @@ function Dashboard() {
                   <button onClick={cancelEditNote} className="p-1 rounded-md hover:bg-rose-50 text-rose-500"><X className="w-3.5 h-3.5" /></button>
                 </div>
               ) : (
-                <div key={n.id} className="group flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-lg p-2 text-xs text-slate-700">
-                  <span className="flex-1">{n.body}</span>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
-                    <button onClick={() => startEditNote(n)} className="p-1 rounded-md hover:bg-indigo-50 text-slate-400 hover:text-indigo-600"><Pencil className="w-3.5 h-3.5" /></button>
-                    <button onClick={() => removeNote(n.id)} className="p-1 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600"><Trash2 className="w-3.5 h-3.5" /></button>
+                <div key={n.id} className="group relative bg-gradient-to-br from-amber-50 to-yellow-50/60 border border-amber-100 rounded-lg p-2.5 text-xs text-slate-700 hover:shadow-sm hover:border-amber-200 transition">
+                  <div className="flex items-start gap-2">
+                    <span className="mt-0.5 w-1 self-stretch rounded-full bg-gradient-to-b from-amber-400 to-orange-400 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-slate-800 leading-relaxed break-words">{n.body}</div>
+                      <div className="text-[9px] text-amber-700/70 mt-1 uppercase tracking-wider">{toBn(n.created_at.slice(0, 10))}</div>
+                    </div>
+                    <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition shrink-0">
+                      <button onClick={() => startEditNote(n)} className="p-1 rounded-md hover:bg-indigo-50 text-slate-400 hover:text-indigo-600"><Pencil className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => removeNote(n.id)} className="p-1 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
                   </div>
                 </div>
               )
             ))}
           </div>
-          <div className="flex gap-2">
-            <input value={noteInput} onChange={(e) => setNoteInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && saveNote()} className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm" placeholder={t("নোট লিখুন...", "Write a note...")} />
-            <button onClick={saveNote} className="px-4 py-2 bg-emerald-500 text-white rounded-lg text-sm font-medium hover:bg-emerald-600">{t("সেভ", "Save")}</button>
+          <div className="relative">
+            <div className="flex gap-2">
+              <input
+                value={noteInput}
+                onChange={(e) => setNoteInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && saveNote()}
+                maxLength={280}
+                className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-amber-300 transition"
+                placeholder={t("নোট লিখুন...", "Write a note...")}
+              />
+              <button
+                onClick={saveNote}
+                disabled={!noteInput.trim()}
+                className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg text-sm font-semibold shadow hover:shadow-md hover:scale-[1.03] disabled:opacity-40 disabled:hover:scale-100 transition"
+              >
+                {t("সেভ", "Save")}
+              </button>
+            </div>
+            {noteInput.length > 0 && (
+              <div className={`mt-1 text-[10px] text-right ${noteInput.length > 250 ? "text-rose-500" : "text-slate-400"}`}>
+                {toBn(noteInput.length)} / {toBn(280)}
+              </div>
+            )}
           </div>
         </div>
       </div>
