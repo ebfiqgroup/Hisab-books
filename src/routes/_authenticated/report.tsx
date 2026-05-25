@@ -115,10 +115,10 @@ function ReportPage() {
   const unitLabel = granularity === "day" ? "দিন" : "মাস";
 
   const summary = [
-    { label: `গড় ${periodLabel} আয়`, value: fmtTk(nonEmpty.length ? totals.income / nonEmpty.length : 0), Icon: TrendingUp, fg: "text-emerald-600", bg: "bg-emerald-50" },
-    { label: `গড় ${periodLabel} ব্যয়`, value: fmtTk(nonEmpty.length ? totals.expense / nonEmpty.length : 0), Icon: TrendingDown, fg: "text-rose-500", bg: "bg-rose-50" },
-    { label: `গড় ${periodLabel} অবশিষ্ট`, value: fmtTk(nonEmpty.length ? totals.saving / nonEmpty.length : 0), Icon: PiggyBank, fg: "text-blue-600", bg: "bg-blue-50" },
-    { label: "মোট রিপোর্ট", value: `${toBn(nonEmpty.length)} ${unitLabel}`, Icon: BarChart3, fg: "text-indigo-600", bg: "bg-indigo-50" },
+    { label: `গড় ${periodLabel} আয়`, value: fmtTk(nonEmpty.length ? totals.income / nonEmpty.length : 0), Icon: TrendingUp, grad: "from-emerald-500 to-teal-600", ring: "ring-emerald-200" },
+    { label: `গড় ${periodLabel} ব্যয়`, value: fmtTk(nonEmpty.length ? totals.expense / nonEmpty.length : 0), Icon: TrendingDown, grad: "from-rose-500 to-pink-600", ring: "ring-rose-200" },
+    { label: `গড় ${periodLabel} অবশিষ্ট`, value: fmtTk(nonEmpty.length ? totals.saving / nonEmpty.length : 0), Icon: PiggyBank, grad: "from-sky-500 to-blue-600", ring: "ring-sky-200" },
+    { label: "মোট রিপোর্ট", value: `${toBn(nonEmpty.length)} ${unitLabel}`, Icon: BarChart3, grad: "from-indigo-500 to-violet-600", ring: "ring-indigo-200" },
   ];
 
   const colHeader = granularity === "day" ? "তারিখ" : "মাস";
@@ -268,8 +268,28 @@ function ReportPage() {
         </div>
       </div>
     }>
+      {/* Hero Banner */}
+      <div className="relative overflow-hidden rounded-2xl p-5 sm:p-6 mb-4 sm:mb-6 text-white shadow-xl bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600">
+        <div className="absolute -top-20 -right-20 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-24 -left-16 w-72 h-72 bg-fuchsia-300/20 rounded-full blur-3xl" />
+        <div className="relative flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-white/15 backdrop-blur rounded-full text-xs font-medium mb-2">
+              <BarChart3 className="w-3.5 h-3.5" /> {periodLabel} বিশ্লেষণ
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">আর্থিক রিপোর্ট</h2>
+            <p className="text-white/80 text-sm mt-1">{range.from} → {range.to} · {toBn(nonEmpty.length)} {unitLabel}</p>
+          </div>
+          <div className="grid grid-cols-3 gap-3 sm:gap-4">
+            <div><div className="text-[10px] uppercase tracking-wider text-white/70">আয়</div><div className="text-lg sm:text-2xl font-bold">{fmtTk(totals.income)}</div></div>
+            <div><div className="text-[10px] uppercase tracking-wider text-white/70">ব্যয়</div><div className="text-lg sm:text-2xl font-bold">{fmtTk(totals.expense)}</div></div>
+            <div><div className="text-[10px] uppercase tracking-wider text-white/70">অবশিষ্ট</div><div className="text-lg sm:text-2xl font-bold">{fmtTk(totals.saving)}</div></div>
+          </div>
+        </div>
+      </div>
+
       {/* Filter */}
-      <div className="bg-white rounded-xl p-3 sm:p-4 border border-slate-200 mb-4 sm:mb-6">
+      <div className="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200 shadow-sm mb-4 sm:mb-6">
         <div className="flex items-center gap-2 mb-3">
           <Calendar className="w-4 h-4 text-indigo-600" />
           <h3 className="font-semibold text-slate-800 text-sm">সময় ফিল্টার</h3>
@@ -279,10 +299,10 @@ function ReportPage() {
             <button
               key={p.k}
               onClick={() => setPresetAndRange(p.k)}
-              className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium border transition ${
+              className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium border transition-all ${
                 preset === p.k
-                  ? "bg-indigo-600 text-white border-indigo-600"
-                  : "bg-white text-slate-700 border-slate-200 hover:border-indigo-300"
+                  ? "bg-gradient-to-r from-indigo-600 to-violet-600 text-white border-indigo-600 shadow-md shadow-indigo-200"
+                  : "bg-white text-slate-700 border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/40"
               }`}
             >
               {p.label}
@@ -318,22 +338,28 @@ function ReportPage() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
         {summary.map((s) => (
-          <div key={s.label} className="bg-white rounded-xl p-3 sm:p-5 border border-slate-200">
-            <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full ${s.bg} flex items-center justify-center shrink-0`}>
-                <s.Icon className={`w-5 h-5 ${s.fg}`} />
+          <div key={s.label} className={`group relative overflow-hidden bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all ring-1 ${s.ring}`}>
+            <div className={`absolute -top-10 -right-10 w-28 h-28 rounded-full bg-gradient-to-br ${s.grad} opacity-10 group-hover:opacity-20 blur-2xl transition`} />
+            <div className="relative flex items-center gap-3">
+              <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br ${s.grad} flex items-center justify-center shrink-0 shadow-lg`}>
+                <s.Icon className="w-5 h-5 text-white" />
               </div>
               <div className="min-w-0">
-                <div className="text-xs sm:text-sm text-slate-500 truncate">{s.label}</div>
-                <div className={`text-base sm:text-xl font-bold ${s.fg} truncate`}>{s.value}</div>
+                <div className="text-[11px] sm:text-xs text-slate-500 truncate font-medium">{s.label}</div>
+                <div className={`text-base sm:text-xl font-extrabold bg-gradient-to-r ${s.grad} bg-clip-text text-transparent truncate`}>{s.value}</div>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="bg-white rounded-xl p-3 sm:p-5 border border-slate-200 mb-4 sm:mb-6">
-        <h3 className="font-bold text-slate-800 mb-4">{periodLabel} আয়-ব্যয় তুলনা</h3>
+      <div className="bg-white rounded-2xl p-3 sm:p-5 border border-slate-200 shadow-sm mb-4 sm:mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-bold text-slate-800 flex items-center gap-2">
+            <span className="w-1.5 h-5 rounded-full bg-gradient-to-b from-indigo-500 to-violet-600" />
+            {periodLabel} আয়-ব্যয় তুলনা
+          </h3>
+        </div>
         {q.isLoading ? (
           <div className="text-center text-slate-500 py-12">লোড হচ্ছে...</div>
         ) : rows.length === 0 ? (
@@ -341,36 +367,42 @@ function ReportPage() {
         ) : (
           <div className="overflow-x-auto">
             <div
-              className="flex items-end gap-2 sm:gap-3 h-56 sm:h-64 px-2 sm:px-4"
+              className="flex items-end gap-2 sm:gap-3 h-56 sm:h-64 px-2 sm:px-4 relative"
               style={{ minWidth: `${Math.max(420, rows.length * 56)}px` }}
             >
+              <div className="absolute inset-0 pointer-events-none flex flex-col justify-between pb-6">
+                {[0,1,2,3].map(i => <div key={i} className="border-t border-dashed border-slate-100" />)}
+              </div>
               {rows.map((r) => (
-                <div key={r.key} className="flex-1 flex flex-col items-center gap-2 min-w-[40px]">
+                <div key={r.key} className="relative flex-1 flex flex-col items-center gap-2 min-w-[40px] group">
                   <div className="flex items-end gap-1 h-44 sm:h-52 w-full justify-center">
-                    <div className="w-2.5 sm:w-4 bg-emerald-500 rounded-t" style={{ height: `${(r.income / max) * 100}%` }} title={`আয়: ${fmtTk(r.income)}`}></div>
-                    <div className="w-2.5 sm:w-4 bg-rose-500 rounded-t" style={{ height: `${(r.expense / max) * 100}%` }} title={`ব্যয়: ${fmtTk(r.expense)}`}></div>
-                    <div className="w-2.5 sm:w-4 bg-blue-500 rounded-t" style={{ height: `${(Math.max(0, r.saving) / max) * 100}%` }} title={`অবশিষ্ট: ${fmtTk(r.saving)}`}></div>
+                    <div className="w-2.5 sm:w-4 rounded-t-md bg-gradient-to-t from-emerald-600 to-emerald-400 shadow-md shadow-emerald-200 transition-all group-hover:scale-y-105 origin-bottom" style={{ height: `${(r.income / max) * 100}%` }} title={`আয়: ${fmtTk(r.income)}`}></div>
+                    <div className="w-2.5 sm:w-4 rounded-t-md bg-gradient-to-t from-rose-600 to-pink-400 shadow-md shadow-rose-200 transition-all group-hover:scale-y-105 origin-bottom" style={{ height: `${(r.expense / max) * 100}%` }} title={`ব্যয়: ${fmtTk(r.expense)}`}></div>
+                    <div className="w-2.5 sm:w-4 rounded-t-md bg-gradient-to-t from-blue-600 to-sky-400 shadow-md shadow-sky-200 transition-all group-hover:scale-y-105 origin-bottom" style={{ height: `${(Math.max(0, r.saving) / max) * 100}%` }} title={`অবশিষ্ট: ${fmtTk(r.saving)}`}></div>
                   </div>
-                  <span className="text-[10px] sm:text-xs text-slate-600 truncate w-full text-center">{r.label}</span>
+                  <span className="text-[10px] sm:text-xs text-slate-600 truncate w-full text-center font-medium group-hover:text-indigo-600 transition">{r.label}</span>
                 </div>
               ))}
             </div>
           </div>
         )}
-        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 mt-4 text-xs text-slate-600">
-          <span className="flex items-center gap-2"><span className="w-3 h-3 bg-emerald-500 rounded"></span>আয়</span>
-          <span className="flex items-center gap-2"><span className="w-3 h-3 bg-rose-500 rounded"></span>ব্যয়</span>
-          <span className="flex items-center gap-2"><span className="w-3 h-3 bg-blue-500 rounded"></span>অবশিষ্ট</span>
+        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 mt-4 text-xs text-slate-600 font-medium">
+          <span className="flex items-center gap-2"><span className="w-3 h-3 rounded bg-gradient-to-t from-emerald-600 to-emerald-400"></span>আয়</span>
+          <span className="flex items-center gap-2"><span className="w-3 h-3 rounded bg-gradient-to-t from-rose-600 to-pink-400"></span>ব্যয়</span>
+          <span className="flex items-center gap-2"><span className="w-3 h-3 rounded bg-gradient-to-t from-blue-600 to-sky-400"></span>অবশিষ্ট</span>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl p-3 sm:p-5 border border-slate-200">
-        <h3 className="font-bold text-slate-800 mb-4">{periodLabel} বিস্তারিত</h3>
+      <div className="bg-white rounded-2xl p-3 sm:p-5 border border-slate-200 shadow-sm">
+        <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <span className="w-1.5 h-5 rounded-full bg-gradient-to-b from-emerald-500 to-teal-600" />
+          {periodLabel} বিস্তারিত
+        </h3>
 
         {/* Mobile cards */}
         <div className="md:hidden space-y-2">
           {rows.map((r) => (
-            <div key={r.key} className="bg-slate-50 rounded-lg p-3">
+            <div key={r.key} className="bg-gradient-to-r from-slate-50 to-white rounded-xl p-3 border border-slate-100 hover:border-indigo-200 transition">
               <div className="font-medium text-slate-800 mb-2">{r.label}</div>
               <div className="grid grid-cols-3 gap-2 text-xs">
                 <div><div className="text-slate-500">আয়</div><div className="text-emerald-600 font-semibold">{fmtTk(r.income)}</div></div>
@@ -379,7 +411,7 @@ function ReportPage() {
               </div>
             </div>
           ))}
-          <div className="bg-indigo-50 rounded-lg p-3 border border-indigo-100">
+          <div className="bg-gradient-to-r from-indigo-50 via-violet-50 to-fuchsia-50 rounded-xl p-3 border border-indigo-200">
             <div className="font-bold text-indigo-800 mb-2">মোট</div>
             <div className="grid grid-cols-3 gap-2 text-xs">
               <div><div className="text-slate-500">আয়</div><div className="text-emerald-700 font-bold">{fmtTk(totals.income)}</div></div>
@@ -393,27 +425,27 @@ function ReportPage() {
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-slate-500 border-b border-slate-200">
-                <th className="py-2.5">{colHeader}</th>
-                <th className="py-2.5 text-right">আয়</th>
-                <th className="py-2.5 text-right">ব্যয়</th>
-                <th className="py-2.5 text-right">অবশিষ্ট</th>
+              <tr className="text-left text-slate-600 bg-gradient-to-r from-slate-50 to-indigo-50/40 border-b border-slate-200">
+                <th className="py-3 px-3 rounded-l-lg font-semibold">{colHeader}</th>
+                <th className="py-3 px-3 text-right font-semibold">আয়</th>
+                <th className="py-3 px-3 text-right font-semibold">ব্যয়</th>
+                <th className="py-3 px-3 text-right rounded-r-lg font-semibold">অবশিষ্ট</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((r) => (
-                <tr key={r.key} className="border-b border-slate-100">
-                  <td className="py-3 font-medium text-slate-800">{r.label}</td>
-                  <td className="py-3 text-right text-emerald-600 font-medium">{fmtTk(r.income)}</td>
-                  <td className="py-3 text-right text-rose-500 font-medium">{fmtTk(r.expense)}</td>
-                  <td className="py-3 text-right text-blue-600 font-medium">{fmtTk(r.saving)}</td>
+                <tr key={r.key} className="border-b border-slate-100 hover:bg-indigo-50/30 transition">
+                  <td className="py-3 px-3 font-medium text-slate-800">{r.label}</td>
+                  <td className="py-3 px-3 text-right text-emerald-600 font-semibold">{fmtTk(r.income)}</td>
+                  <td className="py-3 px-3 text-right text-rose-500 font-semibold">{fmtTk(r.expense)}</td>
+                  <td className="py-3 px-3 text-right text-blue-600 font-semibold">{fmtTk(r.saving)}</td>
                 </tr>
               ))}
-              <tr className="bg-indigo-50">
-                <td className="py-3 font-bold text-indigo-800">মোট</td>
-                <td className="py-3 text-right text-emerald-700 font-bold">{fmtTk(totals.income)}</td>
-                <td className="py-3 text-right text-rose-600 font-bold">{fmtTk(totals.expense)}</td>
-                <td className="py-3 text-right text-blue-700 font-bold">{fmtTk(totals.saving)}</td>
+              <tr className="bg-gradient-to-r from-indigo-50 via-violet-50 to-fuchsia-50">
+                <td className="py-3 px-3 font-bold text-indigo-800 rounded-l-lg">মোট</td>
+                <td className="py-3 px-3 text-right text-emerald-700 font-extrabold">{fmtTk(totals.income)}</td>
+                <td className="py-3 px-3 text-right text-rose-600 font-extrabold">{fmtTk(totals.expense)}</td>
+                <td className="py-3 px-3 text-right text-blue-700 font-extrabold rounded-r-lg">{fmtTk(totals.saving)}</td>
               </tr>
             </tbody>
           </table>
