@@ -239,7 +239,7 @@ function GoalsPage() {
           {t("এই ফিল্টারে কোনো লক্ষ্য পাওয়া যায়নি", "No goals match this filter")}
         </div>
       )}
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredList.map((g) => {
           const c = colorOf(g.color);
           const pct = g.target > 0 ? Math.min(100, (Number(g.current) / Number(g.target)) * 100) : 0;
@@ -249,20 +249,33 @@ function GoalsPage() {
             { key: "ongoing", labelBn: "চলমান", labelEn: "Ongoing", active: "bg-emerald-500 text-white border-emerald-500" },
             { key: "completed", labelBn: "শেষ", labelEn: "Completed", active: "bg-slate-500 text-white border-slate-500" },
           ];
+          const gradMap: Record<string, string> = {
+            emerald: "linear-gradient(135deg,#059669,#10b981)",
+            blue: "linear-gradient(135deg,#2563eb,#3b82f6)",
+            orange: "linear-gradient(135deg,#ea580c,#f97316)",
+            rose: "linear-gradient(135deg,#e11d48,#f43f5e)",
+            indigo: "linear-gradient(135deg,#4f46e5,#7c3aed)",
+          };
+          const grad = gradMap[g.color] ?? gradMap.emerald;
+          const completed = pct >= 100;
           return (
-            <div key={g.id} className="bg-white rounded-xl p-5 border border-slate-200">
+            <div key={g.id} className="group relative bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all">
+              <div className="absolute top-0 left-0 right-0 h-1.5" style={{ background: grad }} />
+              <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full opacity-20 blur-2xl" style={{ background: grad }} />
+              <div className="relative p-5">
               <div className="flex items-start justify-between mb-3">
-                <div className={`w-10 h-10 rounded-full ${c.soft} flex items-center justify-center`}>
-                  <Target className={`w-5 h-5 ${c.text}`} />
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg" style={{ background: grad }}>
+                  <Target className="w-6 h-6" />
                 </div>
                 <div className="flex items-center gap-1">
+                  {completed && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 ring-1 ring-amber-200">★ {t("পূর্ণ", "Done")}</span>}
                   <button onClick={() => openEdit(g)} className="p-1.5 rounded-md hover:bg-slate-50 text-slate-400 hover:text-slate-700"><Pencil className="w-4 h-4" /></button>
                   <button onClick={() => remove(g.id)} className="p-1.5 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600"><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
-              <div className="font-bold text-slate-800 mb-1">{g.label}</div>
+              <div className="font-bold text-slate-800 mb-1 text-base">{g.label}</div>
               {g.category && <div className="inline-block text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 mb-1">{g.category}</div>}
-              <div className="text-xs text-slate-500 mb-3">{fmtTk(Number(g.current))} / {fmtTk(Number(g.target))}</div>
+              <div className="text-sm text-slate-700 font-semibold mb-3">{fmtTk(Number(g.current))} <span className="text-slate-400 font-normal">/ {fmtTk(Number(g.target))}</span></div>
               <div className="flex flex-wrap gap-1.5 mb-3">
                 {statusBtns.map((sb) => (
                   <button
@@ -278,11 +291,12 @@ function GoalsPage() {
                   </button>
                 ))}
               </div>
-              <div className="h-2 bg-slate-100 rounded-full overflow-hidden mb-1">
-                <div className={`h-full ${c.bg}`} style={{ width: `${pct}%` }}></div>
+              <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden mb-1.5 shadow-inner">
+                <div className="h-full rounded-full transition-all shadow-sm" style={{ width: `${pct}%`, background: grad }} />
               </div>
               <div className="flex items-center justify-between text-xs mb-1">
-                <span className={c.text}>{toBn(pct.toFixed(0))}%</span>
+                <span className="font-bold" style={{ color: pct >= 100 ? "#059669" : undefined }}>{toBn(pct.toFixed(0))}%</span>
+                <span className="text-slate-400">{t("বাকি", "Left")}: {fmtTk(Math.max(0, Number(g.target) - Number(g.current)))}</span>
               </div>
               {(g.start_date || g.deadline) && (
                 <div className="flex items-center gap-1 text-[11px] text-slate-400">
@@ -290,6 +304,7 @@ function GoalsPage() {
                   <span>{g.start_date ? toBn(g.start_date) : "—"} → {g.deadline ? toBn(g.deadline) : "—"}</span>
                 </div>
               )}
+              </div>
             </div>
           );
         })}
