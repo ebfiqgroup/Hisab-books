@@ -43,6 +43,7 @@ function TransactionsPage() {
       let query = supabase
         .from("transactions")
         .select("id,type,category,amount,occurred_on,note")
+        .eq("user_id", uid)
         .order("occurred_on", { ascending: false })
         .order("id", { ascending: false })
         .range(from, to);

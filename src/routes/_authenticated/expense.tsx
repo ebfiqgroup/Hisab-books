@@ -11,6 +11,7 @@ import { useMemo } from "react";
 import { Plus, Trash2, TrendingDown, Pencil, Tags } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useCurrentUserId } from "@/hooks/useCurrentUserId";
 
 export const Route = createFileRoute("/_authenticated/expense")({ component: ExpensePage });
 
@@ -19,14 +20,15 @@ type Txn = { id: string; type: "income" | "expense"; category: string; amount: n
 function ExpensePage() {
   const { t } = useLanguage();
   const qc = useQueryClient();
+  const uid = useCurrentUserId();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<EditTxn | null>(null);
   const [catOpen, setCatOpen] = useState(false);
   const { forType } = useCustomCategories();
   const q = useQuery({
-    queryKey: ["transactions", "expense"],
+    queryKey: ["transactions", "expense", uid],
     queryFn: async () => {
-      const { data, error } = await supabase.from("transactions").select("id,type,category,amount,occurred_on,note").eq("type", "expense").order("occurred_on", { ascending: false });
+      const { data, error } = await supabase.from("transactions").select("id,type,category,amount,occurred_on,note").eq("user_id", uid).eq("type", "expense").order("occurred_on", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Txn[];
     },
