@@ -416,17 +416,17 @@ function Dashboard() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 mb-5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-5 items-stretch">
         {statCards.map((s) => (
-          <Link key={s.label} to={s.to} className="group relative bg-card text-card-foreground rounded-xl p-2.5 sm:p-3.5 border border-border shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 overflow-hidden block">
+          <Link key={s.label} to={s.to} className="group relative bg-card text-card-foreground rounded-xl p-3 border border-border shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 overflow-hidden flex flex-col h-full min-h-[150px]">
             {/* top accent bar */}
             <div className={`absolute top-0 inset-x-0 h-[2.5px] bg-gradient-to-r ${s.grad} rounded-t-xl`} />
             {/* glow blob */}
             <div className={`absolute -top-10 -right-10 w-24 h-24 rounded-full bg-gradient-to-br ${s.grad} opacity-[0.08] group-hover:opacity-[0.18] blur-xl transition-opacity duration-500 dark:opacity-[0.18] dark:group-hover:opacity-[0.28]`} />
 
-            <div className="relative flex items-start justify-between gap-1.5 sm:gap-2 mb-2">
-              <div className={`relative w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-br ${s.grad} flex items-center justify-center shadow-md shadow-black/10 dark:shadow-black/40 group-hover:scale-105 group-hover:rotate-2 transition-transform duration-300`}>
-                <s.Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white drop-shadow" />
+            <div className="relative flex items-start justify-between gap-2 mb-2">
+              <div className={`relative w-8 h-8 rounded-lg bg-gradient-to-br ${s.grad} flex items-center justify-center shadow-md shadow-black/10 dark:shadow-black/40 group-hover:scale-105 group-hover:rotate-2 transition-transform duration-300`}>
+                <s.Icon className="w-3.5 h-3.5 text-white drop-shadow" />
               </div>
               <div className="flex items-center gap-1">
                 {s.pct.value && (
@@ -440,25 +440,25 @@ function Dashboard() {
               </div>
             </div>
             <div className="relative">
-              <div className="text-[9px] sm:text-[10px] uppercase tracking-wider font-medium text-muted-foreground mb-0.5">{s.label}</div>
-              <div className={`text-base sm:text-lg font-bold tracking-tight ${s.val} leading-tight`}>{s.value}</div>
+              <div className="text-[10px] uppercase tracking-wider font-medium text-muted-foreground mb-0.5 truncate">{s.label}</div>
+              <div className={`text-base font-bold tracking-tight ${s.val} leading-tight truncate`}>{s.value}</div>
             </div>
             {sparkData[s.label] ? (
-              <div className="relative mt-1.5 sm:mt-2 -mx-1 opacity-60 group-hover:opacity-100 transition-opacity">
+              <div className="relative mt-2 -mx-1 h-5 opacity-60 group-hover:opacity-100 transition-opacity">
                 <Sparkline data={sparkData[s.label]!} color={sparkColor[s.label]} />
               </div>
             ) : (
-              <div className="relative mt-1.5 sm:mt-2 -mx-1 h-5 flex items-center justify-center opacity-40">
+              <div className="relative mt-2 -mx-1 h-5 flex items-center justify-center opacity-40">
                 <div className="w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" />
               </div>
             )}
-            <div className="relative mt-1.5 sm:mt-2 pt-1.5 sm:pt-2 border-t border-dashed border-border text-[9px] sm:text-[10px] text-muted-foreground">
+            <div className="relative mt-auto pt-2 border-t border-dashed border-border text-[10px] text-muted-foreground">
               <span className="hidden sm:inline">{t("গত মাস", "Last month")}: </span>
-              <span className="font-medium text-foreground/70">{s.last}</span>
+              <span className="font-medium text-foreground/70 truncate">{s.last}</span>
             </div>
 
             {/* Hover drilldown button */}
-            <div className="absolute bottom-2 right-2 sm:bottom-2.5 sm:right-2.5 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-1 group-hover:translate-y-0">
+            <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-1 group-hover:translate-y-0">
               <div className={`flex items-center gap-1 px-2 py-1 rounded-lg bg-gradient-to-r ${s.grad} text-white text-[10px] font-semibold shadow-md hover:shadow-lg transition-shadow`}>
                 <span className="hidden sm:inline">{t("বিস্তারিত", "Details")}</span>
                 <ArrowRight className="w-3 h-3" />
