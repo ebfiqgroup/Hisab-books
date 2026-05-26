@@ -12,7 +12,7 @@ import { useCurrentUserId } from "@/hooks/useCurrentUserId";
 
 export const Route = createFileRoute("/_authenticated/debts")({ component: DebtsPage });
 
-type Debt = { id: string; kind: "receivable" | "payable"; amount: number; person: string; note: string | null; due_date: string | null; settled: boolean };
+type Debt = { id: string; kind: "receivable" | "payable"; amount: number; person: string; note: string | null; due_date: string | null; settled: boolean; created_at: string };
 
 function Sparkline({ points, stroke = "#fff" }: { points: number[]; stroke?: string }) {
   if (!points.length) return null;
@@ -42,7 +42,7 @@ function DebtsPage() {
   const q = useQuery({
     queryKey: ["debts", "all", uid],
     queryFn: async () => {
-      const { data, error } = await supabase.from("debts").select("id,kind,amount,person,note,due_date,settled").eq("user_id", uid).order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("debts").select("id,kind,amount,person,note,due_date,settled,created_at").eq("user_id", uid).order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Debt[];
     },
@@ -59,6 +59,33 @@ function DebtsPage() {
   const totalAbs = receivable + payable;
   const recPct = totalAbs > 0 ? (receivable / totalAbs) * 100 : 50;
   const activeCount = all.filter((d) => !d.settled).length;
+
+  const { spark, thisMonth, lastMonth, topPerson } = useMemo(() => {
+    const days = 14;
+    const today = new Date();
+    const buckets = new Array(days).fill(0);
+    for (const d of all) {
+      const dt = new Date(d.created_at);
+      const diff = Math.floor((+today - +dt) / 86400000);
+      if (diff >= 0 && diff < days) buckets[days - 1 - diff] += Number(d.amount);
+    }
+    const ym = (d: Date) => `${d.getFullYear()}-${d.getMonth()}`;
+    const tm = ym(today);
+    const lm = ym(new Date(today.getFullYear(), today.getMonth() - 1, 1));
+    let tmSum = 0, lmSum = 0;
+    const personMap: Record<string, number> = {};
+    for (const d of all) {
+      const dt = new Date(d.created_at);
+      const amt = Number(d.amount);
+      if (ym(dt) === tm) tmSum += amt;
+      if (ym(dt) === lm) lmSum += amt;
+      personMap[d.person] = (personMap[d.person] ?? 0) + amt;
+    }
+    const top = Object.entries(personMap).sort((a, b) => b[1] - a[1])[0];
+    return { spark: buckets, thisMonth: tmSum, lastMonth: lmSum, topPerson: top };
+  }, [all]);
+
+  const momPct = lastMonth > 0 ? ((thisMonth - lastMonth) / lastMonth) * 100 : (thisMonth > 0 ? 100 : 0);
 
   const openNew = () => {
     setEditingId(null);
@@ -149,8 +176,9 @@ function DebtsPage() {
             </div>
           </div>
           <div className="shrink-0 w-full sm:w-56 flex flex-col items-stretch gap-1.5">
-            <div className="text-[11px] uppercase tracking-wider text-indigo-50/80">{t("অনুপাত", "Split")}</div>
-            <div className="h-3 bg-white/20 rounded-full overflow-hidden flex">
+            <div className="text-[11px] uppercase tracking-wider text-indigo-50/80 text-right">{t("শেষ ১৪ দিন", "Last 14 days")}</div>
+            <div className="flex justify-end"><Sparkline points={spark} /></div>
+            <div className="h-2 bg-white/20 rounded-full overflow-hidden flex">
               <div className="h-full bg-gradient-to-r from-emerald-300 to-emerald-400 transition-all" style={{ width: `${recPct}%` }} />
               <div className="h-full bg-gradient-to-r from-rose-300 to-rose-400 transition-all" style={{ width: `${100 - recPct}%` }} />
             </div>
@@ -160,34 +188,42 @@ function DebtsPage() {
             </div>
           </div>
         </div>
+        <div className="relative flex flex-wrap items-center gap-3 mt-4 text-sm">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm ring-1 ring-white/30">
+            <ArrowDownRight className={`w-3.5 h-3.5 ${momPct >= 0 ? "" : "rotate-180"}`} />
+            <span className="font-semibold">{momPct >= 0 ? "+" : ""}{toBn(momPct.toFixed(1))}%</span>
+            <span className="text-indigo-50/80 text-xs">{t("গত মাসের তুলনায়", "vs last month")}</span>
+          </span>
+          <span className="text-indigo-50/80 text-xs">{t("মোট এন্ট্রি", "Total entries")}: <b className="text-white">{toBn(all.length)}</b></span>
+        </div>
       </div>
 
       {/* Mini stats */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-5">
         <div className="relative overflow-hidden bg-white rounded-xl p-4 border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-teal-400" />
-          <div className="flex items-center justify-between">
-            <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">{t("মোট পাওনা", "Total receivable")}</div>
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center"><ArrowDownRight className="w-4 h-4 text-emerald-600 rotate-180" /></div>
-          </div>
-          <div className="text-xl font-extrabold text-slate-800 mt-1">{fmtTk(receivable)}</div>
-        </div>
-        <div className="relative overflow-hidden bg-white rounded-xl p-4 border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-400 to-pink-400" />
           <div className="flex items-center justify-between">
-            <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">{t("মোট দেনা", "Total payable")}</div>
-            <div className="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center"><ArrowUpRight className="w-4 h-4 text-rose-600" /></div>
+            <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">{t("এই মাস", "This month")}</div>
+            <div className="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center"><Calendar className="w-4 h-4 text-rose-600" /></div>
           </div>
-          <div className="text-xl font-extrabold text-slate-800 mt-1">{fmtTk(payable)}</div>
+          <div className="text-xl font-extrabold text-slate-800 mt-1">{fmtTk(thisMonth)}</div>
+        </div>
+        <div className="relative overflow-hidden bg-white rounded-xl p-4 border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-400 to-indigo-400" />
+          <div className="flex items-center justify-between">
+            <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">{t("গত মাস", "Last month")}</div>
+            <div className="w-8 h-8 rounded-lg bg-sky-50 flex items-center justify-center"><TrendingDown className="w-4 h-4 text-sky-600" /></div>
+          </div>
+          <div className="text-xl font-extrabold text-slate-800 mt-1">{fmtTk(lastMonth)}</div>
         </div>
         <div className="col-span-2 lg:col-span-1 relative overflow-hidden bg-white rounded-xl p-4 border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-400 to-violet-400" />
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-orange-400" />
           <div className="flex items-center justify-between">
-            <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">{t("মোট এন্ট্রি", "Total entries")}</div>
-            <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center"><Users className="w-4 h-4 text-indigo-600" /></div>
+            <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">{t("শীর্ষ ব্যক্তি", "Top person")}</div>
+            <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center"><AlertCircle className="w-4 h-4 text-amber-600" /></div>
           </div>
-          <div className="text-xl font-extrabold text-slate-800 mt-1">{toBn(all.length)}</div>
-          <div className="text-xs text-slate-500 font-medium">{t("সক্রিয়", "Active")}: {toBn(activeCount)}</div>
+          <div className="text-base font-bold text-slate-800 mt-1 truncate">{topPerson?.[0] ?? "—"}</div>
+          {topPerson && <div className="text-xs text-slate-500 font-medium">{fmtTk(topPerson[1])}</div>}
         </div>
       </div>
 
