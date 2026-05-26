@@ -99,10 +99,22 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let saved: Lang = "bn";
+    let hasSaved = false;
     try {
       const v = localStorage.getItem(KEY);
-      if (v === "en" || v === "bn") saved = v;
+      if (v === "en" || v === "bn") { saved = v; hasSaved = true; }
     } catch { /* noop */ }
+    // First visit: detect from browser language. Bengali speakers → bn,
+    // everyone else → en.
+    if (!hasSaved && typeof navigator !== "undefined") {
+      const langs: string[] = [
+        ...(Array.isArray(navigator.languages) ? navigator.languages : []),
+        navigator.language,
+      ].filter(Boolean) as string[];
+      const isBengali = langs.some((l) => l.toLowerCase().startsWith("bn"));
+      saved = isBengali ? "bn" : "en";
+      try { localStorage.setItem(KEY, saved); } catch { /* noop */ }
+    }
     setLangState(saved);
     setFinanceLang(saved);
     // Keep the document lang as "bn" (the source content language) so Google
