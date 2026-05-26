@@ -187,6 +187,10 @@
   --gradient-sidebar: linear-gradient(180deg,
     var(--brand-emerald-900) 0%,
     color-mix(in oklab, var(--brand-emerald-900) 80%, black) 100%);
+  /* Light sidebar: warm ivory/cream that matches the site palette */
+  --gradient-sidebar-light: linear-gradient(180deg,
+    var(--brand-ivory) 0%,
+    var(--brand-cream) 100%);
   --gradient-page: radial-gradient(1200px 600px at 100% -10%,
       color-mix(in oklab, var(--brand-gold-300) 40%, transparent) 0%, transparent 60%),
     linear-gradient(180deg, var(--brand-ivory) 0%, var(--brand-cream) 100%);

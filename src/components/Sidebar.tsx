@@ -58,24 +58,23 @@ export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean;
             ? "fixed top-0 left-0 flex translate-x-0"
             : "hidden -translate-x-full"}`}
         style={{
-          background: mobileOpen
-            ? "linear-gradient(180deg, #2a3245 0%, #3a4358 100%)"
-            : "var(--gradient-sidebar)",
-          color: "var(--brand-ivory)",
+          background: "var(--gradient-sidebar-light)",
+          color: "var(--brand-ink)",
         }}
       >
-      <div className="absolute inset-y-0 right-0 w-px" style={{ background: "linear-gradient(180deg, transparent, color-mix(in oklab, var(--brand-gold-500) 50%, transparent), transparent)" }} />
-      <div className="p-5 flex items-center gap-3 border-b border-white/10">
-        <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-lg" style={{ background: "color-mix(in oklab, var(--brand-gold-500) 22%, transparent)", border: "1px solid color-mix(in oklab, var(--brand-gold-500) 35%, transparent)" }}>
-          <Wallet className="w-5 h-5" style={{ color: "var(--brand-gold-500)" }} />
+      <div className="absolute inset-y-0 right-0 w-px" style={{ background: "linear-gradient(180deg, transparent, var(--brand-line), transparent)" }} />
+      <div className="p-5 flex items-center gap-3 border-b" style={{ borderColor: "var(--brand-line)" }}>
+        <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-lg" style={{ background: "color-mix(in oklab, var(--brand-emerald-600) 12%, transparent)", border: "1px solid color-mix(in oklab, var(--brand-emerald-600) 30%, transparent)" }}>
+          <Wallet className="w-5 h-5" style={{ color: "var(--brand-emerald-700)" }} />
         </div>
         <div className="flex-1">
-          <div className="text-lg font-semibold tracking-tight" style={{ fontFamily: "var(--font-display)" }}>{t("brand.title")}</div>
-          <div className="text-[11px] uppercase tracking-[0.18em] text-white/55">{t("brand.subtitle")}</div>
+          <div className="text-lg font-semibold tracking-tight" style={{ fontFamily: "var(--font-display)", color: "var(--brand-ink)" }}>{t("brand.title")}</div>
+          <div className="text-[11px] uppercase tracking-[0.18em]" style={{ color: "var(--brand-ink-soft)" }}>{t("brand.subtitle")}</div>
         </div>
         <button
           onClick={onClose}
-          className="lg:hidden p-1.5 rounded-md hover:bg-white/10 text-white/70"
+          className="lg:hidden p-1.5 rounded-md hover:bg-black/5"
+          style={{ color: "var(--brand-ink-soft)" }}
           aria-label="Close menu"
         >
           <X className="w-4 h-4" />
@@ -89,20 +88,26 @@ export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean;
               key={i}
               to={n.to}
               onClick={onClose}
-              className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${active ? "text-white shadow-md" : "text-white/65 hover:text-white hover:bg-white/5"}`}
-              style={active ? { background: "color-mix(in oklab, var(--brand-gold-500) 18%, transparent)", border: "1px solid color-mix(in oklab, var(--brand-gold-500) 35%, transparent)" } : undefined}
+              className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${active ? "shadow-md" : "hover:bg-black/[0.03]"}`}
+              style={active
+                ? {
+                    background: "color-mix(in oklab, var(--brand-emerald-500) 10%, transparent)",
+                    border: "1px solid color-mix(in oklab, var(--brand-emerald-500) 35%, transparent)",
+                    color: "var(--brand-emerald-800)",
+                  }
+                : { color: "var(--brand-ink-soft)" }}
             >
-              {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full" style={{ background: "var(--brand-gold-500)" }} />}
-              <n.icon className="w-4 h-4" style={active ? { color: "var(--brand-gold-500)" } : undefined} />
+              {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full" style={{ background: "var(--brand-emerald-600)" }} />}
+              <n.icon className="w-4 h-4" style={active ? { color: "var(--brand-emerald-700)" } : undefined} />
               <span className="font-medium">{t(n.key)}</span>
             </Link>
           );
         })}
       </nav>
       <RefCodeBadge variant="sidebar" />
-      <div className="mx-4 mb-4 p-4 rounded-xl relative overflow-hidden" style={{ background: "color-mix(in oklab, var(--brand-gold-500) 10%, transparent)", border: "1px solid color-mix(in oklab, var(--brand-gold-500) 25%, transparent)" }}>
-        <span className="absolute -top-2 left-3 text-4xl leading-none" style={{ color: "color-mix(in oklab, var(--brand-gold-500) 60%, transparent)", fontFamily: "var(--font-display)" }}>"</span>
-        <p className="text-xs text-white/85 leading-relaxed pt-2 whitespace-pre-line" style={{ fontFamily: "var(--font-display)", fontStyle: "italic", fontSize: "0.95rem" }}>
+      <div className="mx-4 mb-4 p-4 rounded-xl relative overflow-hidden" style={{ background: "color-mix(in oklab, var(--brand-gold-300) 15%, transparent)", border: "1px solid color-mix(in oklab, var(--brand-gold-500) 20%, var(--brand-line))" }}>
+        <span className="absolute -top-2 left-3 text-4xl leading-none" style={{ color: "color-mix(in oklab, var(--brand-gold-500) 50%, transparent)", fontFamily: "var(--font-display)" }}>"</span>
+        <p className="text-xs leading-relaxed pt-2 whitespace-pre-line" style={{ fontFamily: "var(--font-display)", fontStyle: "italic", fontSize: "0.95rem", color: "var(--brand-ink-soft)" }}>
           {t("brand.quote")}
         </p>
       </div>
