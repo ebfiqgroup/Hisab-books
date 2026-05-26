@@ -119,9 +119,32 @@ function RootShell({ children }: { children: React.ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
+        <style>{`
+          /* Hide Google Translate UI chrome */
+          #google_translate_element, .goog-te-banner-frame, .skiptranslate { display: none !important; }
+          body { top: 0 !important; }
+          .goog-tooltip, .goog-tooltip:hover, .goog-text-highlight {
+            display: none !important; background: transparent !important; box-shadow: none !important;
+          }
+        `}</style>
       </head>
       <body>
         {children}
+        <div id="google_translate_element" aria-hidden="true" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.googleTranslateElementInit = function() {
+                new window.google.translate.TranslateElement({
+                  pageLanguage: 'bn',
+                  includedLanguages: 'en,bn',
+                  autoDisplay: false,
+                }, 'google_translate_element');
+              };
+            `,
+          }}
+        />
+        <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async />
         <Scripts />
       </body>
     </html>

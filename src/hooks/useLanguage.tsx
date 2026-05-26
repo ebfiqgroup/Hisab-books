@@ -4,6 +4,20 @@ import { setFinanceLang } from "@/lib/finance";
 export type Lang = "bn" | "en";
 const KEY = "app_lang_v1";
 
+// Set a cookie at the root domain so Google Translate's element picks it up.
+function setGoogTransCookie(lang: Lang) {
+  if (typeof document === "undefined") return;
+  const value = lang === "en" ? "/bn/en" : "/bn/bn";
+  const host = window.location.hostname;
+  // Derive parent domain so subdomains share the cookie (e.g. .lovable.app)
+  const parts = host.split(".");
+  const parent = parts.length > 1 ? "." + parts.slice(-2).join(".") : host;
+  const expires = new Date(Date.now() + 365 * 24 * 3600 * 1000).toUTCString();
+  document.cookie = `googtrans=${value}; expires=${expires}; path=/`;
+  document.cookie = `googtrans=${value}; expires=${expires}; path=/; domain=${host}`;
+  document.cookie = `googtrans=${value}; expires=${expires}; path=/; domain=${parent}`;
+}
+
 const dict = {
   bn: {
     "nav.dashboard": "ড্যাশবোর্ড",
@@ -92,6 +106,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     setLangState(saved);
     setFinanceLang(saved);
     if (typeof document !== "undefined") document.documentElement.lang = saved;
+    setGoogTransCookie(saved);
   }, []);
 
   const setLang = useCallback((l: Lang) => {
@@ -100,6 +115,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     setFinanceLang(l);
     try { localStorage.setItem(KEY, l); } catch { /* noop */ }
     if (typeof document !== "undefined") document.documentElement.lang = l;
+    setGoogTransCookie(l);
     // Force a clean re-render of every consumer (including non-context ones
     // like fmtTk-based currency labels) when the user explicitly switches.
     if (prev !== l && typeof window !== "undefined") {
