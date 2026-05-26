@@ -13,7 +13,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
   const navigate = useNavigate();
   const router = useRouter();
   const location = useLocation();
-  const { t } = useLanguage();
+  const { t, lang, toggle } = useLanguage();
   const rtStatus = useRealtimeStatus();
   const [menuOpen, setMenuOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
@@ -108,6 +108,15 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
             )}
 
             <RealtimeStatusBadge status={rtStatus} />
+            <button
+              onClick={toggle}
+              title={t("lang.label")}
+              aria-label={t("lang.label")}
+              className="px-2.5 h-9 bg-white rounded-lg border hover:shadow-sm transition text-xs font-bold tracking-wide"
+              style={{ borderColor: "var(--brand-line)", color: "var(--brand-ink)" }}
+            >
+              {lang === "bn" ? "EN" : "বাং"}
+            </button>
             <Link
               to="/support"
               title={t("nav.support")}
