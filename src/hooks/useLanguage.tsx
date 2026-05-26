@@ -105,7 +105,11 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     } catch { /* noop */ }
     setLangState(saved);
     setFinanceLang(saved);
-    if (typeof document !== "undefined") document.documentElement.lang = saved;
+    // Keep the document lang as "bn" (the source content language) so Google
+    // Translate knows what to translate FROM. Changing it to "en" makes
+    // Google Translate think the page is already English and skip user-
+    // generated content (categories, notes, goals, etc.).
+    if (typeof document !== "undefined") document.documentElement.lang = "bn";
     setGoogTransCookie(saved);
   }, []);
 
@@ -114,7 +118,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     setLangState(l);
     setFinanceLang(l);
     try { localStorage.setItem(KEY, l); } catch { /* noop */ }
-    if (typeof document !== "undefined") document.documentElement.lang = l;
+    if (typeof document !== "undefined") document.documentElement.lang = "bn";
     setGoogTransCookie(l);
     // Force a clean re-render of every consumer (including non-context ones
     // like fmtTk-based currency labels) when the user explicitly switches.
