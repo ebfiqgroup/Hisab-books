@@ -10,7 +10,7 @@ import {
 } from "recharts";
 import {
   Wallet, Users, TrendingDown, Search,
-  ArrowDown, ArrowUp, PiggyBank, StickyNote, Plus, Pencil, Trash2, Check, X, Target,
+  ArrowDown, ArrowUp, ArrowRight, PiggyBank, StickyNote, Plus, Pencil, Trash2, Check, X, Target,
   ShieldCheck, Sparkles, BarChart3, Receipt, ListChecks, Flame, Calendar, Zap, Trophy, AlertTriangle,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
