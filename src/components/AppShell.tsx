@@ -179,7 +179,9 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
             </div>
           </div>
         </div>
-        {children}
+        <div className="pt-2 sm:pt-3 lg:pt-6">
+          {children}
+        </div>
       </main>
     </div>
   );
