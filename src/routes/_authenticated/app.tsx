@@ -438,9 +438,13 @@ function Dashboard() {
               <div className="text-[10px] uppercase tracking-wider font-medium text-muted-foreground mb-0.5">{s.label}</div>
               <div className={`text-lg font-bold tracking-tight ${s.val} leading-tight`}>{s.value}</div>
             </div>
-            {sparkData[s.label] && (
-              <div className="relative mt-1.5 -mx-1 opacity-70 group-hover:opacity-100 transition">
+            {sparkData[s.label] ? (
+              <div className="relative mt-2 -mx-1 opacity-60 group-hover:opacity-100 transition-opacity">
                 <Sparkline data={sparkData[s.label]!} color={sparkColor[s.label]} />
+              </div>
+            ) : (
+              <div className="relative mt-2 -mx-1 h-5 flex items-center justify-center opacity-40">
+                <div className="w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" />
               </div>
             )}
             <div className="relative mt-2 pt-2 border-t border-dashed border-border text-[10px] text-muted-foreground">
