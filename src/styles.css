@@ -221,13 +221,13 @@
    pixel size. Bump the root size and tighten line-height so all
    existing Tailwind text-* utilities scale up uniformly. */
 :root {
-  font-size: 17px; /* default 16px → 17px (~6% larger across the app) */
+  font-size: 18px; /* default 16px → 18px (~12% larger across the app) */
 }
 @media (max-width: 1023px) {
-  :root { font-size: 16px; }
+  :root { font-size: 17px; }
 }
 @media (max-width: 639px) {
-  :root { font-size: 15.5px; }
+  :root { font-size: 16px; }
 }
 
 body {
