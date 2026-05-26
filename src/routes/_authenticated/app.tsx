@@ -416,39 +416,40 @@ function Dashboard() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 mb-5">
         {statCards.map((s) => (
-          <div key={s.label} className={`group relative bg-card text-card-foreground rounded-xl p-3.5 border border-border shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 overflow-hidden`}>
+          <div key={s.label} className={`group relative bg-card text-card-foreground rounded-xl p-2.5 sm:p-3.5 border border-border shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 overflow-hidden`}>
             {/* top accent bar */}
             <div className={`absolute top-0 inset-x-0 h-[2.5px] bg-gradient-to-r ${s.grad} rounded-t-xl`} />
             {/* glow blob */}
             <div className={`absolute -top-10 -right-10 w-24 h-24 rounded-full bg-gradient-to-br ${s.grad} opacity-[0.08] group-hover:opacity-[0.18] blur-xl transition-opacity duration-500 dark:opacity-[0.18] dark:group-hover:opacity-[0.28]`} />
 
-            <div className="relative flex items-start justify-between gap-2 mb-2.5">
-              <div className={`relative w-9 h-9 rounded-lg bg-gradient-to-br ${s.grad} flex items-center justify-center shadow-md shadow-black/10 dark:shadow-black/40 group-hover:scale-105 group-hover:rotate-2 transition-transform duration-300`}>
-                <s.Icon className="w-4 h-4 text-white drop-shadow" />
+            <div className="relative flex items-start justify-between gap-1.5 sm:gap-2 mb-2">
+              <div className={`relative w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-br ${s.grad} flex items-center justify-center shadow-md shadow-black/10 dark:shadow-black/40 group-hover:scale-105 group-hover:rotate-2 transition-transform duration-300`}>
+                <s.Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white drop-shadow" />
               </div>
               {s.pct.value && (
-                <span className={`flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${s.pct.up ? "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-500/10 ring-1 ring-emerald-100 dark:ring-emerald-400/20" : "text-rose-600 dark:text-rose-300 bg-rose-50 dark:bg-rose-500/10 ring-1 ring-rose-100 dark:ring-rose-400/20"}`}>
+                <span className={`hidden sm:flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${s.pct.up ? "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-500/10 ring-1 ring-emerald-100 dark:ring-emerald-400/20" : "text-rose-600 dark:text-rose-300 bg-rose-50 dark:bg-rose-500/10 ring-1 ring-rose-100 dark:ring-rose-400/20"}`}>
                   {s.pct.up ? <ArrowUp className="w-2.5 h-2.5" /> : <ArrowDown className="w-2.5 h-2.5" />}{s.pct.value}
                 </span>
               )}
             </div>
             <div className="relative">
-              <div className="text-[10px] uppercase tracking-wider font-medium text-muted-foreground mb-0.5">{s.label}</div>
-              <div className={`text-lg font-bold tracking-tight ${s.val} leading-tight`}>{s.value}</div>
+              <div className="text-[9px] sm:text-[10px] uppercase tracking-wider font-medium text-muted-foreground mb-0.5">{s.label}</div>
+              <div className={`text-base sm:text-lg font-bold tracking-tight ${s.val} leading-tight`}>{s.value}</div>
             </div>
             {sparkData[s.label] ? (
-              <div className="relative mt-2 -mx-1 opacity-60 group-hover:opacity-100 transition-opacity">
+              <div className="relative mt-1.5 sm:mt-2 -mx-1 opacity-60 group-hover:opacity-100 transition-opacity">
                 <Sparkline data={sparkData[s.label]!} color={sparkColor[s.label]} />
               </div>
             ) : (
-              <div className="relative mt-2 -mx-1 h-5 flex items-center justify-center opacity-40">
+              <div className="relative mt-1.5 sm:mt-2 -mx-1 h-5 flex items-center justify-center opacity-40">
                 <div className="w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" />
               </div>
             )}
-            <div className="relative mt-2 pt-2 border-t border-dashed border-border text-[10px] text-muted-foreground">
-              {t("গত মাস", "Last month")}: <span className="font-medium text-foreground/70">{s.last}</span>
+            <div className="relative mt-1.5 sm:mt-2 pt-1.5 sm:pt-2 border-t border-dashed border-border text-[9px] sm:text-[10px] text-muted-foreground">
+              <span className="hidden sm:inline">{t("গত মাস", "Last month")}: </span>
+              <span className="font-medium text-foreground/70">{s.last}</span>
             </div>
           </div>
         ))}
@@ -462,8 +463,8 @@ function Dashboard() {
           const donut = isExp ? expDonut : incDonut;
           const totalVal = isExp ? curExp : curInc;
           return (
-            <div className="bg-white rounded-2xl p-5 border border-slate-200/70 shadow-sm hover:shadow-md transition">
-              <div className="flex items-center justify-between mb-4 gap-2">
+            <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/70 shadow-sm hover:shadow-md transition">
+              <div className="flex items-center justify-between mb-3 sm:mb-4 gap-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-sm shrink-0">
                     <BarChart3 className="w-4 h-4 text-white" />
@@ -476,11 +477,11 @@ function Dashboard() {
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-                <div className="relative w-44 h-44 flex-shrink-0">
+                <div className="relative w-36 h-36 sm:w-44 sm:h-44 flex-shrink-0">
                   <div className="w-full h-full rounded-full" style={{ background: `conic-gradient(${donut.segs})` }}></div>
-                  <div className="absolute inset-6 bg-white rounded-full flex flex-col items-center justify-center">
-                    <div className="text-xs text-slate-500">{isExp ? t("মোট ব্যয়", "Total expense") : t("মোট আয়", "Total income")}</div>
-                    <div className="font-bold text-slate-800">{fmtTk(totalVal)}</div>
+                  <div className="absolute inset-5 sm:inset-6 bg-white rounded-full flex flex-col items-center justify-center">
+                    <div className="text-[10px] sm:text-xs text-slate-500 text-center px-2">{isExp ? t("মোট ব্যয়", "Total expense") : t("মোট আয়", "Total income")}</div>
+                    <div className="font-bold text-sm sm:text-base text-slate-800">{fmtTk(totalVal)}</div>
                   </div>
                 </div>
                 <div className="w-full flex-1 space-y-2.5 max-h-44 overflow-y-auto pr-1">
@@ -499,8 +500,8 @@ function Dashboard() {
           );
         })()}
 
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/70 shadow-sm hover:shadow-md transition">
-          <div className="flex items-center justify-between mb-4 gap-2">
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/70 shadow-sm hover:shadow-md transition">
+          <div className="flex items-center justify-between mb-3 sm:mb-4 gap-2">
             <div className="flex items-center gap-2 min-w-0">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-sm shrink-0">
                 <TrendingDown className="w-4 h-4 text-white rotate-180" />
@@ -522,7 +523,7 @@ function Dashboard() {
               })}
             </div>
           </div>
-          <div className="h-56 -ml-2">
+          <div className="h-48 sm:h-56 -ml-2">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartSeries} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>
@@ -544,8 +545,8 @@ function Dashboard() {
 
       {/* Recent + Plan */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/70 shadow-sm hover:shadow-md transition">
-          <div className="flex items-center justify-between mb-4 gap-2">
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/70 shadow-sm hover:shadow-md transition">
+          <div className="flex items-center justify-between mb-3 sm:mb-4 gap-2">
             <div className="flex items-center gap-2 min-w-0">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center shadow-sm shrink-0">
                 <Receipt className="w-4 h-4 text-white" />
@@ -589,8 +590,8 @@ function Dashboard() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/70 shadow-sm hover:shadow-md transition">
-          <div className="flex items-center justify-between mb-4">
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/70 shadow-sm hover:shadow-md transition">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
             <div className="flex items-center gap-2 min-w-0">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-sm shrink-0">
                 <ListChecks className="w-4 h-4 text-white" />
