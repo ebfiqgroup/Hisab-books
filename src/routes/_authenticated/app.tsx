@@ -477,11 +477,11 @@ function Dashboard() {
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-                <div className="relative w-44 h-44 flex-shrink-0">
+                <div className="relative w-36 h-36 sm:w-44 sm:h-44 flex-shrink-0">
                   <div className="w-full h-full rounded-full" style={{ background: `conic-gradient(${donut.segs})` }}></div>
-                  <div className="absolute inset-6 bg-white rounded-full flex flex-col items-center justify-center">
-                    <div className="text-xs text-slate-500">{isExp ? t("মোট ব্যয়", "Total expense") : t("মোট আয়", "Total income")}</div>
-                    <div className="font-bold text-slate-800">{fmtTk(totalVal)}</div>
+                  <div className="absolute inset-5 sm:inset-6 bg-white rounded-full flex flex-col items-center justify-center">
+                    <div className="text-[10px] sm:text-xs text-slate-500 text-center px-2">{isExp ? t("মোট ব্যয়", "Total expense") : t("মোট আয়", "Total income")}</div>
+                    <div className="font-bold text-sm sm:text-base text-slate-800">{fmtTk(totalVal)}</div>
                   </div>
                 </div>
                 <div className="w-full flex-1 space-y-2.5 max-h-44 overflow-y-auto pr-1">
