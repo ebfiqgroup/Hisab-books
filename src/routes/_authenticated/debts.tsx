@@ -139,7 +139,8 @@ function DebtsPage() {
         );
       })()}
 
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+      {/* Desktop table */}
+      <div className="hidden lg:block bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
         <table className="w-full text-sm min-w-[640px]">
           <thead className="bg-gradient-to-r from-slate-50 to-indigo-50/40 text-slate-600 text-xs">
@@ -154,7 +155,14 @@ function DebtsPage() {
           </thead>
           <tbody>
             {q.isLoading && <tr><td colSpan={6} className="text-center text-slate-400 py-8">{t("লোড হচ্ছে...", "Loading...")}</td></tr>}
-            {!q.isLoading && list.length === 0 && <tr><td colSpan={6} className="text-center text-slate-400 py-8">{t("কোনো রেকর্ড নেই", "No records yet")}</td></tr>}
+            {!q.isLoading && list.length === 0 && (
+              <tr><td colSpan={6} className="text-center py-12">
+                <div className="inline-flex flex-col items-center gap-2">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center"><Users className="w-7 h-7 text-indigo-600" /></div>
+                  <div className="text-slate-500 text-sm">{t("কোনো রেকর্ড নেই", "No records yet")}</div>
+                </div>
+              </td></tr>
+            )}
             {list.map((d) => (
               <tr key={d.id} className={`group border-t border-slate-100 hover:bg-indigo-50/30 transition-colors ${d.settled ? "opacity-50" : ""}`}>
                 <td className="px-4 py-3">
@@ -175,10 +183,10 @@ function DebtsPage() {
                 <td className="px-4 py-3 text-slate-500 text-xs">{d.due_date ? toBn(d.due_date) : "—"}</td>
                 <td className={`px-4 py-3 text-right font-bold ${d.kind === "receivable" ? "text-emerald-600" : "text-rose-600"}`}>{d.kind === "receivable" ? "+" : "−"}{fmtTk(Number(d.amount))}</td>
                 <td className="px-4 py-3 text-right">
-                  <div className="flex gap-1 justify-end opacity-60 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => toggle(d)} title={d.settled ? t("আবার সক্রিয়", "Reactivate") : t("পরিশোধিত", "Settled")} className={`p-1.5 rounded-md hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 ${d.settled ? "text-emerald-600" : ""}`}><Check className="w-4 h-4" /></button>
-                    <button onClick={() => openEdit(d)} title={t("এডিট", "Edit")} className="p-1.5 rounded-md hover:bg-indigo-50 text-slate-400 hover:text-indigo-600"><Pencil className="w-4 h-4" /></button>
-                    <button onClick={() => remove(d.id)} className="p-1.5 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600"><Trash2 className="w-4 h-4" /></button>
+                  <div className="flex items-center justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => toggle(d)} title={d.settled ? t("আবার সক্রিয়", "Reactivate") : t("পরিশোধিত", "Settled")} className={`p-1.5 rounded-md hover:bg-emerald-100 text-slate-400 hover:text-emerald-600 transition-colors ${d.settled ? "text-emerald-600" : ""}`}><Check className="w-4 h-4" /></button>
+                    <button onClick={() => openEdit(d)} title={t("এডিট", "Edit")} className="p-1.5 rounded-md hover:bg-indigo-100 text-slate-400 hover:text-indigo-600 transition-colors"><Pencil className="w-4 h-4" /></button>
+                    <button onClick={() => remove(d.id)} title="Delete" className="p-1.5 rounded-md hover:bg-rose-100 text-slate-400 hover:text-rose-600 transition-colors"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </td>
               </tr>
@@ -186,6 +194,45 @@ function DebtsPage() {
           </tbody>
         </table>
         </div>
+      </div>
+
+      {/* Mobile / tablet card list */}
+      <div className="lg:hidden space-y-2">
+        {q.isLoading && <div className="bg-white rounded-xl border border-slate-200 p-6 text-center text-slate-400 text-sm">{t("লোড হচ্ছে...", "Loading...")}</div>}
+        {!q.isLoading && list.length === 0 && (
+          <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center">
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center mb-3"><Users className="w-7 h-7 text-indigo-600" /></div>
+            <div className="text-slate-500 text-sm">{t("কোনো রেকর্ড নেই", "No records yet")}</div>
+          </div>
+        )}
+        {list.map((d) => (
+          <div key={d.id} className={`relative bg-white rounded-xl border border-slate-200 p-3 flex items-start gap-3 shadow-sm hover:shadow-md transition-all overflow-hidden ${d.settled ? "opacity-60" : ""}`}>
+            <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${d.kind === "receivable" ? "from-emerald-400 to-teal-500" : "from-rose-400 to-pink-500"}`} />
+            <div className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white ${d.kind === "receivable" ? "bg-gradient-to-br from-emerald-400 to-teal-500" : "bg-gradient-to-br from-rose-400 to-pink-500"}`}>
+              {d.person.trim().charAt(0).toUpperCase() || "?"}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <div className="font-medium text-slate-800 text-sm truncate">{d.person}</div>
+                <div className={`font-bold text-sm whitespace-nowrap ${d.kind === "receivable" ? "text-emerald-600" : "text-rose-600"}`}>{d.kind === "receivable" ? "+" : "−"}{fmtTk(Number(d.amount))}</div>
+              </div>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ring-1 ${d.kind === "receivable" ? "bg-emerald-50 text-emerald-700 ring-emerald-200" : "bg-rose-50 text-rose-700 ring-rose-200"}`}>
+                  {d.kind === "receivable" ? <ArrowDownRight className="w-2.5 h-2.5 rotate-180" /> : <ArrowUpRight className="w-2.5 h-2.5" />}
+                  {d.kind === "receivable" ? t("পাওনা", "Receivable") : t("দেনা", "Payable")}
+                </span>
+                {d.settled && <span className="text-[10px] text-emerald-600 font-semibold">{t("পরিশোধিত", "Settled")}</span>}
+              </div>
+              {d.note && <div className="text-xs text-slate-600 mt-1 truncate">{d.note}</div>}
+              <div className="text-[11px] text-slate-400 mt-1">{d.due_date ? toBn(d.due_date) : "—"}</div>
+            </div>
+            <div className="flex flex-col gap-1 shrink-0">
+              <button onClick={() => toggle(d)} title={d.settled ? t("আবার সক্রিয়", "Reactivate") : t("পরিশোধিত", "Settled")} className={`p-1.5 rounded-md hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 ${d.settled ? "text-emerald-600" : ""}`}><Check className="w-4 h-4" /></button>
+              <button onClick={() => openEdit(d)} className="p-1.5 rounded-md hover:bg-indigo-50 text-slate-400 hover:text-indigo-600" title="Edit"><Pencil className="w-4 h-4" /></button>
+              <button onClick={() => remove(d.id)} className="p-1.5 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600" title="Delete"><Trash2 className="w-4 h-4" /></button>
+            </div>
+          </div>
+        ))}
       </div>
 
       <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditingId(null); }}>
