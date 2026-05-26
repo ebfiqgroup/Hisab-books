@@ -10,7 +10,7 @@ import {
 } from "recharts";
 import {
   Wallet, Users, TrendingDown, Search,
-  ArrowDown, ArrowUp, PiggyBank, StickyNote, Plus, Pencil, Trash2, Check, X, Target,
+  ArrowDown, ArrowUp, ArrowRight, PiggyBank, StickyNote, Plus, Pencil, Trash2, Check, X, Target,
   ShieldCheck, Sparkles, BarChart3, Receipt, ListChecks, Flame, Calendar, Zap, Trophy, AlertTriangle,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
@@ -138,11 +138,11 @@ function Dashboard() {
   const payable = debts.filter((d) => d.kind === "payable").reduce((s, d) => s + Number(d.amount), 0);
 
   const statCards = [
-    { label: t("মোট আয়", "Total income"), value: fmtTk(curInc), last: fmtTk(prevInc), pct: pctChange(curInc, prevInc), Icon: Wallet, grad: "from-emerald-500 to-teal-500", ring: "ring-emerald-100", val: "text-emerald-600" },
-    { label: t("মোট ব্যয়", "Total expense"), value: fmtTk(curExp), last: fmtTk(prevExp), pct: pctChange(curExp, prevExp), Icon: ArrowDown, grad: "from-rose-500 to-pink-500", ring: "ring-rose-100", val: "text-rose-500" },
-    { label: t("অবশিষ্ট", "Remaining"), value: fmtTk(curSav), last: fmtTk(prevSav), pct: pctChange(curSav, prevSav), Icon: PiggyBank, grad: "from-blue-500 to-indigo-500", ring: "ring-blue-100", val: "text-blue-600" },
-    { label: t("মোট পাওনা", "Total receivable"), value: fmtTk(receivable), last: "—", pct: { value: "", up: true }, Icon: Users, grad: "from-amber-500 to-orange-500", ring: "ring-orange-100", val: "text-orange-500" },
-    { label: t("মোট দেনা", "Total payable"), value: fmtTk(payable), last: "—", pct: { value: "", up: false }, Icon: TrendingDown, grad: "from-fuchsia-500 to-rose-500", ring: "ring-rose-100", val: "text-rose-600" },
+    { label: t("মোট আয়", "Total income"), value: fmtTk(curInc), last: fmtTk(prevInc), pct: pctChange(curInc, prevInc), Icon: Wallet, grad: "from-emerald-500 to-teal-500", ring: "ring-emerald-100", val: "text-emerald-600", to: "/income" as const },
+    { label: t("মোট ব্যয়", "Total expense"), value: fmtTk(curExp), last: fmtTk(prevExp), pct: pctChange(curExp, prevExp), Icon: ArrowDown, grad: "from-rose-500 to-pink-500", ring: "ring-rose-100", val: "text-rose-500", to: "/expense" as const },
+    { label: t("অবশিষ্ট", "Remaining"), value: fmtTk(curSav), last: fmtTk(prevSav), pct: pctChange(curSav, prevSav), Icon: PiggyBank, grad: "from-blue-500 to-indigo-500", ring: "ring-blue-100", val: "text-blue-600", to: "/budget" as const },
+    { label: t("মোট পাওনা", "Total receivable"), value: fmtTk(receivable), last: "—", pct: { value: "", up: true }, Icon: Users, grad: "from-amber-500 to-orange-500", ring: "ring-orange-100", val: "text-orange-500", to: "/debts" as const },
+    { label: t("মোট দেনা", "Total payable"), value: fmtTk(payable), last: "—", pct: { value: "", up: false }, Icon: TrendingDown, grad: "from-fuchsia-500 to-rose-500", ring: "ring-rose-100", val: "text-rose-600", to: "/debts" as const },
   ];
 
   // 7-day sparkline series per card type
@@ -418,7 +418,7 @@ function Dashboard() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 mb-5">
         {statCards.map((s) => (
-          <div key={s.label} className={`group relative bg-card text-card-foreground rounded-xl p-2.5 sm:p-3.5 border border-border shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 overflow-hidden`}>
+          <Link key={s.label} to={s.to} className="group relative bg-card text-card-foreground rounded-xl p-2.5 sm:p-3.5 border border-border shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 overflow-hidden block">
             {/* top accent bar */}
             <div className={`absolute top-0 inset-x-0 h-[2.5px] bg-gradient-to-r ${s.grad} rounded-t-xl`} />
             {/* glow blob */}
@@ -428,11 +428,16 @@ function Dashboard() {
               <div className={`relative w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-br ${s.grad} flex items-center justify-center shadow-md shadow-black/10 dark:shadow-black/40 group-hover:scale-105 group-hover:rotate-2 transition-transform duration-300`}>
                 <s.Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white drop-shadow" />
               </div>
-              {s.pct.value && (
-                <span className={`hidden sm:flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${s.pct.up ? "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-500/10 ring-1 ring-emerald-100 dark:ring-emerald-400/20" : "text-rose-600 dark:text-rose-300 bg-rose-50 dark:bg-rose-500/10 ring-1 ring-rose-100 dark:ring-rose-400/20"}`}>
-                  {s.pct.up ? <ArrowUp className="w-2.5 h-2.5" /> : <ArrowDown className="w-2.5 h-2.5" />}{s.pct.value}
+              <div className="flex items-center gap-1">
+                {s.pct.value && (
+                  <span className={`hidden sm:flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${s.pct.up ? "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-500/10 ring-1 ring-emerald-100 dark:ring-emerald-400/20" : "text-rose-600 dark:text-rose-300 bg-rose-50 dark:bg-rose-500/10 ring-1 ring-rose-100 dark:ring-rose-400/20"}`}>
+                    {s.pct.up ? <ArrowUp className="w-2.5 h-2.5" /> : <ArrowDown className="w-2.5 h-2.5" />}{s.pct.value}
+                  </span>
+                )}
+                <span className={`flex items-center justify-center w-6 h-6 rounded-md bg-gradient-to-br ${s.grad} opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100 shadow-sm`}>
+                  <ArrowRight className="w-3 h-3 text-white" />
                 </span>
-              )}
+              </div>
             </div>
             <div className="relative">
               <div className="text-[9px] sm:text-[10px] uppercase tracking-wider font-medium text-muted-foreground mb-0.5">{s.label}</div>
@@ -451,7 +456,15 @@ function Dashboard() {
               <span className="hidden sm:inline">{t("গত মাস", "Last month")}: </span>
               <span className="font-medium text-foreground/70">{s.last}</span>
             </div>
-          </div>
+
+            {/* Hover drilldown button */}
+            <div className="absolute bottom-2 right-2 sm:bottom-2.5 sm:right-2.5 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-1 group-hover:translate-y-0">
+              <div className={`flex items-center gap-1 px-2 py-1 rounded-lg bg-gradient-to-r ${s.grad} text-white text-[10px] font-semibold shadow-md hover:shadow-lg transition-shadow`}>
+                <span className="hidden sm:inline">{t("বিস্তারিত", "Details")}</span>
+                <ArrowRight className="w-3 h-3" />
+              </div>
+            </div>
+          </Link>
         ))}
       </div>
 
