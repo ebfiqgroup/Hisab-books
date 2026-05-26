@@ -416,9 +416,9 @@ function Dashboard() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 mb-5">
         {statCards.map((s) => (
-          <div key={s.label} className={`group relative bg-card text-card-foreground rounded-xl p-3.5 border border-border shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 overflow-hidden`}>
+          <div key={s.label} className={`group relative bg-card text-card-foreground rounded-xl p-2.5 sm:p-3.5 border border-border shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 overflow-hidden`}>
             {/* top accent bar */}
             <div className={`absolute top-0 inset-x-0 h-[2.5px] bg-gradient-to-r ${s.grad} rounded-t-xl`} />
             {/* glow blob */}
