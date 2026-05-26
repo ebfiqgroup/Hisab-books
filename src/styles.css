@@ -140,7 +140,7 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: "Hind Siliguri", "Noto Sans Bengali", system-ui, sans-serif;
+    font-family: var(--font-body);
   }
 }
 
@@ -198,8 +198,8 @@
   --shadow-elegant: 0 10px 30px -12px color-mix(in oklab, var(--brand-emerald-900) 35%, transparent);
   --shadow-soft:    0 4px 14px -6px color-mix(in oklab, var(--brand-emerald-900) 18%, transparent);
 
-  --font-display: "Instrument Serif", "Cormorant Garamond", "Hind Siliguri", serif;
-  --font-body:    "Work Sans", "Hind Siliguri", "Noto Sans Bengali", system-ui, sans-serif;
+  --font-display: "Nikosh", "Instrument Serif", "Cormorant Garamond", "Hind Siliguri", serif;
+  --font-body:    "Nikosh", "Work Sans", "Hind Siliguri", "Noto Sans Bengali", system-ui, sans-serif;
 }
 
 @layer base {
