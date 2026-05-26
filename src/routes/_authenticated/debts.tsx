@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 import { fmtTk, toBn } from "@/lib/finance";
-import { Plus, Trash2, Check, Pencil, ArrowUpRight, ArrowDownRight, Scale, Users } from "lucide-react";
+import { Plus, Trash2, Check, Pencil, ArrowUpRight, ArrowDownRight, Scale, Users, Calendar, TrendingDown, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -13,6 +13,22 @@ import { useCurrentUserId } from "@/hooks/useCurrentUserId";
 export const Route = createFileRoute("/_authenticated/debts")({ component: DebtsPage });
 
 type Debt = { id: string; kind: "receivable" | "payable"; amount: number; person: string; note: string | null; due_date: string | null; settled: boolean };
+
+function Sparkline({ points, stroke = "#fff" }: { points: number[]; stroke?: string }) {
+  if (!points.length) return null;
+  const max = Math.max(...points, 1);
+  const min = Math.min(...points, 0);
+  const range = max - min || 1;
+  const w = 120, h = 36;
+  const step = w / Math.max(1, points.length - 1);
+  const path = points.map((v, i) => `${i === 0 ? "M" : "L"}${(i * step).toFixed(1)},${(h - ((v - min) / range) * h).toFixed(1)}`).join(" ");
+  return (
+    <svg width={w} height={h} className="overflow-visible">
+      <path d={path} fill="none" stroke={stroke} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+      <path d={`${path} L${w},${h} L0,${h} Z`} fill={stroke} opacity={0.18} />
+    </svg>
+  );
+}
 
 function DebtsPage() {
   const { t } = useLanguage();
