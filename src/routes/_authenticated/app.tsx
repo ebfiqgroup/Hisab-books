@@ -434,7 +434,7 @@ function Dashboard() {
                     {s.pct.up ? <ArrowUp className="w-2.5 h-2.5" /> : <ArrowDown className="w-2.5 h-2.5" />}{s.pct.value}
                   </span>
                 )}
-                <span className="flex items-center justify-center w-6 h-6 rounded-md bg-gradient-to-br ${s.grad} opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100 shadow-sm">
+                <span className={`flex items-center justify-center w-6 h-6 rounded-md bg-gradient-to-br ${s.grad} opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100 shadow-sm`}>
                   <ArrowRight className="w-3 h-3 text-white" />
                 </span>
               </div>
