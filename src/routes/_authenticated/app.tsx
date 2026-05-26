@@ -138,11 +138,11 @@ function Dashboard() {
   const payable = debts.filter((d) => d.kind === "payable").reduce((s, d) => s + Number(d.amount), 0);
 
   const statCards = [
-    { label: t("মোট আয়", "Total income"), value: fmtTk(curInc), last: fmtTk(prevInc), pct: pctChange(curInc, prevInc), Icon: Wallet, grad: "from-emerald-500 to-teal-500", ring: "ring-emerald-100", val: "text-emerald-600" },
-    { label: t("মোট ব্যয়", "Total expense"), value: fmtTk(curExp), last: fmtTk(prevExp), pct: pctChange(curExp, prevExp), Icon: ArrowDown, grad: "from-rose-500 to-pink-500", ring: "ring-rose-100", val: "text-rose-500" },
-    { label: t("অবশিষ্ট", "Remaining"), value: fmtTk(curSav), last: fmtTk(prevSav), pct: pctChange(curSav, prevSav), Icon: PiggyBank, grad: "from-blue-500 to-indigo-500", ring: "ring-blue-100", val: "text-blue-600" },
-    { label: t("মোট পাওনা", "Total receivable"), value: fmtTk(receivable), last: "—", pct: { value: "", up: true }, Icon: Users, grad: "from-amber-500 to-orange-500", ring: "ring-orange-100", val: "text-orange-500" },
-    { label: t("মোট দেনা", "Total payable"), value: fmtTk(payable), last: "—", pct: { value: "", up: false }, Icon: TrendingDown, grad: "from-fuchsia-500 to-rose-500", ring: "ring-rose-100", val: "text-rose-600" },
+    { label: t("মোট আয়", "Total income"), value: fmtTk(curInc), last: fmtTk(prevInc), pct: pctChange(curInc, prevInc), Icon: Wallet, grad: "from-emerald-500 to-teal-500", ring: "ring-emerald-100", val: "text-emerald-600", to: "/income" as const },
+    { label: t("মোট ব্যয়", "Total expense"), value: fmtTk(curExp), last: fmtTk(prevExp), pct: pctChange(curExp, prevExp), Icon: ArrowDown, grad: "from-rose-500 to-pink-500", ring: "ring-rose-100", val: "text-rose-500", to: "/expense" as const },
+    { label: t("অবশিষ্ট", "Remaining"), value: fmtTk(curSav), last: fmtTk(prevSav), pct: pctChange(curSav, prevSav), Icon: PiggyBank, grad: "from-blue-500 to-indigo-500", ring: "ring-blue-100", val: "text-blue-600", to: "/budget" as const },
+    { label: t("মোট পাওনা", "Total receivable"), value: fmtTk(receivable), last: "—", pct: { value: "", up: true }, Icon: Users, grad: "from-amber-500 to-orange-500", ring: "ring-orange-100", val: "text-orange-500", to: "/debts" as const },
+    { label: t("মোট দেনা", "Total payable"), value: fmtTk(payable), last: "—", pct: { value: "", up: false }, Icon: TrendingDown, grad: "from-fuchsia-500 to-rose-500", ring: "ring-rose-100", val: "text-rose-600", to: "/debts" as const },
   ];
 
   // 7-day sparkline series per card type
