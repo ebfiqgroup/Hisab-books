@@ -418,24 +418,24 @@ function Dashboard() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-5">
         {statCards.map((s) => (
-          <div key={s.label} className={`group relative bg-white rounded-xl p-3.5 border border-slate-100 shadow-[0_1px_4px_-1px_rgba(15,23,42,0.05)] hover:shadow-[0_8px_20px_-6px_rgba(15,23,42,0.12)] hover:-translate-y-0.5 transition-all duration-300 overflow-hidden`}>
+          <div key={s.label} className={`group relative bg-card text-card-foreground rounded-xl p-3.5 border border-border shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 overflow-hidden`}>
             {/* top accent bar */}
             <div className={`absolute top-0 inset-x-0 h-[2.5px] bg-gradient-to-r ${s.grad} rounded-t-xl`} />
             {/* glow blob */}
-            <div className={`absolute -top-10 -right-10 w-24 h-24 rounded-full bg-gradient-to-br ${s.grad} opacity-[0.06] group-hover:opacity-[0.14] blur-xl transition-opacity duration-500`} />
+            <div className={`absolute -top-10 -right-10 w-24 h-24 rounded-full bg-gradient-to-br ${s.grad} opacity-[0.08] group-hover:opacity-[0.18] blur-xl transition-opacity duration-500 dark:opacity-[0.18] dark:group-hover:opacity-[0.28]`} />
 
             <div className="relative flex items-start justify-between gap-2 mb-2.5">
-              <div className={`relative w-9 h-9 rounded-lg bg-gradient-to-br ${s.grad} flex items-center justify-center shadow-md shadow-slate-300/30 group-hover:scale-105 group-hover:rotate-2 transition-transform duration-300`}>
+              <div className={`relative w-9 h-9 rounded-lg bg-gradient-to-br ${s.grad} flex items-center justify-center shadow-md shadow-black/10 dark:shadow-black/40 group-hover:scale-105 group-hover:rotate-2 transition-transform duration-300`}>
                 <s.Icon className="w-4 h-4 text-white drop-shadow" />
               </div>
               {s.pct.value && (
-                <span className={`flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${s.pct.up ? "text-emerald-700 bg-emerald-50 ring-1 ring-emerald-100" : "text-rose-600 bg-rose-50 ring-1 ring-rose-100"}`}>
+                <span className={`flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${s.pct.up ? "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-500/10 ring-1 ring-emerald-100 dark:ring-emerald-400/20" : "text-rose-600 dark:text-rose-300 bg-rose-50 dark:bg-rose-500/10 ring-1 ring-rose-100 dark:ring-rose-400/20"}`}>
                   {s.pct.up ? <ArrowUp className="w-2.5 h-2.5" /> : <ArrowDown className="w-2.5 h-2.5" />}{s.pct.value}
                 </span>
               )}
             </div>
             <div className="relative">
-              <div className="text-[10px] uppercase tracking-wider font-medium text-slate-400 mb-0.5">{s.label}</div>
+              <div className="text-[10px] uppercase tracking-wider font-medium text-muted-foreground mb-0.5">{s.label}</div>
               <div className={`text-lg font-bold tracking-tight ${s.val} leading-tight`}>{s.value}</div>
             </div>
             {sparkData[s.label] && (
@@ -443,8 +443,8 @@ function Dashboard() {
                 <Sparkline data={sparkData[s.label]!} color={sparkColor[s.label]} />
               </div>
             )}
-            <div className="relative mt-2 pt-2 border-t border-dashed border-slate-100 text-[10px] text-slate-400">
-              {t("গত মাস", "Last month")}: <span className="font-medium text-slate-500">{s.last}</span>
+            <div className="relative mt-2 pt-2 border-t border-dashed border-border text-[10px] text-muted-foreground">
+              {t("গত মাস", "Last month")}: <span className="font-medium text-foreground/70">{s.last}</span>
             </div>
           </div>
         ))}
