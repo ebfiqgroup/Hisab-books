@@ -53,7 +53,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
     <div className="h-[100dvh] lg:h-screen flex overflow-hidden min-h-0 min-w-0" style={{ background: "var(--gradient-page)" }}>
       <Sidebar mobileOpen={navOpen} onClose={() => setNavOpen(false)} />
       <main className="flex-1 p-2 sm:p-3 lg:p-6 overflow-y-auto overflow-x-hidden h-full w-full min-w-0 min-h-0">
-        <div className="flex items-center justify-between gap-2 md:gap-3 mb-4 lg:mb-6" ref={ref}>
+        <div className="sticky top-0 z-30 flex items-center justify-between gap-2 md:gap-3 mb-4 lg:mb-6 -mx-2 sm:-mx-3 lg:-mx-6 px-2 sm:px-3 lg:px-6 pt-2 sm:pt-3 lg:pt-6 pb-2 border-b" style={{ backgroundColor: "color-mix(in oklab, var(--brand-ivory) 92%, transparent)", backdropFilter: "blur(8px)", borderColor: "var(--brand-line)" }} ref={ref}>
           {/* LEFT: hamburger only on mobile/tablet; full left on desktop */}
           <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1 lg:flex-none lg:w-auto">
             <button
