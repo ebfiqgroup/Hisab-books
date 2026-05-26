@@ -202,6 +202,45 @@
   --font-body:    "Nikosh", "Work Sans", "Hind Siliguri", "Noto Sans Bengali", system-ui, sans-serif;
 }
 
+/* ── Dark mode overrides for the Emerald Prestige palette ──
+   Inverts ivory surfaces to deep ink so the brand still feels
+   premium in dark. Cards/inputs that hardcode `bg-white` are
+   re-skinned via the global utility overrides below. */
+.dark {
+  --brand-ivory:    oklch(0.18 0.02 160);
+  --brand-cream:    oklch(0.14 0.015 160);
+  --brand-ink:      oklch(0.95 0.012 90);
+  --brand-ink-soft: oklch(0.78 0.015 90);
+  --brand-line:     oklch(0.30 0.02 160);
+
+  --sidebar-bg: var(--brand-emerald-900);
+  --sidebar-fg: var(--brand-ivory);
+  --page-bg:    var(--brand-cream);
+
+  --gradient-sidebar-light: linear-gradient(180deg,
+    oklch(0.20 0.025 160) 0%,
+    oklch(0.14 0.02 160) 100%);
+  --gradient-page: radial-gradient(1200px 600px at 100% -10%,
+      color-mix(in oklab, var(--brand-emerald-700) 25%, transparent) 0%, transparent 60%),
+    linear-gradient(180deg, oklch(0.16 0.02 160) 0%, oklch(0.12 0.02 160) 100%);
+
+  --shadow-elegant: 0 10px 30px -12px oklch(0 0 0 / 0.55);
+  --shadow-soft:    0 4px 14px -6px  oklch(0 0 0 / 0.45);
+}
+
+/* Re-skin hardcoded white surfaces & slate text in dark mode without
+   touching every component. */
+.dark .bg-white { background-color: oklch(0.20 0.02 160) !important; }
+.dark .brand-card { background: oklch(0.20 0.02 160); }
+.dark .text-slate-500,
+.dark .text-slate-600,
+.dark .text-slate-700 { color: var(--brand-ink-soft) !important; }
+.dark .text-slate-800,
+.dark .text-slate-900 { color: var(--brand-ink) !important; }
+.dark .hover\:bg-slate-50:hover { background-color: oklch(0.26 0.02 160) !important; }
+.dark .border-slate-200,
+.dark .border-slate-300 { border-color: var(--brand-line) !important; }
+
 @layer base {
   body {
     background: var(--gradient-page);

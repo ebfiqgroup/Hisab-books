@@ -1,10 +1,11 @@
 import { ReactNode, useState, useRef, useEffect } from "react";
 import { Sidebar } from "./Sidebar";
-import { Bell, ChevronDown, LogOut, User as UserIcon, Settings as SettingsIcon, LifeBuoy, ArrowLeft } from "lucide-react";
+import { Bell, ChevronDown, LogOut, User as UserIcon, Settings as SettingsIcon, LifeBuoy, ArrowLeft, Sun, Moon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useNavigate, useRouter, useLocation } from "@tanstack/react-router";
 import { RefCodeBadge } from "./RefCodeBadge";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useTheme } from "@/hooks/useTheme";
 import { useRealtimeStatus } from "@/hooks/useRealtimeStatus";
 import { RealtimeStatusBadge } from "./RealtimeStatusBadge";
 
@@ -14,6 +15,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
   const router = useRouter();
   const location = useLocation();
   const { t, lang, toggle } = useLanguage();
+  const { theme, toggle: toggleTheme } = useTheme();
   const rtStatus = useRealtimeStatus();
   const [menuOpen, setMenuOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
@@ -108,6 +110,17 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
             )}
 
             <RealtimeStatusBadge status={rtStatus} />
+            <button
+              onClick={toggleTheme}
+              title={theme === "dark" ? t("লাইট মোড", "Light mode") : t("ডার্ক মোড", "Dark mode")}
+              aria-label={theme === "dark" ? t("লাইট মোড", "Light mode") : t("ডার্ক মোড", "Dark mode")}
+              className="p-2 bg-white rounded-lg border hover:shadow-sm transition w-9 h-9 flex items-center justify-center"
+              style={{ borderColor: "var(--brand-line)" }}
+            >
+              {theme === "dark"
+                ? <Sun className="w-4 h-4" style={{ color: "var(--brand-gold-500)" }} />
+                : <Moon className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />}
+            </button>
             <button
               onClick={toggle}
               title={t("lang.label")}
