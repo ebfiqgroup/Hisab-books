@@ -1,11 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 import { fmtTk, toBn } from "@/lib/finance";
-import { Plus, Trash2, Check, Pencil, ArrowUpRight, ArrowDownRight, Scale, Users, Calendar, AlertCircle } from "lucide-react";
-import { useMemo } from "react";
+import { Plus, Trash2, Check, Pencil, ArrowUpRight, ArrowDownRight, Scale, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLanguage } from "@/hooks/useLanguage";
