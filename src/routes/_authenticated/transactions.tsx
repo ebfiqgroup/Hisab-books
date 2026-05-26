@@ -274,10 +274,10 @@ function TransactionsPage() {
                   </div>
                 </td></tr>
               )}
-              {filtered.map((t) => {
-                const inc = t.type === "income";
+              {filtered.map((tx) => {
+                const inc = tx.type === "income";
                 return (
-                  <tr key={t.id} className={`group border-t border-slate-100 ${inc ? "hover:bg-emerald-50/30" : "hover:bg-rose-50/30"} transition-colors`}>
+                  <tr key={tx.id} className={`group border-t border-slate-100 ${inc ? "hover:bg-emerald-50/30" : "hover:bg-rose-50/30"} transition-colors`}>
                     <td className="px-4 py-3">
                       <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold ring-1 ${inc ? "bg-emerald-50 text-emerald-700 ring-emerald-200" : "bg-rose-50 text-rose-700 ring-rose-200"}`}>
                         {inc ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
@@ -287,18 +287,18 @@ function TransactionsPage() {
                     <td className="px-4 py-3">
                       <span className="inline-flex items-center gap-2">
                         <span className={`w-2 h-2 rounded-full ring-2 ${inc ? "bg-gradient-to-br from-emerald-400 to-teal-500 ring-emerald-100" : "bg-gradient-to-br from-rose-400 to-pink-500 ring-rose-100"}`} />
-                        <span className="font-medium text-slate-700">{t.category}</span>
+                        <span className="font-medium text-slate-700">{tx.category}</span>
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-slate-600 max-w-xs truncate">{t.note || "—"}</td>
-                    <td className="px-4 py-3 text-slate-500 text-xs">{toBn(t.occurred_on)}</td>
-                    <td className={`px-4 py-3 text-right font-bold ${inc ? "text-emerald-600" : "text-rose-600"}`}>{inc ? "+" : "−"}{fmtTk(Number(t.amount))}</td>
+                    <td className="px-4 py-3 text-slate-600 max-w-xs truncate">{tx.note || "—"}</td>
+                    <td className="px-4 py-3 text-slate-500 text-xs">{toBn(tx.occurred_on)}</td>
+                    <td className={`px-4 py-3 text-right font-bold ${inc ? "text-emerald-600" : "text-rose-600"}`}>{inc ? "+" : "−"}{fmtTk(Number(tx.amount))}</td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => openEdit(t)} className="p-1.5 rounded-md hover:bg-indigo-100 text-slate-400 hover:text-indigo-600 transition-colors" title="Edit">
+                        <button onClick={() => openEdit(tx)} className="p-1.5 rounded-md hover:bg-indigo-100 text-slate-400 hover:text-indigo-600 transition-colors" title="Edit">
                           <Pencil className="w-4 h-4" />
                         </button>
-                        <button onClick={() => remove(t.id)} className="p-1.5 rounded-md hover:bg-rose-100 text-slate-400 hover:text-rose-600 transition-colors" title="Delete">
+                        <button onClick={() => remove(tx.id)} className="p-1.5 rounded-md hover:bg-rose-100 text-slate-400 hover:text-rose-600 transition-colors" title="Delete">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
