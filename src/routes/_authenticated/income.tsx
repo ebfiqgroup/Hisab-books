@@ -178,8 +178,10 @@ function IncomePage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-        <table className="w-full text-sm">
+      {/* Desktop table */}
+      <div className="hidden lg:block bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[640px]">
           <thead className="bg-gradient-to-r from-slate-50 to-emerald-50/40 text-slate-600 text-xs">
             <tr>
               <th className="text-left px-4 py-3 font-semibold uppercase tracking-wider">{t("ক্যাটাগরি", "Category")}</th>
@@ -209,11 +211,7 @@ function IncomePage() {
                 </td>
                 <td className="px-4 py-3 text-slate-600 max-w-xs truncate">{t.note || "—"}</td>
                 <td className="px-4 py-3 text-slate-500 text-xs">{toBn(t.occurred_on)}</td>
-                <td className="px-4 py-3 text-right">
-                  <span className="inline-flex items-center gap-1 font-bold text-emerald-600">
-                    +{fmtTk(Number(t.amount))}
-                  </span>
-                </td>
+                <td className="px-4 py-3 text-right font-bold text-emerald-600">+{fmtTk(Number(t.amount))}</td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex items-center justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
                     <button onClick={() => openEdit(t)} className="p-1.5 rounded-md hover:bg-indigo-100 text-slate-400 hover:text-indigo-600 transition-colors" title="Edit">
@@ -228,6 +226,38 @@ function IncomePage() {
             ))}
           </tbody>
         </table>
+        </div>
+      </div>
+      {/* Mobile card list */}
+      <div className="lg:hidden space-y-2">
+        {q.isLoading && <div className="bg-white rounded-xl border border-slate-200 p-6 text-center text-slate-400 text-sm">{t("লোড হচ্ছে...", "Loading...")}</div>}
+        {!q.isLoading && list.length === 0 && (
+          <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center">
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center mb-3"><Wallet className="w-7 h-7 text-emerald-600" /></div>
+            <div className="text-slate-500 text-sm">{query ? t("কিছু পাওয়া যায়নি", "No matches") : t("কোনো আয় নেই", "No income yet")}</div>
+          </div>
+        )}
+        {list.map((t) => (
+          <div key={t.id} className="relative bg-white rounded-xl border border-slate-200 p-3 flex items-start gap-3 shadow-sm hover:shadow-md transition-all overflow-hidden">
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-emerald-400 to-teal-500" />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <div className="font-medium text-slate-800 text-sm truncate">{t.category}</div>
+                <div className="font-bold text-emerald-600 text-sm whitespace-nowrap">+{fmtTk(Number(t.amount))}</div>
+              </div>
+              {t.note && <div className="text-xs text-slate-600 mt-0.5 truncate">{t.note}</div>}
+              <div className="text-[11px] text-slate-400 mt-1">{toBn(t.occurred_on)}</div>
+            </div>
+            <div className="flex flex-col gap-1 shrink-0">
+              <button onClick={() => openEdit(t)} className="p-1.5 rounded-md hover:bg-indigo-50 text-slate-400 hover:text-indigo-600" title="Edit">
+                <Pencil className="w-4 h-4" />
+              </button>
+              <button onClick={() => remove(t.id)} className="p-1.5 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600" title="Delete">
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
       <TxnDialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }} editTxn={editing} />
       <CategoryManager open={catOpen} onOpenChange={setCatOpen} type="income" />
