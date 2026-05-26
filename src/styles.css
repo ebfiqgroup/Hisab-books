@@ -140,7 +140,7 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: "Hind Siliguri", "Noto Sans Bengali", system-ui, sans-serif;
+    font-family: var(--font-body);
   }
 }
 
