@@ -177,8 +177,8 @@ function TransactionsPage() {
           </div>
         </div>
 
-        {/* List */}
-        <div className="bg-white rounded-2xl border border-slate-200/70 overflow-hidden shadow-sm">
+        {/* Desktop table */}
+        <div className="hidden lg:block bg-white rounded-2xl border border-slate-200/70 overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[640px]">
             <thead className="bg-gradient-to-r from-slate-50 via-indigo-50/50 to-violet-50/40 text-slate-600 text-xs">
@@ -229,6 +229,51 @@ function TransactionsPage() {
           </table>
           </div>
           {/* Sentinel + footer */}
+          <div ref={sentinelRef} />
+          {txnQ.isFetchingNextPage && (
+            <div className="text-center text-slate-400 text-xs py-4">{t("আরও লোড হচ্ছে...", "Loading more...")}</div>
+          )}
+          {!txnQ.hasNextPage && filtered.length > 0 && (
+            <div className="text-center text-slate-300 text-xs py-4">— {t("শেষ", "End")} —</div>
+          )}
+        </div>
+
+        {/* Mobile card list */}
+        <div className="lg:hidden space-y-2">
+          {txnQ.isLoading && (
+            <div className="bg-white rounded-xl border border-slate-200 p-6 text-center text-slate-400 text-sm">{t("লোড হচ্ছে...", "Loading...")}</div>
+          )}
+          {!txnQ.isLoading && filtered.length === 0 && (
+            <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center">
+              <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center mb-3"><Activity className="w-7 h-7 text-indigo-600" /></div>
+              <div className="text-slate-500 text-sm">{t("কোনো লেনদেন নেই", "No transactions")}</div>
+            </div>
+          )}
+          {filtered.map((tx) => {
+            const inc = tx.type === "income";
+            return (
+              <div key={tx.id} className="relative bg-white rounded-xl border border-slate-200 p-3 flex items-start gap-3 shadow-sm hover:shadow-md transition-all overflow-hidden">
+                <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${inc ? "from-emerald-400 to-teal-500" : "from-rose-400 to-pink-500"}`} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="font-medium text-slate-800 text-sm truncate">{tx.category}</div>
+                    <div className={`font-bold text-sm whitespace-nowrap ${inc ? "text-emerald-600" : "text-rose-600"}`}>{inc ? "+" : "−"}{fmtTk(Number(tx.amount))}</div>
+                  </div>
+                  {tx.note && <div className="text-xs text-slate-600 mt-0.5 truncate">{tx.note}</div>}
+                  <div className="text-[11px] text-slate-400 mt-1">{toBn(tx.occurred_on)}</div>
+                </div>
+                <div className="flex flex-col gap-1 shrink-0">
+                  <button onClick={() => openEdit(tx)} className="p-1.5 rounded-md hover:bg-indigo-50 text-slate-400 hover:text-indigo-600" title="Edit">
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => remove(tx.id)} className="p-1.5 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600" title="Delete">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+          {/* Sentinel + footer (mobile) */}
           <div ref={sentinelRef} />
           {txnQ.isFetchingNextPage && (
             <div className="text-center text-slate-400 text-xs py-4">{t("আরও লোড হচ্ছে...", "Loading more...")}</div>
