@@ -532,16 +532,8 @@ function BudgetPage() {
                 </div>
                 <div>
                   <label className="block text-xs text-slate-600 mb-1">{t("বর্তমান টাকা (ব্যয়িত)", "Current (spent)")}</label>
-                  {(() => {
-                    const editing = list.find((b) => b.id === form.id);
-                    const spent = editing ? spentFor(editing) : 0;
-                    return (
-                      <div className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm bg-slate-50 text-slate-700 tabular-nums">
-                        {fmtTk(spent)}
-                      </div>
-                    );
-                  })()}
-                  <p className="text-[10px] text-slate-400 mt-1">{t("লেনদেন থেকে স্বয়ংক্রিয়", "Auto from transactions")}</p>
+                  <input type="number" inputMode="decimal" value={form.current} onChange={(e) => setForm({ ...form, current: e.target.value })}
+                    placeholder="0" className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm" />
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
