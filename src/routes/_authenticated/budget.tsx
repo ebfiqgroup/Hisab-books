@@ -17,12 +17,12 @@ type Budget = {
   id: string;
   category: string;
   monthly_limit: number;
+  current: number;
   label: string | null;
   start_at: string;
   end_at: string;
   status: "pending" | "ongoing" | "completed" | null;
 };
-type Txn = { category: string; amount: number; occurred_on: string };
 
 const BN_MONTHS_SHORT = ["জানু", "ফেব", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগ", "সেপ্ট", "অক্টো", "নভে", "ডিসে"];
 const fmtBnDateTime = (iso: string) => {
@@ -48,6 +48,7 @@ type FormState = {
   label: string;
   category: string;
   amount: string;
+  current: string;
   start: string; // datetime-local value
   end: string;
 };
@@ -55,7 +56,7 @@ type FormState = {
 function emptyForm(defaultCat: string): FormState {
   const now = new Date();
   const end = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate(), now.getHours(), now.getMinutes());
-  return { label: "", category: defaultCat, amount: "", start: toLocalInput(now), end: toLocalInput(end) };
+  return { label: "", category: defaultCat, amount: "", current: "", start: toLocalInput(now), end: toLocalInput(end) };
 }
 
 function BudgetPage() {
@@ -131,7 +132,7 @@ function BudgetPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("budgets")
-        .select("id,category,monthly_limit,label,start_at,end_at,status")
+        .select("id,category,monthly_limit,current,label,start_at,end_at,status")
         .eq("user_id", uid)
         .order("start_at", { ascending: false });
       if (error) throw error;
@@ -139,45 +140,7 @@ function BudgetPage() {
     },
   });
 
-  // Pull all expense txns in the union range of all budgets (or last 365 days as fallback)
-  const range = useMemo(() => {
-    const list = bQ.data ?? [];
-    if (list.length === 0) {
-      const now = new Date();
-      const past = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-      return { from: past.toISOString().slice(0, 10), to: now.toISOString().slice(0, 10) };
-    }
-    let min = list[0].start_at, max = list[0].end_at;
-    for (const b of list) {
-      if (b.start_at < min) min = b.start_at;
-      if (b.end_at > max) max = b.end_at;
-    }
-    return { from: min.slice(0, 10), to: max.slice(0, 10) };
-  }, [bQ.data]);
-
-  const tQ = useQuery({
-    queryKey: ["transactions", "budget-union", uid, range.from, range.to],
-    enabled: !!bQ.data,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("transactions")
-        .select("category,amount,occurred_on")
-        .eq("user_id", uid)
-        .eq("type", "expense")
-        .gte("occurred_on", range.from)
-        .lte("occurred_on", range.to);
-      if (error) throw error;
-      return (data ?? []) as Txn[];
-    },
-  });
-
-  const spentFor = (b: Budget) => {
-    const sIso = b.start_at.slice(0, 10);
-    const eIso = b.end_at.slice(0, 10);
-    return (tQ.data ?? [])
-      .filter((t) => t.category === b.category && t.occurred_on >= sIso && t.occurred_on <= eIso)
-      .reduce((s, t) => s + Number(t.amount), 0);
-  };
+  const spentFor = (b: Budget) => Number(b.current ?? 0);
 
   const openCreate = () => {
     setForm(emptyForm(cats[0] ?? ""));
@@ -189,6 +152,7 @@ function BudgetPage() {
       label: b.label ?? "",
       category: b.category,
       amount: String(b.monthly_limit),
+      current: String(b.current ?? 0),
       start: toLocalInput(new Date(b.start_at)),
       end: toLocalInput(new Date(b.end_at)),
     });
@@ -199,6 +163,8 @@ function BudgetPage() {
     if (!form.category) { toast.error(t("ক্যাটাগরি দিন", "Select category")); return; }
     const amt = parseFloat(form.amount);
     if (Number.isNaN(amt) || amt < 0) { toast.error(t("সঠিক পরিমাণ দিন", "Enter a valid amount")); return; }
+    const cur = parseFloat(form.current || "0");
+    if (Number.isNaN(cur) || cur < 0) { toast.error(t("সঠিক বর্তমান টাকা দিন", "Enter a valid current amount")); return; }
     if (!form.start || !form.end) { toast.error(t("শুরু ও শেষ সময় দিন", "Enter start and end time")); return; }
     if (new Date(form.end) <= new Date(form.start)) { toast.error(t("শেষ সময় শুরুর পরে হতে হবে", "End must be after start")); return; }
     const { data: { user } } = await supabase.auth.getUser();
@@ -207,6 +173,7 @@ function BudgetPage() {
       label: form.label.trim() || null,
       category: form.category,
       monthly_limit: amt,
+      current: cur,
       start_at: fromLocalInput(form.start),
       end_at: fromLocalInput(form.end),
     };
