@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
@@ -21,6 +21,7 @@ function DebtsPage() {
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ kind: "receivable" as "receivable" | "payable", person: "", amount: "", due_date: "", note: "" });
+  const [query, setQuery] = useState("");
 
   const q = useQuery({
     queryKey: ["debts", "all", uid],
@@ -30,9 +31,18 @@ function DebtsPage() {
       return (data ?? []) as Debt[];
     },
   });
-  const list = q.data ?? [];
-  const receivable = list.filter((d) => d.kind === "receivable" && !d.settled).reduce((s, d) => s + Number(d.amount), 0);
-  const payable = list.filter((d) => d.kind === "payable" && !d.settled).reduce((s, d) => s + Number(d.amount), 0);
+  const all = q.data ?? [];
+  const list = useMemo(() => {
+    const s = query.trim().toLowerCase();
+    if (!s) return all;
+    return all.filter((d) => d.person.toLowerCase().includes(s) || (d.note ?? "").toLowerCase().includes(s));
+  }, [all, query]);
+  const receivable = all.filter((d) => d.kind === "receivable" && !d.settled).reduce((s, d) => s + Number(d.amount), 0);
+  const payable = all.filter((d) => d.kind === "payable" && !d.settled).reduce((s, d) => s + Number(d.amount), 0);
+  const net = receivable - payable;
+  const totalAbs = receivable + payable;
+  const recPct = totalAbs > 0 ? (receivable / totalAbs) * 100 : 50;
+  const activeCount = all.filter((d) => !d.settled).length;
 
   const openNew = () => {
     setEditingId(null);
@@ -90,54 +100,96 @@ function DebtsPage() {
 
   return (
     <AppShell title={t("দেনা / পাওনা", "Receivable / Payable")} actions={
-      <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg text-sm font-semibold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.02] transition-all">
-        <Plus className="w-4 h-4" /> {t("নতুন", "New")}
-      </button>
+      <div className="flex items-center gap-2">
+        <button onClick={openNew} className="group flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg text-sm font-semibold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.02] transition-all">
+          <Plus className="w-4 h-4" /> <span className="hidden sm:inline">{t("নতুন এন্ট্রি", "New entry")}</span><span className="sm:hidden">{t("যোগ", "Add")}</span>
+        </button>
+      </div>
     }>
-      {(() => {
-        const net = receivable - payable;
-        const totalAbs = receivable + payable;
-        const recPct = totalAbs > 0 ? (receivable / totalAbs) * 100 : 50;
-        return (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5">
-            <div className="relative overflow-hidden rounded-2xl p-5 text-white shadow-xl shadow-emerald-500/30" style={{ background: "linear-gradient(135deg,#059669,#10b981)" }}>
-              <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/15 blur-2xl" />
-              <div className="relative flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2 text-emerald-50/90 text-[11px] uppercase tracking-wider font-semibold mb-2"><ArrowDownRight className="w-3.5 h-3.5 rotate-180" /> {t("মোট পাওনা", "Total receivable")}</div>
-                  <div className="text-3xl font-extrabold">{fmtTk(receivable)}</div>
-                </div>
-                <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center"><Users className="w-6 h-6" /></div>
-              </div>
+      {/* Hero summary */}
+      <div className="relative overflow-hidden rounded-2xl p-5 sm:p-7 mb-5 text-white shadow-2xl shadow-indigo-500/30"
+        style={{ background: "linear-gradient(135deg,#4f46e5 0%,#7c3aed 45%,#a855f7 100%)" }}>
+        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/15 blur-3xl" />
+        <div className="absolute -bottom-20 -left-10 w-72 h-72 rounded-full bg-fuchsia-300/20 blur-3xl" />
+        <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "20px 20px" }} />
+        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 text-indigo-50/90 text-xs font-medium tracking-wider uppercase mb-2">
+              <Scale className="w-3.5 h-3.5" /> {t("নেট ব্যালেন্স", "Net balance")}
             </div>
-            <div className="relative overflow-hidden rounded-2xl p-5 text-white shadow-xl shadow-rose-500/30" style={{ background: "linear-gradient(135deg,#e11d48,#f43f5e)" }}>
-              <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/15 blur-2xl" />
-              <div className="relative flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2 text-rose-50/90 text-[11px] uppercase tracking-wider font-semibold mb-2"><ArrowUpRight className="w-3.5 h-3.5" /> {t("মোট দেনা", "Total payable")}</div>
-                  <div className="text-3xl font-extrabold">{fmtTk(payable)}</div>
-                </div>
-                <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center"><Users className="w-6 h-6" /></div>
-              </div>
-            </div>
-            <div className="relative overflow-hidden rounded-2xl p-5 bg-white border border-slate-200 shadow-sm">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-400 via-violet-400 to-fuchsia-400" />
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold flex items-center gap-1.5"><Scale className="w-3.5 h-3.5" /> {t("নেট ব্যালেন্স", "Net balance")}</div>
-              </div>
-              <div className={`text-2xl font-extrabold ${net >= 0 ? "text-emerald-600" : "text-rose-600"}`}>{net >= 0 ? "+" : ""}{fmtTk(net)}</div>
-              <div className="mt-3 h-2 bg-slate-100 rounded-full overflow-hidden flex">
-                <div className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 transition-all" style={{ width: `${recPct}%` }} />
-                <div className="h-full bg-gradient-to-r from-rose-400 to-rose-500 transition-all" style={{ width: `${100 - recPct}%` }} />
-              </div>
-              <div className="flex justify-between text-[10px] text-slate-500 mt-1.5">
-                <span>{t("পাওনা", "Recv")} {toBn(recPct.toFixed(0))}%</span>
-                <span>{t("দেনা", "Pay")} {toBn((100 - recPct).toFixed(0))}%</span>
-              </div>
+            <div className="text-3xl sm:text-4xl font-extrabold tracking-tight drop-shadow-sm">{net >= 0 ? "+" : ""}{fmtTk(net)}</div>
+            <div className="flex flex-wrap items-center gap-3 mt-3 text-sm">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm ring-1 ring-white/30">
+                <ArrowDownRight className="w-3.5 h-3.5 rotate-180" />
+                <span className="font-semibold">{fmtTk(receivable)}</span>
+                <span className="text-indigo-50/80 text-xs">{t("পাওনা", "Receivable")}</span>
+              </span>
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm ring-1 ring-white/30">
+                <ArrowUpRight className="w-3.5 h-3.5" />
+                <span className="font-semibold">{fmtTk(payable)}</span>
+                <span className="text-indigo-50/80 text-xs">{t("দেনা", "Payable")}</span>
+              </span>
+              <span className="text-indigo-50/80 text-xs">{t("সক্রিয় এন্ট্রি", "Active")}: <b className="text-white">{toBn(activeCount)}</b></span>
             </div>
           </div>
-        );
-      })()}
+          <div className="shrink-0 w-full sm:w-56 flex flex-col items-stretch gap-1.5">
+            <div className="text-[11px] uppercase tracking-wider text-indigo-50/80">{t("অনুপাত", "Split")}</div>
+            <div className="h-3 bg-white/20 rounded-full overflow-hidden flex">
+              <div className="h-full bg-gradient-to-r from-emerald-300 to-emerald-400 transition-all" style={{ width: `${recPct}%` }} />
+              <div className="h-full bg-gradient-to-r from-rose-300 to-rose-400 transition-all" style={{ width: `${100 - recPct}%` }} />
+            </div>
+            <div className="flex justify-between text-[10px] text-indigo-50/90">
+              <span>{t("পাওনা", "Recv")} {toBn(recPct.toFixed(0))}%</span>
+              <span>{t("দেনা", "Pay")} {toBn((100 - recPct).toFixed(0))}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Mini stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-5">
+        <div className="relative overflow-hidden bg-white rounded-xl p-4 border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-teal-400" />
+          <div className="flex items-center justify-between">
+            <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">{t("মোট পাওনা", "Total receivable")}</div>
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center"><ArrowDownRight className="w-4 h-4 text-emerald-600 rotate-180" /></div>
+          </div>
+          <div className="text-xl font-extrabold text-slate-800 mt-1">{fmtTk(receivable)}</div>
+        </div>
+        <div className="relative overflow-hidden bg-white rounded-xl p-4 border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-400 to-pink-400" />
+          <div className="flex items-center justify-between">
+            <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">{t("মোট দেনা", "Total payable")}</div>
+            <div className="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center"><ArrowUpRight className="w-4 h-4 text-rose-600" /></div>
+          </div>
+          <div className="text-xl font-extrabold text-slate-800 mt-1">{fmtTk(payable)}</div>
+        </div>
+        <div className="col-span-2 lg:col-span-1 relative overflow-hidden bg-white rounded-xl p-4 border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-400 to-violet-400" />
+          <div className="flex items-center justify-between">
+            <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">{t("মোট এন্ট্রি", "Total entries")}</div>
+            <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center"><Users className="w-4 h-4 text-indigo-600" /></div>
+          </div>
+          <div className="text-xl font-extrabold text-slate-800 mt-1">{toBn(all.length)}</div>
+          <div className="text-xs text-slate-500 font-medium">{t("সক্রিয়", "Active")}: {toBn(activeCount)}</div>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="mb-4 flex items-center gap-2">
+        <div className="relative flex-1">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t("ব্যক্তি বা নোট খুঁজুন...", "Search person or note...")}
+            className="w-full pl-10 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
+          />
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16z"/></svg>
+        </div>
+        <div className="hidden sm:flex items-center gap-1.5 px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-600">
+          <span className="text-slate-400">{t("দেখাচ্ছে", "Showing")}:</span> <b>{toBn(list.length)}</b>
+        </div>
+      </div>
 
       {/* Desktop table */}
       <div className="hidden lg:block bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
