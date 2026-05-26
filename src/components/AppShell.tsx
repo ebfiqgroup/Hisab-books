@@ -109,6 +109,40 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                 </div>
               )}
               <RealtimeStatusBadge status={rtStatus} />
+              {/* Mobile top-right icons */}
+              <div className="flex lg:hidden items-center gap-2">
+                <a
+                  href="https://www.facebook.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Facebook"
+                  aria-label="Facebook"
+                  className="p-2 bg-white rounded-lg border hover:shadow-sm transition w-9 h-9 flex items-center justify-center"
+                  style={{ borderColor: "var(--brand-line)", color: "var(--brand-ink-soft)" }}
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+                </a>
+                <Link
+                  to="/support"
+                  title={t("nav.support")}
+                  aria-label={t("nav.support")}
+                  className="p-2 bg-white rounded-lg border hover:shadow-sm transition w-9 h-9 flex items-center justify-center"
+                  style={{ borderColor: "var(--brand-line)" }}
+                >
+                  <LifeBuoy className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
+                </Link>
+                <div className="relative">
+                  <button onClick={() => { setBellOpen(o => !o); setMenuOpen(false); }} className="relative p-2 bg-white rounded-lg border hover:shadow-sm transition w-9 h-9 flex items-center justify-center" style={{ borderColor: "var(--brand-line)" }}>
+                    <Bell className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
+                  </button>
+                  {bellOpen && (
+                    <div className="absolute right-0 top-12 w-72 bg-white rounded-xl p-3 z-50 brand-card">
+                      <div className="text-sm font-semibold mb-2" style={{ color: "var(--brand-ink)" }}>{t("header.notifications")}</div>
+                      <div className="text-xs text-slate-500 py-6 text-center">{t("header.noNotifications")}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
               {/* Desktop right icons */}
               <div className="hidden lg:flex items-center gap-2 md:gap-3">
                 <button
@@ -131,6 +165,17 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                 >
                   {lang === "bn" ? "EN" : "বাং"}
                 </button>
+                <a
+                  href="https://www.facebook.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Facebook"
+                  aria-label="Facebook"
+                  className="p-2 bg-white rounded-lg border hover:shadow-sm transition w-9 h-9 flex items-center justify-center"
+                  style={{ borderColor: "var(--brand-line)", color: "var(--brand-ink-soft)" }}
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+                </a>
                 <Link
                   to="/support"
                   title={t("nav.support")}
@@ -204,26 +249,6 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
             >
               {lang === "bn" ? "EN" : "বাং"}
             </button>
-            <Link
-              to="/support"
-              title={t("nav.support")}
-              aria-label={t("nav.support")}
-              className="p-2 bg-white rounded-lg border hover:shadow-sm transition"
-              style={{ borderColor: "var(--brand-line)" }}
-            >
-              <LifeBuoy className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
-            </Link>
-            <div className="relative">
-              <button onClick={() => { setBellOpen(o => !o); setMenuOpen(false); }} className="relative p-2 bg-white rounded-lg border hover:shadow-sm transition" style={{ borderColor: "var(--brand-line)" }}>
-                <Bell className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
-              </button>
-              {bellOpen && (
-                <div className="absolute right-0 top-12 w-72 bg-white rounded-xl p-3 z-50 brand-card">
-                  <div className="text-sm font-semibold mb-2" style={{ color: "var(--brand-ink)" }}>{t("header.notifications")}</div>
-                  <div className="text-xs text-slate-500 py-6 text-center">{t("header.noNotifications")}</div>
-                </div>
-              )}
-            </div>
             <div className="relative">
               <button onClick={() => { setMenuOpen(o => !o); setBellOpen(false); }} className="flex items-center gap-2 px-2 py-1 bg-white rounded-lg border hover:shadow-sm transition" style={{ borderColor: "var(--brand-line)" }}>
                 <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: "var(--gradient-brand)" }}>
