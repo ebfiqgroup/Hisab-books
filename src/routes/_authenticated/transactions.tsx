@@ -1,12 +1,12 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Sidebar } from "@/components/Sidebar";
+import { AppShell } from "@/components/AppShell";
 import { TxnDialog, type EditTxn } from "@/components/dashboard/TxnDialog";
 import { fmtTk, toBn } from "@/lib/finance";
 import { useCustomCategories } from "@/hooks/useCustomCategories";
-import { ArrowUp, ArrowDown, Plus, Trash2, ArrowLeft, Search, Pencil, Wallet, TrendingUp, TrendingDown, Activity } from "lucide-react";
+import { ArrowUp, ArrowDown, Plus, Trash2, Pencil, TrendingUp, TrendingDown, Activity, Calendar, AlertCircle, ArrowDownRight } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useCurrentUserId } from "@/hooks/useCurrentUserId";
@@ -18,6 +18,22 @@ export const Route = createFileRoute("/_authenticated/transactions")({
 type Txn = { id: string; type: "income" | "expense"; category: string; amount: number; occurred_on: string; note: string | null };
 
 const PAGE_SIZE = 50;
+
+function Sparkline({ points, stroke = "#fff" }: { points: number[]; stroke?: string }) {
+  if (!points.length) return null;
+  const max = Math.max(...points, 1);
+  const min = Math.min(...points, 0);
+  const range = max - min || 1;
+  const w = 120, h = 36;
+  const step = w / Math.max(1, points.length - 1);
+  const path = points.map((v, i) => `${i === 0 ? "M" : "L"}${(i * step).toFixed(1)},${(h - ((v - min) / range) * h).toFixed(1)}`).join(" ");
+  return (
+    <svg width={w} height={h} className="overflow-visible">
+      <path d={path} fill="none" stroke={stroke} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+      <path d={`${path} L${w},${h} L0,${h} Z`} fill={stroke} opacity={0.18} />
+    </svg>
+  );
+}
 
 function TransactionsPage() {
   const { t } = useLanguage();
@@ -68,7 +84,32 @@ function TransactionsPage() {
   const totalInc = filtered.filter((t) => t.type === "income").reduce((s, t) => s + Number(t.amount), 0);
   const totalExp = filtered.filter((t) => t.type === "expense").reduce((s, t) => s + Number(t.amount), 0);
   const net = totalInc - totalExp;
-  const incPct = totalInc + totalExp > 0 ? Math.round((totalInc / (totalInc + totalExp)) * 100) : 0;
+
+  const { spark, thisMonth, lastMonth, topCat } = useMemo(() => {
+    const days = 14;
+    const today = new Date();
+    const buckets = new Array(days).fill(0);
+    for (const t of filtered) {
+      const d = new Date(t.occurred_on);
+      const diff = Math.floor((+today - +d) / 86400000);
+      if (diff >= 0 && diff < days) buckets[days - 1 - diff] += Number(t.amount);
+    }
+    const ym = (d: Date) => `${d.getFullYear()}-${d.getMonth()}`;
+    const tm = ym(today);
+    const lm = ym(new Date(today.getFullYear(), today.getMonth() - 1, 1));
+    let tmSum = 0, lmSum = 0;
+    const catMap: Record<string, number> = {};
+    for (const t of filtered) {
+      const d = new Date(t.occurred_on);
+      const amt = Number(t.amount);
+      if (ym(d) === tm) tmSum += amt;
+      if (ym(d) === lm) lmSum += amt;
+      catMap[t.category] = (catMap[t.category] ?? 0) + amt;
+    }
+    const top = Object.entries(catMap).sort((a, b) => b[1] - a[1])[0];
+    return { spark: buckets, thisMonth: tmSum, lastMonth: lmSum, topCat: top };
+  }, [filtered]);
+  const momPct = lastMonth > 0 ? ((thisMonth - lastMonth) / lastMonth) * 100 : (thisMonth > 0 ? 100 : 0);
 
   // Infinite scroll sentinel
   const sentinelRef = useRef<HTMLDivElement | null>(null);
@@ -98,96 +139,126 @@ function TransactionsPage() {
   const openNew = () => { setEditing(null); setOpen(true); };
 
   return (
-    <div className="h-screen flex overflow-hidden bg-gradient-to-br from-slate-50 via-indigo-50/30 to-violet-50/40">
-      <Sidebar />
-      <main className="flex-1 p-6 overflow-y-auto h-screen">
-        {/* Hero Banner */}
-        <div className="relative overflow-hidden rounded-2xl mb-6 bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 p-6 shadow-xl shadow-indigo-300/40">
-          <div className="absolute -top-16 -right-16 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
-          <div className="absolute -bottom-20 -left-10 w-72 h-72 bg-fuchsia-300/20 rounded-full blur-3xl" />
-          <div className="relative flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <Link to="/app" className="p-2 rounded-xl bg-white/15 backdrop-blur border border-white/20 hover:bg-white/25 transition">
-                <ArrowLeft className="w-4 h-4 text-white" />
-              </Link>
-              <div className="p-3 rounded-2xl bg-white/15 backdrop-blur border border-white/20">
-                <Activity className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-white">{t("সব লেনদেন", "All transactions")}</h1>
-                <p className="text-xs text-white/70">{t("সকল আয় ও ব্যয়ের সম্পূর্ণ ইতিহাস", "Complete history of all income & expense")}</p>
-              </div>
+    <AppShell title={t("লেনদেন", "Transactions")} actions={
+      <div className="flex items-center gap-2">
+        <button onClick={openNew} className="group flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg text-sm font-semibold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.02] transition-all">
+          <Plus className="w-4 h-4" /> <span className="hidden sm:inline">{t("নতুন লেনদেন", "New transaction")}</span><span className="sm:hidden">{t("যোগ", "Add")}</span>
+        </button>
+      </div>
+    }>
+      {/* Hero summary */}
+      <div className="relative overflow-hidden rounded-2xl p-5 sm:p-7 mb-5 text-white shadow-2xl shadow-indigo-500/30"
+        style={{ background: "linear-gradient(135deg,#4f46e5 0%,#7c3aed 45%,#a855f7 100%)" }}>
+        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/15 blur-3xl" />
+        <div className="absolute -bottom-20 -left-10 w-72 h-72 rounded-full bg-fuchsia-300/20 blur-3xl" />
+        <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "20px 20px" }} />
+        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 text-indigo-50/90 text-xs font-medium tracking-wider uppercase mb-2">
+              <Activity className="w-3.5 h-3.5" /> {t("নিট ব্যালেন্স", "Net balance")}
             </div>
-            <button onClick={openNew} className="flex items-center gap-2 px-5 py-2.5 bg-white text-indigo-700 rounded-xl text-sm font-semibold hover:bg-white/90 shadow-lg shadow-indigo-900/20 transition hover:-translate-y-0.5">
-              <Plus className="w-4 h-4" /> {t("নতুন লেনদেন", "New transaction")}
-            </button>
-          </div>
-          <div className="relative mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="rounded-xl bg-white/10 backdrop-blur border border-white/15 p-3">
-              <div className="flex items-center gap-1.5 text-[11px] text-white/70"><Wallet className="w-3 h-3"/>{t("মোট", "Total")}</div>
-              <div className="text-xl font-bold text-white mt-1">{toBn(filtered.length)}{txnQ.hasNextPage ? "+" : ""}</div>
-            </div>
-            <div className="rounded-xl bg-white/10 backdrop-blur border border-white/15 p-3">
-              <div className="flex items-center gap-1.5 text-[11px] text-emerald-200"><TrendingUp className="w-3 h-3"/>{t("আয়", "Income")}</div>
-              <div className="text-base font-bold text-white mt-1">{fmtTk(totalInc)}</div>
-            </div>
-            <div className="rounded-xl bg-white/10 backdrop-blur border border-white/15 p-3">
-              <div className="flex items-center gap-1.5 text-[11px] text-rose-200"><TrendingDown className="w-3 h-3"/>{t("ব্যয়", "Expense")}</div>
-              <div className="text-base font-bold text-white mt-1">{fmtTk(totalExp)}</div>
-            </div>
-            <div className="rounded-xl bg-white/10 backdrop-blur border border-white/15 p-3">
-              <div className="text-[11px] text-white/70">{t("নিট", "Net")}</div>
-              <div className={`text-base font-bold mt-1 ${net >= 0 ? "text-emerald-200" : "text-rose-200"}`}>{fmtTk(net)}</div>
+            <div className={`text-3xl sm:text-4xl font-extrabold tracking-tight drop-shadow-sm`}>{net >= 0 ? "+" : ""}{fmtTk(net)}</div>
+            <div className="flex flex-wrap items-center gap-3 mt-3 text-sm">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm ring-1 ring-white/30">
+                <TrendingUp className="w-3.5 h-3.5" />
+                <span className="font-semibold">{fmtTk(totalInc)}</span>
+                <span className="text-indigo-50/80 text-xs">{t("আয়", "Income")}</span>
+              </span>
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm ring-1 ring-white/30">
+                <TrendingDown className="w-3.5 h-3.5" />
+                <span className="font-semibold">{fmtTk(totalExp)}</span>
+                <span className="text-indigo-50/80 text-xs">{t("ব্যয়", "Expense")}</span>
+              </span>
+              <span className="text-indigo-50/80 text-xs">{t("মোট লেনদেন", "Total transactions")}: <b className="text-white">{toBn(filtered.length)}{txnQ.hasNextPage ? "+" : ""}</b></span>
             </div>
           </div>
-          {totalInc + totalExp > 0 && (
-            <div className="relative mt-4 h-2 rounded-full overflow-hidden bg-white/15">
-              <div className="h-full bg-gradient-to-r from-emerald-300 to-emerald-400" style={{ width: `${incPct}%` }} />
-            </div>
-          )}
+          <div className="shrink-0 flex flex-col items-end gap-1">
+            <div className="text-[11px] uppercase tracking-wider text-indigo-50/80">{t("শেষ ১৪ দিন", "Last 14 days")}</div>
+            <Sparkline points={spark} />
+          </div>
         </div>
+        <div className="relative flex flex-wrap items-center gap-3 mt-4 text-sm">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm ring-1 ring-white/30">
+            <ArrowDownRight className={`w-3.5 h-3.5 ${momPct >= 0 ? "" : "rotate-180"}`} />
+            <span className="font-semibold">{momPct >= 0 ? "+" : ""}{toBn(momPct.toFixed(1))}%</span>
+            <span className="text-indigo-50/80 text-xs">{t("গত মাসের তুলনায়", "vs last month")}</span>
+          </span>
+        </div>
+      </div>
 
-        {/* Filters */}
-        <div className="bg-white/80 backdrop-blur rounded-2xl p-4 border border-slate-200/70 shadow-sm mb-4 flex flex-wrap items-center gap-3">
-          <div className="flex bg-slate-100 rounded-lg p-1">
+      {/* Mini stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-5">
+        <div className="relative overflow-hidden bg-white rounded-xl p-4 border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-400 to-pink-400" />
+          <div className="flex items-center justify-between">
+            <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">{t("এই মাস", "This month")}</div>
+            <div className="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center"><Calendar className="w-4 h-4 text-rose-600" /></div>
+          </div>
+          <div className="text-xl font-extrabold text-slate-800 mt-1">{fmtTk(thisMonth)}</div>
+        </div>
+        <div className="relative overflow-hidden bg-white rounded-xl p-4 border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-400 to-indigo-400" />
+          <div className="flex items-center justify-between">
+            <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">{t("গত মাস", "Last month")}</div>
+            <div className="w-8 h-8 rounded-lg bg-sky-50 flex items-center justify-center"><TrendingDown className="w-4 h-4 text-sky-600" /></div>
+          </div>
+          <div className="text-xl font-extrabold text-slate-800 mt-1">{fmtTk(lastMonth)}</div>
+        </div>
+        <div className="col-span-2 lg:col-span-1 relative overflow-hidden bg-white rounded-xl p-4 border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-orange-400" />
+          <div className="flex items-center justify-between">
+            <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">{t("শীর্ষ খাত", "Top category")}</div>
+            <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center"><AlertCircle className="w-4 h-4 text-amber-600" /></div>
+          </div>
+          <div className="text-base font-bold text-slate-800 mt-1 truncate">{topCat?.[0] ?? "—"}</div>
+          {topCat && <div className="text-xs text-slate-500 font-medium">{fmtTk(topCat[1])}</div>}
+        </div>
+      </div>
+
+      {/* Filters + Search */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <div className="flex bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
             {(["all", "income", "expense"] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`px-3 py-1.5 text-xs rounded-md font-medium transition ${filter === f ? (f === "income" ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow" : f === "expense" ? "bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow" : "bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow") : "text-slate-500 hover:text-slate-700"}`}
+              className={`px-3 py-1.5 text-xs rounded-lg font-medium transition ${filter === f ? (f === "income" ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow" : f === "expense" ? "bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow" : "bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow") : "text-slate-500 hover:text-slate-700"}`}
               >
                 {f === "all" ? t("সব", "All") : f === "income" ? t("আয়", "Income") : t("ব্যয়", "Expense")}
               </button>
             ))}
           </div>
-          <select value={cat} onChange={(e) => setCat(e.target.value)} className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:ring-2 focus:ring-indigo-400 focus:outline-none">
-            <option value="">{t("সব ক্যাটাগরি", "All categories")}</option>
-            {(filter === "all" ? combined : forType(filter)).map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder={t("অনুসন্ধান...", "Search...")}
-              className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-300 focus:outline-none"
-            />
-          </div>
+        <select value={cat} onChange={(e) => setCat(e.target.value)} className="px-3 py-2.5 text-sm border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 focus:outline-none shadow-sm">
+          <option value="">{t("সব ক্যাটাগরি", "All categories")}</option>
+          {(filter === "all" ? combined : forType(filter)).map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+        <div className="relative flex-1 min-w-[200px]">
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder={t("ক্যাটাগরি বা নোট খুঁজুন...", "Search category or note...")}
+            className="w-full pl-10 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
+          />
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16z"/></svg>
         </div>
+        <div className="hidden sm:flex items-center gap-1.5 px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-600">
+          <span className="text-slate-400">{t("দেখাচ্ছে", "Showing")}:</span> <b>{toBn(filtered.length)}</b>
+        </div>
+      </div>
 
         {/* Desktop table */}
-        <div className="hidden lg:block bg-white rounded-2xl border border-slate-200/70 overflow-hidden shadow-sm">
+        <div className="hidden lg:block bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[640px]">
-            <thead className="bg-gradient-to-r from-slate-50 via-indigo-50/50 to-violet-50/40 text-slate-600 text-xs">
+            <thead className="bg-gradient-to-r from-slate-50 to-indigo-50/40 text-slate-600 text-xs">
               <tr>
-                <th className="text-left px-4 py-3 font-medium">{t("ধরন", "Type")}</th>
-                <th className="text-left px-4 py-3 font-medium">{t("ক্যাটাগরি", "Category")}</th>
-                <th className="text-left px-4 py-3 font-medium">{t("নোট", "Note")}</th>
-                <th className="text-left px-4 py-3 font-medium">{t("তারিখ", "Date")}</th>
-                <th className="text-right px-4 py-3 font-medium">{t("পরিমাণ", "Amount")}</th>
+                <th className="text-left px-4 py-3 font-semibold uppercase tracking-wider">{t("ধরন", "Type")}</th>
+                <th className="text-left px-4 py-3 font-semibold uppercase tracking-wider">{t("ক্যাটাগরি", "Category")}</th>
+                <th className="text-left px-4 py-3 font-semibold uppercase tracking-wider">{t("নোট", "Note")}</th>
+                <th className="text-left px-4 py-3 font-semibold uppercase tracking-wider">{t("তারিখ", "Date")}</th>
+                <th className="text-right px-4 py-3 font-semibold uppercase tracking-wider">{t("পরিমাণ", "Amount")}</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
@@ -196,28 +267,38 @@ function TransactionsPage() {
                 <tr><td colSpan={6} className="text-center text-slate-400 py-8">{t("লোড হচ্ছে...", "Loading...")}</td></tr>
               )}
               {!txnQ.isLoading && filtered.length === 0 && (
-                <tr><td colSpan={6} className="text-center text-slate-400 py-8">{t("কোনো লেনদেন নেই", "No transactions")}</td></tr>
+                <tr><td colSpan={6} className="text-center py-12">
+                  <div className="inline-flex flex-col items-center gap-2">
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center"><Activity className="w-7 h-7 text-indigo-600" /></div>
+                    <div className="text-slate-500 text-sm">{t("কোনো লেনদেন নেই", "No transactions")}</div>
+                  </div>
+                </td></tr>
               )}
               {filtered.map((t) => {
                 const inc = t.type === "income";
                 return (
-                  <tr key={t.id} className={`group border-t border-slate-100 hover:bg-gradient-to-r transition ${inc ? "hover:from-emerald-50/40 hover:to-transparent" : "hover:from-rose-50/40 hover:to-transparent"} relative`}>
-                    <td className={`px-4 py-3 border-l-2 ${inc ? "border-l-emerald-400" : "border-l-rose-400"}`}>
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${inc ? "bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 ring-1 ring-emerald-200" : "bg-gradient-to-r from-rose-50 to-pink-50 text-rose-600 ring-1 ring-rose-200"}`}>
+                  <tr key={t.id} className={`group border-t border-slate-100 ${inc ? "hover:bg-emerald-50/30" : "hover:bg-rose-50/30"} transition-colors`}>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold ring-1 ${inc ? "bg-emerald-50 text-emerald-700 ring-emerald-200" : "bg-rose-50 text-rose-700 ring-rose-200"}`}>
                         {inc ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
-                        {inc ? "Income" : "Expense"}
+                        {inc ? t("আয়", "Income") : t("ব্যয়", "Expense")}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-slate-700 font-medium">{t.category}</td>
-                    <td className="px-4 py-3 text-slate-600">{t.note || "—"}</td>
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full ring-2 ${inc ? "bg-gradient-to-br from-emerald-400 to-teal-500 ring-emerald-100" : "bg-gradient-to-br from-rose-400 to-pink-500 ring-rose-100"}`} />
+                        <span className="font-medium text-slate-700">{t.category}</span>
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-slate-600 max-w-xs truncate">{t.note || "—"}</td>
                     <td className="px-4 py-3 text-slate-500 text-xs">{toBn(t.occurred_on)}</td>
-                    <td className={`px-4 py-3 text-right font-bold tabular-nums ${inc ? "text-emerald-600" : "text-rose-500"}`}>{inc ? "+" : "−"} {fmtTk(Number(t.amount))}</td>
+                    <td className={`px-4 py-3 text-right font-bold ${inc ? "text-emerald-600" : "text-rose-600"}`}>{inc ? "+" : "−"}{fmtTk(Number(t.amount))}</td>
                     <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <button onClick={() => openEdit(t)} className="p-1.5 rounded-md hover:bg-indigo-100 text-slate-400 hover:text-indigo-600 transition" title="Edit">
+                      <div className="flex items-center justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => openEdit(t)} className="p-1.5 rounded-md hover:bg-indigo-100 text-slate-400 hover:text-indigo-600 transition-colors" title="Edit">
                           <Pencil className="w-4 h-4" />
                         </button>
-                        <button onClick={() => remove(t.id)} className="p-1.5 rounded-md hover:bg-rose-100 text-slate-400 hover:text-rose-600 transition" title="Delete">
+                        <button onClick={() => remove(t.id)} className="p-1.5 rounded-md hover:bg-rose-100 text-slate-400 hover:text-rose-600 transition-colors" title="Delete">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -238,7 +319,7 @@ function TransactionsPage() {
           )}
         </div>
 
-        {/* Mobile card list */}
+        {/* Mobile / tablet card list */}
         <div className="lg:hidden space-y-2">
           {txnQ.isLoading && (
             <div className="bg-white rounded-xl border border-slate-200 p-6 text-center text-slate-400 text-sm">{t("লোড হচ্ছে...", "Loading...")}</div>
@@ -258,6 +339,12 @@ function TransactionsPage() {
                   <div className="flex items-center justify-between gap-2">
                     <div className="font-medium text-slate-800 text-sm truncate">{tx.category}</div>
                     <div className={`font-bold text-sm whitespace-nowrap ${inc ? "text-emerald-600" : "text-rose-600"}`}>{inc ? "+" : "−"}{fmtTk(Number(tx.amount))}</div>
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ring-1 ${inc ? "bg-emerald-50 text-emerald-700 ring-emerald-200" : "bg-rose-50 text-rose-700 ring-rose-200"}`}>
+                      {inc ? <ArrowUp className="w-2.5 h-2.5" /> : <ArrowDown className="w-2.5 h-2.5" />}
+                      {inc ? t("আয়", "Income") : t("ব্যয়", "Expense")}
+                    </span>
                   </div>
                   {tx.note && <div className="text-xs text-slate-600 mt-0.5 truncate">{tx.note}</div>}
                   <div className="text-[11px] text-slate-400 mt-1">{toBn(tx.occurred_on)}</div>
@@ -282,8 +369,7 @@ function TransactionsPage() {
             <div className="text-center text-slate-300 text-xs py-4">— {t("শেষ", "End")} —</div>
           )}
         </div>
-      </main>
       <TxnDialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }} editTxn={editing} />
-    </div>
+    </AppShell>
   );
 }
