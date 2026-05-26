@@ -173,7 +173,7 @@ function Dashboard() {
   };
 
   const Sparkline = ({ data, color }: { data: number[]; color: string }) => {
-    const w = 100, h = 28;
+    const w = 80, h = 20;
     const min = Math.min(...data, 0), max = Math.max(...data, 1);
     const range = max - min || 1;
     const step = w / (data.length - 1 || 1);
@@ -181,15 +181,15 @@ function Dashboard() {
     const area = `0,${h} ${pts} ${w},${h}`;
     const gid = `sg-${color.replace("#", "")}`;
     return (
-      <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="w-full h-7">
+      <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="w-full h-5">
         <defs>
           <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={color} stopOpacity="0.35" />
+            <stop offset="0%" stopColor={color} stopOpacity="0.3" />
             <stop offset="100%" stopColor={color} stopOpacity="0" />
           </linearGradient>
         </defs>
         <polygon points={area} fill={`url(#${gid})`} />
-        <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+        <polyline points={pts} fill="none" stroke={color} strokeWidth="1.2" strokeLinejoin="round" strokeLinecap="round" />
       </svg>
     );
   };
@@ -438,9 +438,13 @@ function Dashboard() {
               <div className="text-[10px] uppercase tracking-wider font-medium text-muted-foreground mb-0.5">{s.label}</div>
               <div className={`text-lg font-bold tracking-tight ${s.val} leading-tight`}>{s.value}</div>
             </div>
-            {sparkData[s.label] && (
-              <div className="relative mt-1.5 -mx-1 opacity-70 group-hover:opacity-100 transition">
+            {sparkData[s.label] ? (
+              <div className="relative mt-2 -mx-1 opacity-60 group-hover:opacity-100 transition-opacity">
                 <Sparkline data={sparkData[s.label]!} color={sparkColor[s.label]} />
+              </div>
+            ) : (
+              <div className="relative mt-2 -mx-1 h-5 flex items-center justify-center opacity-40">
+                <div className="w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" />
               </div>
             )}
             <div className="relative mt-2 pt-2 border-t border-dashed border-border text-[10px] text-muted-foreground">
