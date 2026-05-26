@@ -424,19 +424,19 @@ function Dashboard() {
             {/* glow blob */}
             <div className={`absolute -top-10 -right-10 w-24 h-24 rounded-full bg-gradient-to-br ${s.grad} opacity-[0.08] group-hover:opacity-[0.18] blur-xl transition-opacity duration-500 dark:opacity-[0.18] dark:group-hover:opacity-[0.28]`} />
 
-            <div className="relative flex items-start justify-between gap-2 mb-2.5">
-              <div className={`relative w-9 h-9 rounded-lg bg-gradient-to-br ${s.grad} flex items-center justify-center shadow-md shadow-black/10 dark:shadow-black/40 group-hover:scale-105 group-hover:rotate-2 transition-transform duration-300`}>
-                <s.Icon className="w-4 h-4 text-white drop-shadow" />
+            <div className="relative flex items-start justify-between gap-1.5 sm:gap-2 mb-2">
+              <div className={`relative w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-br ${s.grad} flex items-center justify-center shadow-md shadow-black/10 dark:shadow-black/40 group-hover:scale-105 group-hover:rotate-2 transition-transform duration-300`}>
+                <s.Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white drop-shadow" />
               </div>
               {s.pct.value && (
-                <span className={`flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${s.pct.up ? "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-500/10 ring-1 ring-emerald-100 dark:ring-emerald-400/20" : "text-rose-600 dark:text-rose-300 bg-rose-50 dark:bg-rose-500/10 ring-1 ring-rose-100 dark:ring-rose-400/20"}`}>
+                <span className={`hidden sm:flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${s.pct.up ? "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-500/10 ring-1 ring-emerald-100 dark:ring-emerald-400/20" : "text-rose-600 dark:text-rose-300 bg-rose-50 dark:bg-rose-500/10 ring-1 ring-rose-100 dark:ring-rose-400/20"}`}>
                   {s.pct.up ? <ArrowUp className="w-2.5 h-2.5" /> : <ArrowDown className="w-2.5 h-2.5" />}{s.pct.value}
                 </span>
               )}
             </div>
             <div className="relative">
-              <div className="text-[10px] uppercase tracking-wider font-medium text-muted-foreground mb-0.5">{s.label}</div>
-              <div className={`text-lg font-bold tracking-tight ${s.val} leading-tight`}>{s.value}</div>
+              <div className="text-[9px] sm:text-[10px] uppercase tracking-wider font-medium text-muted-foreground mb-0.5">{s.label}</div>
+              <div className={`text-base sm:text-lg font-bold tracking-tight ${s.val} leading-tight`}>{s.value}</div>
             </div>
             {sparkData[s.label] ? (
               <div className="relative mt-2 -mx-1 opacity-60 group-hover:opacity-100 transition-opacity">
