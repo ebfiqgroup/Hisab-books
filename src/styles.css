@@ -376,3 +376,99 @@ button:not(:disabled):hover {
   main .gap-4 { gap: 0.5rem; }
   main .gap-6 { gap: 0.75rem; }
 }
+
+/* ──────────────────────────────────────────────────────────────
+   Delight: subtle entrance animations & micro-interactions.
+   Auto-applied site-wide; respects prefers-reduced-motion.
+   ────────────────────────────────────────────────────────────── */
+@keyframes brand-fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes brand-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes brand-scale-in {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes brand-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes brand-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-4px); }
+}
+
+/* Route-level entrance: main content fades up on every navigation */
+main > * {
+  animation: brand-fade-up 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* Stagger direct children of common section containers so each block
+   gently reveals — feels alive without being distracting. */
+main section > *,
+main .grid > *,
+main .space-y-3 > *,
+main .space-y-4 > *,
+main .space-y-6 > * {
+  animation: brand-fade-up 480ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+main section > *:nth-child(1),
+main .grid > *:nth-child(1) { animation-delay: 40ms; }
+main section > *:nth-child(2),
+main .grid > *:nth-child(2) { animation-delay: 90ms; }
+main section > *:nth-child(3),
+main .grid > *:nth-child(3) { animation-delay: 140ms; }
+main section > *:nth-child(4),
+main .grid > *:nth-child(4) { animation-delay: 190ms; }
+main section > *:nth-child(5),
+main .grid > *:nth-child(5) { animation-delay: 240ms; }
+main section > *:nth-child(6),
+main .grid > *:nth-child(6) { animation-delay: 290ms; }
+main section > *:nth-child(n+7),
+main .grid > *:nth-child(n+7) { animation-delay: 340ms; }
+
+/* Dialogs / popovers get a soft scale-in */
+[role="dialog"], [data-radix-popper-content-wrapper] > * {
+  animation: brand-scale-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* Utility classes for opt-in delight */
+.animate-fade-up   { animation: brand-fade-up 480ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.animate-fade-in   { animation: brand-fade-in 380ms ease-out both; }
+.animate-scale-in  { animation: brand-scale-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.animate-float     { animation: brand-float 4.5s ease-in-out infinite; }
+
+/* Gold shimmer accent for brand surfaces (.brand-accent / gradient buttons) */
+.brand-accent {
+  background-size: 200% 100%;
+  animation: brand-shimmer 9s ease-in-out infinite;
+}
+
+/* Slightly more delight on primary CTAs */
+button[data-variant="default"]:not(:disabled):hover,
+.btn-primary:not(:disabled):hover {
+  box-shadow: var(--shadow-elegant);
+}
+
+/* Icon micro-bounce on hover for interactive icon buttons */
+button:not(:disabled):hover > svg,
+a:hover > svg {
+  transform: translateY(-1px) scale(1.06);
+  transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
