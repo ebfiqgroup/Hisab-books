@@ -84,10 +84,14 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>("bn");
 
   useEffect(() => {
-    setLangState("bn");
-    setFinanceLang("bn");
-    try { localStorage.setItem(KEY, "bn"); } catch { /* noop */ }
-    if (typeof document !== "undefined") document.documentElement.lang = "bn";
+    let saved: Lang = "bn";
+    try {
+      const v = localStorage.getItem(KEY);
+      if (v === "en" || v === "bn") saved = v;
+    } catch { /* noop */ }
+    setLangState(saved);
+    setFinanceLang(saved);
+    if (typeof document !== "undefined") document.documentElement.lang = saved;
   }, []);
 
   const setLang = useCallback((l: Lang) => {
