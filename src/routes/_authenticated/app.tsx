@@ -24,7 +24,7 @@ export const Route = createFileRoute("/_authenticated/app")({ component: Dashboa
 
 type Txn = { id: string; type: "income" | "expense"; category: string; amount: number; occurred_on: string; note: string | null };
 type Debt = { id: string; kind: "receivable" | "payable"; amount: number; settled: boolean };
-type Goal = { id: string; label: string; target: number; current: number; color: string };
+type Goal = { id: string; label: string; target: number; current: number; color: string; category: string | null };
 type Note = { id: string; body: string; created_at: string };
 type PlanTask = { id: string; task: string; due_text: string | null; amount_text: string | null; priority: "উচ্চ" | "মাঝারি" | "নিম্ন"; done: boolean };
 
@@ -76,7 +76,7 @@ function Dashboard() {
   const goalsQ = useQuery({
     queryKey: ["goals", uid],
     queryFn: async () => {
-      const { data, error } = await supabase.from("goals").select("id,label,target,current,color").eq("user_id", uid).order("created_at", { ascending: false }).limit(4);
+      const { data, error } = await supabase.from("goals").select("id,label,target,current,color,category").eq("user_id", uid).order("created_at", { ascending: false }).limit(4);
       if (error) throw error;
       return (data ?? []) as Goal[];
     },
