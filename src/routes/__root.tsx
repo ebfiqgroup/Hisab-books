@@ -1,4 +1,5 @@
 import { QueryClient } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import {
@@ -210,13 +211,25 @@ function RootComponent() {
     ? undefined
     : createSyncStoragePersister({ storage: window.localStorage, key: "amar-hishab-rq-cache" });
 
+  // Always wrap with a QueryClientProvider so SSR + pre-mount render works.
+  // After mount, upgrade to PersistQueryClientProvider for localStorage cache.
+  const content = (
+    <LanguageProvider>
+      <Outlet />
+      <Toaster />
+      {mounted && (
+        <>
+          <div className="fixed top-2 left-1/2 -translate-x-1/2 z-[60] pointer-events-auto">
+            <OfflineBadge />
+          </div>
+          <InstallPrompt />
+        </>
+      )}
+    </LanguageProvider>
+  );
+
   if (!persister) {
-    return (
-      <LanguageProvider>
-        <Outlet />
-        <Toaster />
-      </LanguageProvider>
-    );
+    return <QueryClientProvider client={queryClient}>{content}</QueryClientProvider>;
   }
 
   return (
@@ -224,14 +237,7 @@ function RootComponent() {
       client={queryClient}
       persistOptions={{ persister, maxAge: 1000 * 60 * 60 * 24 * 7 /* 7d */, buster: "v1" }}
     >
-      <LanguageProvider>
-        <Outlet />
-        <Toaster />
-        <div className="fixed top-2 left-1/2 -translate-x-1/2 z-[60] pointer-events-auto">
-          <OfflineBadge />
-        </div>
-        <InstallPrompt />
-      </LanguageProvider>
+      {content}
     </PersistQueryClientProvider>
   );
 }
