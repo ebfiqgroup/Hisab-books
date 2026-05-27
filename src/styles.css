@@ -165,14 +165,14 @@
   --brand-emerald-700: oklch(0.44 0.12 160);
   --brand-emerald-600: oklch(0.55 0.13 160);
   --brand-emerald-500: oklch(0.65 0.13 160);
-  --brand-gold-600:    oklch(0.80 0.16 85);
-  --brand-gold-500:    oklch(0.88 0.15 88);
-  --brand-gold-300:    oklch(0.95 0.11 90);
-  --brand-ivory:       oklch(0.995 0.014 92);
-  --brand-cream:       oklch(0.985 0.022 88);
+  --brand-gold-600:    oklch(0.85 0.18 85);
+  --brand-gold-500:    oklch(0.92 0.17 88);
+  --brand-gold-300:    oklch(0.97 0.13 90);
+  --brand-ivory:       oklch(1.0  0.016 92);
+  --brand-cream:       oklch(0.995 0.026 88);
   --brand-ink:         oklch(0.22 0.02 160);
   --brand-ink-soft:    oklch(0.40 0.02 160);
-  --brand-line:        oklch(0.95 0.018 90);
+  --brand-line:        oklch(0.97 0.022 90);
 
   /* Override the legacy chrome tokens used by Sidebar / AppShell */
   --sidebar-bg: var(--brand-emerald-900);
