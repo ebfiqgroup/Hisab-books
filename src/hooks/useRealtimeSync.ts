@@ -157,19 +157,19 @@ export function useRealtimeSync(userId: string | undefined) {
       (Object.keys(TABLE_CONFIG) as Array<keyof typeof TABLE_CONFIG>).forEach((table) => {
         const { keys, userCol } = TABLE_CONFIG[table];
         (ch as unknown as {
-          on: (e: string, f: { event: string; schema: string; table: string; filter?: string }, cb: () => void) => unknown;
+          on: (e: string, f: { event: string; schema: string; table: string; filter?: string }, cb: (payload: RTPayload) => void) => unknown;
         }).on(
           "postgres_changes",
           { event: "*", schema: "public", table, filter: `${userCol}=eq.${userId}` },
-          () => refreshKeys(keys),
+          (payload) => applyChange(keys, payload),
         );
       });
       (ch as unknown as {
-        on: (e: string, f: { event: string; schema: string; table: string; filter?: string }, cb: () => void) => unknown;
+        on: (e: string, f: { event: string; schema: string; table: string; filter?: string }, cb: (payload: RTPayload) => void) => unknown;
       }).on(
         "postgres_changes",
         { event: "*", schema: "public", table: "support_messages", filter: `sender_id=eq.${userId}` },
-        () => refreshKeys([["support_messages"], ["support_tickets"]]),
+        (payload) => applyChange([["support_messages"], ["support_tickets"]], payload),
       );
       ch.subscribe((s: string) => {
         if (s === "SUBSCRIBED") {
@@ -256,7 +256,7 @@ export function useRealtimeSync(userId: string | undefined) {
       if (channel) { try { supabase.removeChannel(channel); } catch { /* noop */ } }
       setStatus("disconnected");
     };
-  }, [userId, refreshKeys]);
+  }, [userId, refreshKeys, applyChange]);
 
   return status;
 }
