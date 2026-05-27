@@ -68,6 +68,10 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
       window.navigator.standalone === true);
 
   const handleInstallClick = async () => {
+    if (deferred) {
+      const outcome = await doNativeInstall();
+      if (outcome === "accepted") return;
+    }
     setInstallHelpOpen(true);
   };
 
