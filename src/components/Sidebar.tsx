@@ -71,8 +71,15 @@ export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean;
       }} />
       {/* Right-edge glow strip */}
       <div className="absolute inset-y-0 right-0 w-[2px]" style={{ background: "var(--sidebar-glow-right)" }} />
-      <div className="p-5 flex items-center gap-3 border-b" style={{ borderColor: "var(--brand-line)" }}>
-        <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-lg" style={{ background: "color-mix(in oklab, var(--brand-emerald-600) 12%, transparent)", border: "1px solid color-mix(in oklab, var(--brand-emerald-600) 30%, transparent)" }}>
+
+      <div className="relative z-10 flex flex-col h-full">
+      <div className="p-5 flex items-center gap-3 border-b relative" style={{ borderColor: "var(--brand-line)" }}>
+        {/* Logo icon with soft glow */}
+        <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-lg relative" style={{
+          background: "color-mix(in oklab, var(--brand-emerald-600) 12%, transparent)",
+          border: "1px solid color-mix(in oklab, var(--brand-emerald-600) 30%, transparent)",
+          boxShadow: "0 0 20px -4px color-mix(in oklab, var(--brand-emerald-500) 45%, transparent), 0 2px 8px -2px color-mix(in oklab, var(--brand-emerald-900) 15%, transparent)",
+        }}>
           <Wallet className="w-5 h-5" style={{ color: "var(--brand-emerald-700)" }} />
         </div>
         <div className="flex-1">
