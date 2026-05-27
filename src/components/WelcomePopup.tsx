@@ -54,7 +54,7 @@ export function WelcomePopup() {
     setTimeout(() => setVisible(false), 350);
     // Remove the ?welcome=1 param from the URL so refresh does not re-trigger
     if (search?.welcome === "1") {
-      navigate({ to: ".", search: (prev) => ({ ...prev, welcome: undefined }) });
+      navigate({ to: ".", search: (prev: Record<string, unknown>) => ({ ...prev, welcome: undefined }) });
     }
   };
 
