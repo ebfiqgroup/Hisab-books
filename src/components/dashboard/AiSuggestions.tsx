@@ -110,13 +110,18 @@ export function AiSuggestions(props: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoKey]);
 
-  // Re-fetch (or clear) suggestions when site language changes so cached items match the UI language
-  const didMountLang = useRef(false);
+  // Re-fetch suggestions when site language changes so content matches the UI language
+  const langRef = useRef(lang);
+  const hasRunOnceRef = useRef(false);
+  useEffect(() => { if (items) hasRunOnceRef.current = true; }, [items]);
   useEffect(() => {
-    if (!didMountLang.current) { didMountLang.current = true; return; }
-    if (items && items.length > 0) {
-      run(true);
-    }
+    if (langRef.current === lang) return;
+    langRef.current = lang;
+    if (!hasRunOnceRef.current) return;
+    // clear stale items so the user sees the loading state in the new language
+    setItems(null);
+    // wait for loading flag to settle, then re-run
+    setTimeout(() => { void run(true); }, 50);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lang]);
 
