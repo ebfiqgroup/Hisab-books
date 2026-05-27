@@ -88,7 +88,7 @@ export function AiSuggestions(props: Props) {
     if (loadingRef.current) return;
     setLoading(true);
     try {
-      const res = await callAi({ data: { ...propsRef.current, config: c } });
+      const res = await callAi({ data: { ...propsRef.current, config: c, lang } });
       setItems(res.suggestions);
       setLastRun(new Date());
       if (!silent && res.suggestions.length === 0) toast.message(t("কোনো সাজেশন পাওয়া যায়নি", "No suggestions found"));
@@ -101,7 +101,7 @@ export function AiSuggestions(props: Props) {
 
   // Automation: auto-run on mount + every N minutes when enabled
   const hasData = (props.curIncome + props.curExpense) > 0 || props.expenseByCategory.length > 0;
-  const autoKey = `${cfg.autoRun}-${cfg.autoIntervalMin}-${hasData}`;
+  const autoKey = `${cfg.autoRun}-${cfg.autoIntervalMin}-${hasData}-${lang}`;
   useEffect(() => {
     if (!cfg.autoRun || !hasData) return;
     const t = setTimeout(() => { run(true); }, 1200);
@@ -109,6 +109,16 @@ export function AiSuggestions(props: Props) {
     return () => { clearTimeout(t); clearInterval(iv); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoKey]);
+
+  // Re-fetch (or clear) suggestions when site language changes so cached items match the UI language
+  const didMountLang = useRef(false);
+  useEffect(() => {
+    if (!didMountLang.current) { didMountLang.current = true; return; }
+    if (items && items.length > 0) {
+      run(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang]);
 
   const toggleType = (t: AlertType) => {
     setCfg((c) => ({ ...c, types: c.types.includes(t) ? c.types.filter((x) => x !== t) : [...c.types, t] }));
@@ -195,7 +205,7 @@ export function AiSuggestions(props: Props) {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${style.chip}`}>{lang === "bn" ? style.labelBn : style.labelEn}</span>
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${style.chip}`}>{lang === "en" ? style.labelEn : style.labelBn}</span>
                       <h4 className="font-semibold text-slate-800 text-sm">{s.title}</h4>
                     </div>
                     <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">{s.detail}</p>

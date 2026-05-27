@@ -14,6 +14,7 @@ const InputSchema = z.object({
   goals: z.array(z.object({ label: z.string(), target: z.number(), current: z.number() })).max(10),
   budgets: z.array(z.object({ category: z.string(), limit: z.number(), spent: z.number() })).max(30).optional(),
   monthLabel: z.string().max(64),
+  lang: z.enum(["bn", "en"]).optional(),
   config: z.object({
     types: z.array(z.enum(["alert", "tip", "invest"])).min(1),
     expenseRatioPct: z.number().min(10).max(200),
@@ -37,7 +38,9 @@ export const getAiSuggestions = createServerFn({ method: "POST" })
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
 
-    const summary = {
+    const lang: "bn" | "en" = data.lang ?? "bn";
+
+    const summaryBn = {
       মাস: data.monthLabel,
       বর্তমান_মাস: { আয়: data.curIncome, ব্যয়: data.curExpense, অবশিষ্ট: data.curIncome - data.curExpense },
       গত_মাস: { আয়: data.prevIncome, ব্যয়: data.prevExpense, অবশিষ্ট: data.prevIncome - data.prevExpense },
@@ -48,23 +51,49 @@ export const getAiSuggestions = createServerFn({ method: "POST" })
       লক্ষ্যসমূহ: data.goals,
       বাজেটসমূহ: data.budgets ?? [],
     };
+    const summaryEn = {
+      month: data.monthLabel,
+      current_month: { income: data.curIncome, expense: data.curExpense, remaining: data.curIncome - data.curExpense },
+      previous_month: { income: data.prevIncome, expense: data.prevExpense, remaining: data.prevIncome - data.prevExpense },
+      receivable: data.receivable,
+      payable: data.payable,
+      expense_by_category: data.expenseByCategory,
+      income_by_category: data.incomeByCategory,
+      goals: data.goals,
+      budgets: data.budgets ?? [],
+    };
+    const summary = lang === "en" ? summaryEn : summaryBn;
 
     const cfg = data.config ?? { types: ["alert", "tip", "invest"], expenseRatioPct: 80, lowCashTk: 5000, goalLagPct: 20 };
     const typeList = cfg.types.join(", ");
     const rules: string[] = [];
-    if (cfg.types.includes("alert")) {
-      rules.push(`- ব্যয় আয়ের ${cfg.expenseRatioPct}% এর বেশি হলে "alert" দাও।`);
-      rules.push(`- অবশিষ্ট নগদ ৳${cfg.lowCashTk} এর কম হলে "alert" দাও।`);
-    }
-    if (cfg.types.includes("tip")) {
-      rules.push(`- যে খাতে অস্বাভাবিক বেশি ব্যয় হয়েছে সেখানে সাশ্রয়ের "tip" দাও।`);
-    }
-    if (cfg.types.includes("invest")) {
-      rules.push(`- লক্ষ্যের অগ্রগতি প্রত্যাশার চেয়ে ${cfg.goalLagPct}% পিছিয়ে থাকলে "alert" বা "invest" দাও।`);
-      rules.push(`- পর্যাপ্ত অবশিষ্ট থাকলে বিনিয়োগের "invest" পরামর্শ দাও।`);
+    if (lang === "en") {
+      if (cfg.types.includes("alert")) {
+        rules.push(`- If expense exceeds ${cfg.expenseRatioPct}% of income, give an "alert".`);
+        rules.push(`- If remaining cash is below ৳${cfg.lowCashTk}, give an "alert".`);
+      }
+      if (cfg.types.includes("tip")) {
+        rules.push(`- For any category with unusually high spend, give a saving "tip".`);
+      }
+      if (cfg.types.includes("invest")) {
+        rules.push(`- If goal progress lags expectation by ${cfg.goalLagPct}% or more, give an "alert" or "invest".`);
+        rules.push(`- If there is healthy remaining cash, give an "invest" suggestion.`);
+      }
+    } else {
+      if (cfg.types.includes("alert")) {
+        rules.push(`- ব্যয় আয়ের ${cfg.expenseRatioPct}% এর বেশি হলে "alert" দাও।`);
+        rules.push(`- অবশিষ্ট নগদ ৳${cfg.lowCashTk} এর কম হলে "alert" দাও।`);
+      }
+      if (cfg.types.includes("tip")) {
+        rules.push(`- যে খাতে অস্বাভাবিক বেশি ব্যয় হয়েছে সেখানে সাশ্রয়ের "tip" দাও।`);
+      }
+      if (cfg.types.includes("invest")) {
+        rules.push(`- লক্ষ্যের অগ্রগতি প্রত্যাশার চেয়ে ${cfg.goalLagPct}% পিছিয়ে থাকলে "alert" বা "invest" দাও।`);
+        rules.push(`- পর্যাপ্ত অবশিষ্ট থাকলে বিনিয়োগের "invest" পরামর্শ দাও।`);
+      }
     }
 
-    const system = `তুমি একজন বাংলাভাষী আর্থিক পরামর্শক। ব্যবহারকারীর মাসিক হিসাব বিশ্লেষণ করে ৪-৬টি সুনির্দিষ্ট, কার্যকর পরামর্শ দাও।
+    const systemBn = `তুমি একজন বাংলাভাষী আর্থিক পরামর্শক। ব্যবহারকারীর মাসিক হিসাব বিশ্লেষণ করে ৪-৬টি সুনির্দিষ্ট, কার্যকর পরামর্শ দাও।
 
 শুধুমাত্র এই type-গুলো ব্যবহার করো: ${typeList}
 - "alert" = সমস্যা/অতিরিক্ত ব্যয়/নগদ সংকট/লক্ষ্য পিছিয়ে
@@ -89,6 +118,38 @@ ${rules.join("\n")}
 শুধু এই JSON ফরম্যাটে উত্তর দাও, অন্য কোনো লেখা নয়:
 {"suggestions":[{"type":"alert","title":"...","detail":"...","reason":"...","steps":["...","..."]}]}`;
 
+    const systemEn = `You are an English-speaking personal finance advisor. Analyze the user's monthly accounts and produce 4-6 specific, actionable suggestions.
+
+Use ONLY these types: ${typeList}
+- "alert" = problems / overspending / cash shortfall / goal lag
+- "tip" = saving / budgeting advice
+- "invest" = savings / investment advice
+
+Follow the user's configured thresholds:
+${rules.join("\n")}
+
+Special rules — budget / goal misses:
+- If any budget is exceeded (spent > limit in budgets), you MUST include an "alert".
+- If any goal's progress (current/target) lags expectation, you MUST include an "alert".
+- For such items, you MUST include "reason" (why it was missed, with numbers) and "steps" (3-4 specific actionable steps).
+
+Every suggestion must contain:
+- type: one from the allowed list above
+- title: short headline (max 8 words)
+- detail: 1-2 sentences with concrete numbers/category names
+- reason (optional, REQUIRED for budget/goal misses): one-sentence cause
+- steps (optional, REQUIRED for budget/goal misses): array of 3-4 short actionable steps — each starting with a verb (e.g. "Reduce", "Move", "Allocate")
+
+All title/detail/reason/steps text MUST be in English. Currency stays as ৳.
+
+Respond ONLY in this JSON format, nothing else:
+{"suggestions":[{"type":"alert","title":"...","detail":"...","reason":"...","steps":["...","..."]}]}`;
+
+    const system = lang === "en" ? systemEn : systemBn;
+    const userPrompt = lang === "en"
+      ? "Analyze the following financial data:\n" + JSON.stringify(summary, null, 2)
+      : "নিম্নলিখিত আর্থিক তথ্য বিশ্লেষণ করো:\n" + JSON.stringify(summary, null, 2);
+
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -99,15 +160,15 @@ ${rules.join("\n")}
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: system },
-          { role: "user", content: "নিম্নলিখিত আর্থিক তথ্য বিশ্লেষণ করো:\n" + JSON.stringify(summary, null, 2) },
+          { role: "user", content: userPrompt },
         ],
         response_format: { type: "json_object" },
       }),
     });
 
-    if (res.status === 429) throw new Error("AI অনুরোধের সীমা পার হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।");
-    if (res.status === 402) throw new Error("AI ক্রেডিট শেষ হয়ে গেছে। সেটিংস থেকে ক্রেডিট যুক্ত করুন।");
-    if (!res.ok) throw new Error(`AI সাজেশন আনতে সমস্যা: ${res.status}`);
+    if (res.status === 429) throw new Error(lang === "en" ? "AI request limit reached. Please try again shortly." : "AI অনুরোধের সীমা পার হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।");
+    if (res.status === 402) throw new Error(lang === "en" ? "AI credits exhausted. Add credits from settings." : "AI ক্রেডিট শেষ হয়ে গেছে। সেটিংস থেকে ক্রেডিট যুক্ত করুন।");
+    if (!res.ok) throw new Error((lang === "en" ? "Failed to fetch AI suggestions: " : "AI সাজেশন আনতে সমস্যা: ") + res.status);
 
     const json = await res.json();
     const content: string = json?.choices?.[0]?.message?.content ?? "{}";
