@@ -107,6 +107,32 @@ function GoalsPage() {
     },
   });
 
+  // Auto-compute saved amount per goal category from income transactions
+  const txAgg = useQuery({
+    queryKey: ["transactions", "income-by-category", uid],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("category,amount,type,occurred_on")
+        .eq("user_id", uid)
+        .eq("type", "income");
+      if (error) throw error;
+      const map: Record<string, number> = {};
+      for (const r of (data ?? []) as { category: string; amount: number }[]) {
+        map[r.category] = (map[r.category] ?? 0) + Number(r.amount);
+      }
+      return map;
+    },
+  });
+  const catSums = txAgg.data ?? {};
+  const currentOf = (g: Goal) => {
+    const stored = Number(g.current) || 0;
+    if (g.category && catSums[g.category] != null) {
+      return Math.max(stored, catSums[g.category]);
+    }
+    return stored;
+  };
+
   const openNew = () => { setEdit(null); setForm({ label: "", target: "", current: "", start_date: "", deadline: "", color: "emerald", category: "" }); setOpen(true); };
   const openEdit = (g: Goal) => { setEdit(g); setForm({ label: g.label, target: String(g.target), current: String(g.current), start_date: g.start_date ?? "", deadline: g.deadline ?? "", color: g.color, category: g.category ?? "" }); setOpen(true); };
 
