@@ -124,6 +124,31 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
+function GoogleTranslate() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+  return (
+    <>
+      <div id="google_translate_element" aria-hidden="true" />
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+            window.googleTranslateElementInit = function() {
+              new window.google.translate.TranslateElement({
+                pageLanguage: 'bn',
+                includedLanguages: 'en,bn',
+                autoDisplay: false,
+              }, 'google_translate_element');
+            };
+          `,
+        }}
+      />
+      <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async />
+    </>
+  );
+}
+
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
@@ -140,21 +165,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
-        <div id="google_translate_element" aria-hidden="true" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.googleTranslateElementInit = function() {
-                new window.google.translate.TranslateElement({
-                  pageLanguage: 'bn',
-                  includedLanguages: 'en,bn',
-                  autoDisplay: false,
-                }, 'google_translate_element');
-              };
-            `,
-          }}
-        />
-        <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async />
+        <GoogleTranslate />
         <Scripts />
       </body>
     </html>
