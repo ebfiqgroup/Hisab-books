@@ -60,7 +60,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
     <div className="h-[100dvh] lg:h-screen flex overflow-hidden min-h-0 min-w-0" style={{ background: "var(--gradient-page)" }}>
       <Sidebar mobileOpen={navOpen} onClose={() => setNavOpen(false)} />
       <main className="flex-1 px-2 sm:px-3 lg:px-6 pb-2 sm:pb-3 lg:pb-6 overflow-y-auto overflow-x-hidden h-full w-full min-w-0 min-h-0">
-        <div className="sticky top-0 z-30 flex flex-col gap-2 mb-4 lg:mb-6 -mx-2 sm:-mx-3 lg:-mx-6 px-2 sm:px-3 lg:px-6 pb-2 border-b lg:flex-row lg:items-center lg:justify-between lg:gap-3" style={{ backgroundColor: "color-mix(in oklab, var(--brand-ivory) 92%, transparent)", backdropFilter: "blur(8px)", borderColor: "var(--brand-line)" }} ref={ref}>
+        <div className="sticky top-0 z-30 flex flex-col gap-1 mb-3 lg:mb-4 -mx-2 sm:-mx-3 lg:-mx-6 px-2 sm:px-3 lg:px-6 pb-1 border-b lg:flex-row lg:items-center lg:justify-between lg:gap-2" style={{ backgroundColor: "color-mix(in oklab, var(--brand-ivory) 92%, transparent)", backdropFilter: "blur(8px)", borderColor: "var(--brand-line)" }} ref={ref}>
           {/* === TOP ROW (mobile) / single row (desktop) === */}
           <div className="flex items-center justify-between gap-1 lg:gap-3 min-w-0">
             {/* LEFT: hamburger only on mobile/tablet; full left on desktop */}
@@ -100,29 +100,29 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={t("header.facebook")}
-                  className="p-1.5 rounded-lg hover:bg-white/60 transition w-9 h-9 flex items-center justify-center"
+                  className="p-1 rounded-lg hover:bg-white/60 transition w-8 h-8 flex items-center justify-center"
                   style={{ color: "var(--brand-ink-soft)" }}
                 >
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
                 </a>
               </Tooltip>
               <Tooltip label={t("nav.support")} side="bottom">
                 <Link
                   to="/support"
                   aria-label={t("nav.support")}
-                  className="p-1.5 rounded-lg hover:bg-white/60 transition w-9 h-9 flex items-center justify-center"
+                  className="p-1 rounded-lg hover:bg-white/60 transition w-8 h-8 flex items-center justify-center"
                 >
-                  <LifeBuoy className="w-5 h-5" style={{ color: "var(--brand-ink-soft)" }} />
+                  <LifeBuoy className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
                 </Link>
               </Tooltip>
               <div className="relative">
                 <Tooltip label={t("header.notifications")} side="bottom">
-                  <button onClick={() => { setBellOpen(o => !o); setMenuOpen(false); }} className="relative p-1.5 rounded-lg hover:bg-white/60 transition w-9 h-9 flex items-center justify-center">
-                    <Bell className="w-5 h-5" style={{ color: "var(--brand-ink-soft)" }} />
+                  <button onClick={() => { setBellOpen(o => !o); setMenuOpen(false); }} className="relative p-1 rounded-lg hover:bg-white/60 transition w-8 h-8 flex items-center justify-center">
+                    <Bell className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
                   </button>
                 </Tooltip>
                   {bellOpen && (
-                    <div className="absolute right-0 top-12 w-[min(18rem,calc(100vw-5rem))] bg-white rounded-xl p-3 z-50 brand-card">
+                    <div className="absolute right-0 top-11 w-[min(18rem,calc(100vw-5rem))] bg-white rounded-xl p-3 z-50 brand-card">
                       <div className="text-sm font-semibold mb-2" style={{ color: "var(--brand-ink)" }}>{t("header.notifications")}</div>
                       <div className="text-xs text-slate-500 py-6 text-center">{t("header.noNotifications")}</div>
                     </div>
@@ -218,7 +218,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
           </div>
 
           {/* === BOTTOM ROW: mobile/tablet — left: hamburger + back + title; right: theme/lang/profile === */}
-          <div className="flex lg:hidden items-center justify-between gap-2 pt-1">
+          <div className="flex lg:hidden items-center justify-between gap-2 pt-0.5">
             <div className="flex items-center gap-2 min-w-0 flex-1">
               <button
                 type="button"
