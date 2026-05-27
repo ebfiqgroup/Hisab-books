@@ -6,16 +6,14 @@ export const getRouter = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        // Realtime websocket keeps caches fresh via invalidate, so we can
-        // trust persisted cache for an instant first paint (<100ms) instead
-        // of forcing a network refetch on every mount.
-        staleTime: 60_000,
+        // Show persisted cache instantly, but always reconcile with the
+        // backend right away so refresh/login data is not stale.
+        staleTime: 0,
         gcTime: 24 * 60 * 60_000,
-        refetchOnMount: false,
-        refetchOnWindowFocus: false,
+        refetchOnMount: "always",
+        refetchOnWindowFocus: true,
         refetchOnReconnect: true,
         retry: 1,
-        networkMode: "offlineFirst",
       },
     },
   });
