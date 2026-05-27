@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -17,6 +17,11 @@ const TABLE_CONFIG: Record<string, { keys: string[][]; userCol: string }> = {
   support_tickets: { keys: [["support_tickets"]], userCol: "user_id" },
 };
 
+function matchesPrefix(queryKey: QueryKey, prefix: string[]) {
+  if (!Array.isArray(queryKey) || queryKey.length < prefix.length) return false;
+  return prefix.every((value, index) => queryKey[index] === value);
+}
+
 /**
  * Subscribes to postgres_changes for the current user's data and invalidates
  * matching react-query caches so the UI updates in real time.
@@ -26,6 +31,20 @@ export function useRealtimeSync(userId: string | undefined) {
   const [status, setStatus] = useState<"connecting" | "connected" | "disconnected">("connecting");
   const prevStatusRef = useRef<"connecting" | "connected" | "disconnected">("connecting");
   const everConnectedRef = useRef(false);
+
+  const refreshKeys = useCallback((keys?: string[][]) => {
+    if (!keys) {
+      qc.invalidateQueries({ refetchType: "active" });
+      return;
+    }
+    for (const key of keys) {
+      qc.invalidateQueries({ queryKey: key, refetchType: "active" });
+      qc.refetchQueries({
+        type: "active",
+        predicate: (query) => matchesPrefix(query.queryKey, key),
+      });
+    }
+  }, [qc]);
 
   useEffect(() => {
     const prev = prevStatusRef.current;
@@ -51,18 +70,6 @@ export function useRealtimeSync(userId: string | undefined) {
       config: { broadcast: { self: false }, presence: { key: "" } },
     });
 
-    // Coalesce bursts of changes into a single invalidate per key (per ~80ms)
-    const pending = new Map<string, ReturnType<typeof setTimeout>>();
-    const scheduleInvalidate = (key: string[]) => {
-      const k = key.join("/");
-      if (pending.has(k)) return;
-      const t = setTimeout(() => {
-        pending.delete(k);
-        qc.invalidateQueries({ queryKey: key, refetchType: "active" });
-      }, 20);
-      pending.set(k, t);
-    };
-
     (Object.keys(TABLE_CONFIG) as Array<keyof typeof TABLE_CONFIG>).forEach((table) => {
       const { keys, userCol } = TABLE_CONFIG[table];
       (channel as unknown as {
@@ -74,7 +81,7 @@ export function useRealtimeSync(userId: string | undefined) {
       }).on(
         "postgres_changes",
         { event: "*", schema: "public", table, filter: `${userCol}=eq.${userId}` },
-        () => { for (const key of keys) scheduleInvalidate(key); },
+        () => refreshKeys(keys),
       );
     });
 
@@ -85,7 +92,7 @@ export function useRealtimeSync(userId: string | undefined) {
     }).on(
       "postgres_changes",
       { event: "*", schema: "public", table: "support_messages", filter: `sender_id=eq.${userId}` },
-      () => { scheduleInvalidate(["support_messages"]); scheduleInvalidate(["support_tickets"]); },
+      () => refreshKeys([["support_messages"], ["support_tickets"]]),
     );
 
     const subscribe = () => {
@@ -115,7 +122,7 @@ export function useRealtimeSync(userId: string | undefined) {
         }).on(
           "postgres_changes",
           { event: "*", schema: "public", table, filter: `${userCol}=eq.${userId}` },
-          () => { for (const key of keys) scheduleInvalidate(key); },
+          () => refreshKeys(keys),
         );
       });
       (channel as unknown as {
@@ -123,21 +130,21 @@ export function useRealtimeSync(userId: string | undefined) {
       }).on(
         "postgres_changes",
         { event: "*", schema: "public", table: "support_messages", filter: `sender_id=eq.${userId}` },
-        () => { scheduleInvalidate(["support_messages"]); scheduleInvalidate(["support_tickets"]); },
+        () => refreshKeys([["support_messages"], ["support_tickets"]]),
       );
       subscribe();
-      qc.invalidateQueries({ refetchType: "active" });
+      refreshKeys();
     };
 
     const onVisibility = () => {
       if (document.visibilityState === "visible") {
-        qc.invalidateQueries({ refetchType: "active" });
+        refreshKeys();
         if (channel.state !== "joined") reconnect();
       }
     };
     const onOnline = () => { reconnect(); };
     const onFocus = () => {
-      qc.invalidateQueries({ refetchType: "active" });
+      refreshKeys();
       if (channel.state !== "joined") reconnect();
     };
 
@@ -149,12 +156,10 @@ export function useRealtimeSync(userId: string | undefined) {
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("online", onOnline);
       window.removeEventListener("focus", onFocus);
-      pending.forEach((t) => clearTimeout(t));
-      pending.clear();
       supabase.removeChannel(channel);
       setStatus("disconnected");
     };
-  }, [userId, qc]);
+  }, [userId, refreshKeys]);
 
   return status;
 }

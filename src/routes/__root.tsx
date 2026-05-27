@@ -175,10 +175,15 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     attachPerfTracker(router);
   }, [router]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Register the service worker (production only, never in iframes/preview)
   useEffect(() => {
@@ -200,7 +205,7 @@ function RootComponent() {
     }
   }, []);
 
-  const persister = typeof window === "undefined"
+  const persister = !mounted || typeof window === "undefined"
     ? undefined
     : createSyncStoragePersister({ storage: window.localStorage, key: "amar-hishab-rq-cache" });
 
