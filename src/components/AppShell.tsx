@@ -21,6 +21,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
   const { theme, toggle: toggleTheme } = useTheme();
   const rtStatus = useRealtimeStatus();
   const { facebook: fbUrl } = useSocialLinks();
+  const deferred = useDeferredPrompt();
   const [menuOpen, setMenuOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
