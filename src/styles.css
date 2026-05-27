@@ -165,14 +165,14 @@
   --brand-emerald-700: oklch(0.44 0.12 160);
   --brand-emerald-600: oklch(0.55 0.13 160);
   --brand-emerald-500: oklch(0.65 0.13 160);
-  --brand-gold-600:    oklch(0.80 0.16 85);
-  --brand-gold-500:    oklch(0.88 0.15 88);
-  --brand-gold-300:    oklch(0.95 0.11 90);
-  --brand-ivory:       oklch(0.995 0.014 92);
-  --brand-cream:       oklch(0.985 0.022 88);
+  --brand-gold-600:    oklch(0.85 0.18 85);
+  --brand-gold-500:    oklch(0.92 0.17 88);
+  --brand-gold-300:    oklch(0.97 0.13 90);
+  --brand-ivory:       oklch(1.0  0.016 92);
+  --brand-cream:       oklch(0.995 0.026 88);
   --brand-ink:         oklch(0.22 0.02 160);
   --brand-ink-soft:    oklch(0.40 0.02 160);
-  --brand-line:        oklch(0.95 0.018 90);
+  --brand-line:        oklch(0.97 0.022 90);
 
   /* Override the legacy chrome tokens used by Sidebar / AppShell */
   --sidebar-bg: var(--brand-emerald-900);
@@ -194,18 +194,18 @@
   /* Luminous sidebar — rich ambient glow + top highlight for vibrant feel */
   --sidebar-luminous-bg:
     radial-gradient(120% 60% at 10% 0%,
-      color-mix(in oklab, var(--brand-gold-300) 55%, transparent) 0%,
+      color-mix(in oklab, var(--brand-gold-300) 70%, transparent) 0%,
       transparent 55%),
     radial-gradient(100% 80% at 100% 20%,
-      color-mix(in oklab, var(--brand-emerald-500) 22%, transparent) 0%,
+      color-mix(in oklab, var(--brand-emerald-500) 32%, transparent) 0%,
       transparent 50%),
     linear-gradient(180deg, var(--brand-ivory) 0%, var(--brand-cream) 100%);
   --sidebar-glow-right: linear-gradient(180deg, transparent 0%,
-    color-mix(in oklab, var(--brand-gold-500) 45%, transparent) 20%,
-    color-mix(in oklab, var(--brand-emerald-500) 35%, transparent) 60%,
+    color-mix(in oklab, var(--brand-gold-500) 55%, transparent) 20%,
+    color-mix(in oklab, var(--brand-emerald-500) 45%, transparent) 60%,
     transparent 100%);
   --gradient-page: radial-gradient(1200px 600px at 100% -10%,
-      color-mix(in oklab, var(--brand-gold-300) 40%, transparent) 0%, transparent 60%),
+      color-mix(in oklab, var(--brand-gold-300) 55%, transparent) 0%, transparent 60%),
     linear-gradient(180deg, var(--brand-ivory) 0%, var(--brand-cream) 100%);
 
   --shadow-elegant: 0 10px 30px -12px color-mix(in oklab, var(--brand-emerald-900) 35%, transparent);
@@ -214,18 +214,18 @@
   /* Luminous lighting system — soft top-left highlight + warm ambient glow.
      Layered on every card/banner/section for a bright, lit-from-within feel. */
   --luminous-highlight: radial-gradient(120% 80% at 0% 0%,
-      color-mix(in oklab, white 75%, transparent) 0%,
-      color-mix(in oklab, white 25%, transparent) 28%,
+      color-mix(in oklab, white 90%, transparent) 0%,
+      color-mix(in oklab, white 40%, transparent) 28%,
       transparent 60%);
   --luminous-glow: radial-gradient(90% 70% at 100% 100%,
-      color-mix(in oklab, var(--brand-gold-300) 38%, transparent) 0%,
+      color-mix(in oklab, var(--brand-gold-300) 55%, transparent) 0%,
       transparent 65%);
   --luminous-surface: linear-gradient(180deg,
-      color-mix(in oklab, white 96%, var(--brand-gold-300) 4%) 0%,
-      color-mix(in oklab, white 88%, var(--brand-ivory) 12%) 100%);
-  --shadow-glow:     0 0 0 1px color-mix(in oklab, white 55%, transparent) inset,
-                     0 1px 0 color-mix(in oklab, white 80%, transparent) inset,
-                     0 14px 38px -18px color-mix(in oklab, var(--brand-gold-500) 55%, transparent),
+      color-mix(in oklab, white 98%, var(--brand-gold-300) 2%) 0%,
+      color-mix(in oklab, white 94%, var(--brand-ivory) 6%) 100%);
+  --shadow-glow:     0 0 0 1px color-mix(in oklab, white 70%, transparent) inset,
+                     0 1px 0 color-mix(in oklab, white 90%, transparent) inset,
+                     0 14px 38px -18px color-mix(in oklab, var(--brand-gold-500) 70%, transparent),
                      0 6px 18px -10px color-mix(in oklab, var(--brand-emerald-900) 18%, transparent);
 
   --font-display: "Nikosh", "Instrument Serif", "Cormorant Garamond", "Hind Siliguri", serif;
@@ -354,11 +354,11 @@ h1, h2, h3, h4, h5, h6 {
 .brand-card:hover {
   transform: translateY(-3px);
   box-shadow:
-    0 0 0 1px color-mix(in oklab, white 60%, transparent) inset,
-    0 1px 0 color-mix(in oklab, white 85%, transparent) inset,
-    0 22px 50px -20px color-mix(in oklab, var(--brand-gold-500) 65%, transparent),
+    0 0 0 1px color-mix(in oklab, white 70%, transparent) inset,
+    0 1px 0 color-mix(in oklab, white 90%, transparent) inset,
+    0 22px 50px -20px color-mix(in oklab, var(--brand-gold-500) 80%, transparent),
     0 10px 24px -12px color-mix(in oklab, var(--brand-emerald-900) 22%, transparent);
-  border-color: color-mix(in oklab, var(--brand-gold-500) 55%, var(--brand-line));
+  border-color: color-mix(in oklab, var(--brand-gold-500) 65%, var(--brand-line));
 }
 
 /* Generic interactive hover for any card/tile/panel */
@@ -396,11 +396,11 @@ main .rounded-3xl:where(.bg-white, .bg-card, [class*="bg-white"]):hover,
 main [class*="border"]:where(.bg-white, .bg-card):hover {
   transform: translateY(-2px);
   box-shadow:
-    0 0 0 1px color-mix(in oklab, white 60%, transparent) inset,
-    0 1px 0 color-mix(in oklab, white 85%, transparent) inset,
-    0 20px 44px -20px color-mix(in oklab, var(--brand-gold-500) 60%, transparent),
+    0 0 0 1px color-mix(in oklab, white 70%, transparent) inset,
+    0 1px 0 color-mix(in oklab, white 90%, transparent) inset,
+    0 20px 44px -20px color-mix(in oklab, var(--brand-gold-500) 75%, transparent),
     0 8px 20px -12px color-mix(in oklab, var(--brand-emerald-900) 20%, transparent);
-  border-color: color-mix(in oklab, var(--brand-gold-500) 50%, var(--brand-line));
+  border-color: color-mix(in oklab, var(--brand-gold-500) 60%, var(--brand-line));
 }
 
 /* Banners / hero strips that use the brand gradient get a luminous sheen. */
@@ -435,11 +435,11 @@ main [style*="gradient-brand"] > * { position: relative; z-index: 1; }
 /* Brighter page ambient — adds a second warm light source for extra glow. */
 :root {
   --gradient-page: radial-gradient(1100px 600px at 8% -10%,
-      color-mix(in oklab, white 80%, transparent) 0%, transparent 60%),
+      color-mix(in oklab, white 90%, transparent) 0%, transparent 60%),
     radial-gradient(1300px 700px at 100% 0%,
-      color-mix(in oklab, var(--brand-gold-300) 75%, transparent) 0%, transparent 65%),
+      color-mix(in oklab, var(--brand-gold-300) 90%, transparent) 0%, transparent 65%),
     radial-gradient(1000px 800px at 50% 110%,
-      color-mix(in oklab, var(--brand-emerald-500) 28%, transparent) 0%, transparent 70%),
+      color-mix(in oklab, var(--brand-emerald-500) 40%, transparent) 0%, transparent 70%),
     linear-gradient(180deg, var(--brand-ivory) 0%, var(--brand-cream) 100%);
 }
 .dark {
