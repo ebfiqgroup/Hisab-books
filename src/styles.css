@@ -198,6 +198,23 @@
   --shadow-elegant: 0 10px 30px -12px color-mix(in oklab, var(--brand-emerald-900) 35%, transparent);
   --shadow-soft:    0 4px 14px -6px color-mix(in oklab, var(--brand-emerald-900) 18%, transparent);
 
+  /* Luminous lighting system — soft top-left highlight + warm ambient glow.
+     Layered on every card/banner/section for a bright, lit-from-within feel. */
+  --luminous-highlight: radial-gradient(120% 80% at 0% 0%,
+      color-mix(in oklab, white 75%, transparent) 0%,
+      color-mix(in oklab, white 25%, transparent) 28%,
+      transparent 60%);
+  --luminous-glow: radial-gradient(90% 70% at 100% 100%,
+      color-mix(in oklab, var(--brand-gold-300) 38%, transparent) 0%,
+      transparent 65%);
+  --luminous-surface: linear-gradient(180deg,
+      color-mix(in oklab, white 96%, var(--brand-gold-300) 4%) 0%,
+      color-mix(in oklab, white 88%, var(--brand-ivory) 12%) 100%);
+  --shadow-glow:     0 0 0 1px color-mix(in oklab, white 55%, transparent) inset,
+                     0 1px 0 color-mix(in oklab, white 80%, transparent) inset,
+                     0 14px 38px -18px color-mix(in oklab, var(--brand-gold-500) 55%, transparent),
+                     0 6px 18px -10px color-mix(in oklab, var(--brand-emerald-900) 18%, transparent);
+
   --font-display: "Nikosh", "Instrument Serif", "Cormorant Garamond", "Hind Siliguri", serif;
   --font-body:    "Nikosh", "Work Sans", "Hind Siliguri", "Noto Sans Bengali", system-ui, sans-serif;
 }
@@ -226,6 +243,24 @@
 
   --shadow-elegant: 0 10px 30px -12px oklch(0 0 0 / 0.55);
   --shadow-soft:    0 4px 14px -6px  oklch(0 0 0 / 0.45);
+}
+
+/* Dark-mode luminous tokens — softer cool highlight + emerald ambient glow. */
+.dark {
+  --luminous-highlight: radial-gradient(120% 80% at 0% 0%,
+      color-mix(in oklab, white 18%, transparent) 0%,
+      color-mix(in oklab, white 6%, transparent) 30%,
+      transparent 65%);
+  --luminous-glow: radial-gradient(90% 70% at 100% 100%,
+      color-mix(in oklab, var(--brand-emerald-500) 28%, transparent) 0%,
+      transparent 65%);
+  --luminous-surface: linear-gradient(180deg,
+      oklch(0.24 0.025 160) 0%,
+      oklch(0.18 0.02 160) 100%);
+  --shadow-glow: 0 0 0 1px color-mix(in oklab, white 10%, transparent) inset,
+                 0 1px 0 color-mix(in oklab, white 14%, transparent) inset,
+                 0 16px 40px -18px color-mix(in oklab, var(--brand-emerald-500) 45%, transparent),
+                 0 8px 22px -12px oklch(0 0 0 / 0.6);
 }
 
 /* Re-skin hardcoded white surfaces & slate text in dark mode without
@@ -282,9 +317,13 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--brand-ivory);
 }
 .brand-card {
-  background: white;
-  border: 1px solid var(--brand-line);
-  box-shadow: var(--shadow-soft);
+  position: relative;
+  background:
+    var(--luminous-highlight),
+    var(--luminous-glow),
+    var(--luminous-surface);
+  border: 1px solid color-mix(in oklab, white 35%, var(--brand-line));
+  box-shadow: var(--shadow-glow);
   border-radius: 1rem;
   transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
               box-shadow 220ms ease,
@@ -293,8 +332,12 @@ h1, h2, h3, h4, h5, h6 {
 }
 .brand-card:hover {
   transform: translateY(-3px);
-  box-shadow: var(--shadow-elegant);
-  border-color: color-mix(in oklab, var(--brand-gold-500) 45%, var(--brand-line));
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, white 60%, transparent) inset,
+    0 1px 0 color-mix(in oklab, white 85%, transparent) inset,
+    0 22px 50px -20px color-mix(in oklab, var(--brand-gold-500) 65%, transparent),
+    0 10px 24px -12px color-mix(in oklab, var(--brand-emerald-900) 22%, transparent);
+  border-color: color-mix(in oklab, var(--brand-gold-500) 55%, var(--brand-line));
 }
 
 /* Generic interactive hover for any card/tile/panel */
@@ -310,20 +353,80 @@ h1, h2, h3, h4, h5, h6 {
   border-color: color-mix(in oklab, var(--brand-gold-500) 45%, var(--brand-line));
 }
 
-/* Auto-apply subtle hover to common surfaces site-wide */
-main .rounded-xl,
-main .rounded-2xl,
+/* Auto-apply luminous lighting + hover to common surfaces site-wide.
+   Applies to any rounded card / banner / section that uses white or card bg. */
+main .rounded-xl:where(.bg-white, .bg-card, [class*="bg-white"]),
+main .rounded-2xl:where(.bg-white, .bg-card, [class*="bg-white"]),
+main .rounded-3xl:where(.bg-white, .bg-card, [class*="bg-white"]),
 main [class*="border"]:where(.bg-white, .bg-card) {
+  background-image:
+    var(--luminous-highlight),
+    var(--luminous-glow) !important;
+  background-blend-mode: screen, normal;
+  box-shadow: var(--shadow-glow);
+  border-color: color-mix(in oklab, white 40%, var(--brand-line));
   transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
               box-shadow 220ms ease,
               border-color 220ms ease;
 }
-main .rounded-xl:hover,
-main .rounded-2xl:hover,
+main .rounded-xl:where(.bg-white, .bg-card, [class*="bg-white"]):hover,
+main .rounded-2xl:where(.bg-white, .bg-card, [class*="bg-white"]):hover,
+main .rounded-3xl:where(.bg-white, .bg-card, [class*="bg-white"]):hover,
 main [class*="border"]:where(.bg-white, .bg-card):hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-soft);
-  border-color: color-mix(in oklab, var(--brand-gold-500) 35%, var(--brand-line));
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, white 60%, transparent) inset,
+    0 1px 0 color-mix(in oklab, white 85%, transparent) inset,
+    0 20px 44px -20px color-mix(in oklab, var(--brand-gold-500) 60%, transparent),
+    0 8px 20px -12px color-mix(in oklab, var(--brand-emerald-900) 20%, transparent);
+  border-color: color-mix(in oklab, var(--brand-gold-500) 50%, var(--brand-line));
+}
+
+/* Banners / hero strips that use the brand gradient get a luminous sheen. */
+.brand-accent,
+main [style*="gradient-brand"],
+main [style*="--gradient-brand"] {
+  position: relative;
+  isolation: isolate;
+}
+.brand-accent::after,
+main [style*="gradient-brand"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 90% at 20% -10%,
+      color-mix(in oklab, white 45%, transparent) 0%,
+      transparent 55%),
+    radial-gradient(80% 60% at 100% 120%,
+      color-mix(in oklab, var(--brand-gold-300) 55%, transparent) 0%,
+      transparent 60%);
+  mix-blend-mode: screen;
+  opacity: 0.85;
+  z-index: 0;
+}
+/* Make sure banner content stays above the sheen overlay. */
+.brand-accent > *,
+main [style*="gradient-brand"] > * { position: relative; z-index: 1; }
+
+/* Brighter page ambient — adds a second warm light source for extra glow. */
+:root {
+  --gradient-page: radial-gradient(900px 500px at 8% -10%,
+      color-mix(in oklab, white 55%, transparent) 0%, transparent 55%),
+    radial-gradient(1100px 600px at 100% 0%,
+      color-mix(in oklab, var(--brand-gold-300) 55%, transparent) 0%, transparent 60%),
+    radial-gradient(900px 700px at 50% 110%,
+      color-mix(in oklab, var(--brand-emerald-500) 18%, transparent) 0%, transparent 65%),
+    linear-gradient(180deg, var(--brand-ivory) 0%, var(--brand-cream) 100%);
+}
+.dark {
+  --gradient-page: radial-gradient(900px 500px at 8% -10%,
+      color-mix(in oklab, var(--brand-emerald-500) 22%, transparent) 0%, transparent 55%),
+    radial-gradient(1100px 600px at 100% 0%,
+      color-mix(in oklab, var(--brand-gold-500) 18%, transparent) 0%, transparent 60%),
+    linear-gradient(180deg, oklch(0.18 0.022 160) 0%, oklch(0.13 0.018 160) 100%);
 }
 
 /* Buttons & interactive icons gentle response */
