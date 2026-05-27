@@ -123,7 +123,7 @@ export function useRealtimeSync(userId: string | undefined) {
         }).on(
           "postgres_changes",
           { event: "*", schema: "public", table, filter: `${userCol}=eq.${userId}` },
-          () => { for (const key of keys) scheduleInvalidate(key); },
+          () => refreshKeys(keys),
         );
       });
       (channel as unknown as {
@@ -131,21 +131,21 @@ export function useRealtimeSync(userId: string | undefined) {
       }).on(
         "postgres_changes",
         { event: "*", schema: "public", table: "support_messages", filter: `sender_id=eq.${userId}` },
-        () => { scheduleInvalidate(["support_messages"]); scheduleInvalidate(["support_tickets"]); },
+        () => refreshKeys([["support_messages"], ["support_tickets"]]),
       );
       subscribe();
-      qc.invalidateQueries({ refetchType: "active" });
+      refreshKeys();
     };
 
     const onVisibility = () => {
       if (document.visibilityState === "visible") {
-        qc.invalidateQueries({ refetchType: "active" });
+        refreshKeys();
         if (channel.state !== "joined") reconnect();
       }
     };
     const onOnline = () => { reconnect(); };
     const onFocus = () => {
-      qc.invalidateQueries({ refetchType: "active" });
+      refreshKeys();
       if (channel.state !== "joined") reconnect();
     };
 
@@ -157,12 +157,10 @@ export function useRealtimeSync(userId: string | undefined) {
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("online", onOnline);
       window.removeEventListener("focus", onFocus);
-      pending.forEach((t) => clearTimeout(t));
-      pending.clear();
       supabase.removeChannel(channel);
       setStatus("disconnected");
     };
-  }, [userId, qc]);
+  }, [userId, refreshKeys]);
 
   return status;
 }
