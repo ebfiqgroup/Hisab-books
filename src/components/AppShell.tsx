@@ -415,6 +415,39 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
               </div>
             </div>
 
+            <p className="text-xs mb-3" style={{ color: "var(--brand-ink-soft)" }}>
+              {t("আপনার ডিভাইস নির্বাচন করুন — সম্ভব হলে এক ক্লিকেই ইনস্টল হবে।", "Pick your device — it will install in one click when supported.")}
+            </p>
+
+            <div className="grid grid-cols-3 gap-2 mb-3">
+              <button
+                onClick={() => handlePlatformInstall("ios")}
+                className="flex flex-col items-center gap-1 px-2 py-3 rounded-lg border text-xs font-semibold hover:shadow-sm transition"
+                style={{ borderColor: "var(--brand-line)", color: "var(--brand-ink)", background: isIOS ? "var(--brand-ivory)" : "white" }}
+              >
+                <Apple className="w-5 h-5" />
+                iOS
+              </button>
+              <button
+                onClick={() => handlePlatformInstall("android")}
+                className="flex flex-col items-center gap-1 px-2 py-3 rounded-lg border text-xs font-semibold hover:shadow-sm transition relative"
+                style={{ borderColor: "var(--brand-line)", color: "var(--brand-ink)", background: isAndroid ? "var(--brand-ivory)" : "white" }}
+              >
+                <Smartphone className="w-5 h-5" />
+                Android
+                {deferred && isAndroid && <span className="absolute -top-1 -right-1 text-[9px] px-1.5 py-0.5 rounded-full text-white font-bold" style={{ background: "var(--gradient-brand)" }}>1‑click</span>}
+              </button>
+              <button
+                onClick={() => handlePlatformInstall("desktop")}
+                className="flex flex-col items-center gap-1 px-2 py-3 rounded-lg border text-xs font-semibold hover:shadow-sm transition relative"
+                style={{ borderColor: "var(--brand-line)", color: "var(--brand-ink)", background: !isIOS && !isAndroid ? "var(--brand-ivory)" : "white" }}
+              >
+                <Monitor className="w-5 h-5" />
+                {t("ডেস্কটপ", "Desktop")}
+                {deferred && !isIOS && !isAndroid && <span className="absolute -top-1 -right-1 text-[9px] px-1.5 py-0.5 rounded-full text-white font-bold" style={{ background: "var(--gradient-brand)" }}>1‑click</span>}
+              </button>
+            </div>
+
             {deferred && (
               <button
                 onClick={doNativeInstall}
@@ -422,7 +455,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                 style={{ background: "var(--gradient-brand)" }}
               >
                 <Download className="w-4 h-4" />
-                {t("এক ক্লিকে ইনস্টল করুন", "Install with one click")}
+                {t("এক ক্লিকে এখনই ইনস্টল করুন", "Install now in one click")}
               </button>
             )}
 
@@ -452,14 +485,28 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
               </button>
             </div>
 
-            <div className="text-sm space-y-2 border-t pt-3" style={{ color: "var(--brand-ink-soft)", borderColor: "var(--brand-line)" }}>
-              <p className="font-semibold">{t("Android (Chrome):", "Android (Chrome):")}</p>
-              <p>{t("ব্রাউজার মেনু (⋮) → \"Install app\" / \"হোম স্ক্রিনে যোগ করুন\" নির্বাচন করুন।", "Open browser menu (⋮) → tap \"Install app\" / \"Add to Home screen\".")}</p>
-              <p className="font-semibold mt-3">{t("iPhone (Safari):", "iPhone (Safari):")}</p>
-              <p>{t("Share বাটন (⬆) → \"Add to Home Screen\" নির্বাচন করুন।", "Tap the Share button (⬆) → choose \"Add to Home Screen\".")}</p>
-              <p className="font-semibold mt-3">{t("ডেস্কটপ:", "Desktop:")}</p>
-              <p>{t("অ্যাড্রেস বারের ডানে ইনস্টল আইকনে ক্লিক করুন।", "Click the install icon on the right side of the address bar.")}</p>
-            </div>
+            {platformHelp && (
+              <div className="text-sm space-y-1.5 border-t pt-3" style={{ color: "var(--brand-ink-soft)", borderColor: "var(--brand-line)" }}>
+                {platformHelp === "ios" && (
+                  <>
+                    <p className="font-semibold" style={{ color: "var(--brand-ink)" }}>{t("iPhone / iPad (Safari)", "iPhone / iPad (Safari)")}</p>
+                    <p>{t("১) Safari-তে এই লিংক খুলুন। ২) নিচের Share বাটন (⬆) চাপুন। ৩) \"Add to Home Screen\" নির্বাচন করুন।", "1) Open this link in Safari. 2) Tap the Share button (⬆). 3) Choose \"Add to Home Screen\".")}</p>
+                  </>
+                )}
+                {platformHelp === "android" && (
+                  <>
+                    <p className="font-semibold" style={{ color: "var(--brand-ink)" }}>{t("Android (Chrome)", "Android (Chrome)")}</p>
+                    <p>{t("ব্রাউজার মেনু (⋮) → \"Install app\" / \"হোম স্ক্রিনে যোগ করুন\" নির্বাচন করুন।", "Open browser menu (⋮) → tap \"Install app\" / \"Add to Home screen\".")}</p>
+                  </>
+                )}
+                {platformHelp === "desktop" && (
+                  <>
+                    <p className="font-semibold" style={{ color: "var(--brand-ink)" }}>{t("ডেস্কটপ (Chrome / Edge)", "Desktop (Chrome / Edge)")}</p>
+                    <p>{t("অ্যাড্রেস বারের ডানে ইনস্টল আইকন (⤓) চাপুন, অথবা মেনু → \"Install আমার হিসাব\"।", "Click the install icon (⤓) on the right of the address bar, or menu → \"Install Amar Hishab\".")}</p>
+                  </>
+                )}
+              </div>
+            )}
             <button
               onClick={() => setInstallHelpOpen(false)}
               className="mt-4 w-full px-4 py-2 rounded-lg border text-sm font-semibold"
