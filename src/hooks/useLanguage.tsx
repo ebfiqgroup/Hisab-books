@@ -133,6 +133,14 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     try { localStorage.setItem(KEY, l); } catch { /* noop */ }
     if (typeof document !== "undefined") document.documentElement.lang = "bn";
     setGoogTransCookie(l);
+    // Google Translate only re-evaluates page content on load. Force a
+    // reload so user-generated content (categories, notes, goal labels,
+    // transactions, budgets, debts, etc.) is re-translated to the new
+    // language without the user having to refresh manually.
+    if (typeof window !== "undefined") {
+      // small delay so the cookie write and state update flush first
+      setTimeout(() => { try { window.location.reload(); } catch { /* noop */ } }, 50);
+    }
   }, []);
 
   const toggle = useCallback(() => setLang(lang === "bn" ? "en" : "bn"), [lang, setLang]);
