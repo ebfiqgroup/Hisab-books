@@ -59,7 +59,7 @@ export function useRealtimeSync(userId: string | undefined) {
       const t = setTimeout(() => {
         pending.delete(k);
         qc.invalidateQueries({ queryKey: key, refetchType: "active" });
-      }, 80);
+      }, 20);
       pending.set(k, t);
     };
 
