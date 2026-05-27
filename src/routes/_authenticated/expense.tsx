@@ -41,6 +41,7 @@ function ExpensePage() {
   const [editing, setEditing] = useState<EditTxn | null>(null);
   const [catOpen, setCatOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [cat, setCat] = useState<string>("");
   const { forType } = useCustomCategories();
   const q = useQuery({
     queryKey: ["transactions", "expense", uid],
@@ -56,10 +57,12 @@ function ExpensePage() {
     [q.data, allowed],
   );
   const list = useMemo(() => {
+    let result = all;
     const s = query.trim().toLowerCase();
-    if (!s) return all;
-    return all.filter((t) => t.category.toLowerCase().includes(s) || (t.note ?? "").toLowerCase().includes(s));
-  }, [all, query]);
+    if (s) result = result.filter((t) => t.category.toLowerCase().includes(s) || (t.note ?? "").toLowerCase().includes(s));
+    if (cat) result = result.filter((t) => t.category === cat);
+    return result;
+  }, [all, query, cat]);
   const total = list.reduce((s, t) => s + Number(t.amount), 0);
 
   const { spark, thisMonth, lastMonth, topCat, txCount } = useMemo(() => {
@@ -169,9 +172,9 @@ function ExpensePage() {
         </div>
       </div>
 
-      {/* Search */}
-      <div className="mb-4 flex items-center gap-2">
-        <div className="relative flex-1">
+      {/* Search + Category filter */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <div className="relative flex-1 min-w-[180px]">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -180,6 +183,12 @@ function ExpensePage() {
           />
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16z"/></svg>
         </div>
+        <select value={cat} onChange={(e) => setCat(e.target.value)} className="px-3 py-2.5 text-sm border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-rose-500/30 focus:border-rose-400 focus:outline-none shadow-sm">
+          <option value="">{t("সব ক্যাটাগরি", "All categories")}</option>
+          {forType("expense").map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
         <div className="hidden sm:flex items-center gap-1.5 px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-600">
           <span className="text-slate-400">{t("দেখাচ্ছে", "Showing")}:</span> <b>{toBn(list.length)}</b>
         </div>
