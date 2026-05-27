@@ -22,6 +22,14 @@ function matchesPrefix(queryKey: QueryKey, prefix: string[]) {
   return prefix.every((value, index) => queryKey[index] === value);
 }
 
+type RTPayload = {
+  eventType: "INSERT" | "UPDATE" | "DELETE";
+  new: Record<string, unknown> | null;
+  old: Record<string, unknown> | null;
+};
+
+type RowLike = { id?: string | number } & Record<string, unknown>;
+
 /**
  * Subscribes to postgres_changes for the current user's data and invalidates
  * matching react-query caches so the UI updates in real time.
