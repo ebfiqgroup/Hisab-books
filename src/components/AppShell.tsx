@@ -109,6 +109,20 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
   const doNativeInstall = async () => {
     const res = await promptInstall();
     if (res.outcome === "accepted") setInstallHelpOpen(false);
+    return res.outcome;
+  };
+
+  const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && typeof document !== "undefined" && "ontouchend" in document);
+  const isAndroid = /Android/i.test(ua);
+
+  const handlePlatformInstall = async (p: "ios" | "android" | "desktop") => {
+    if (p === "ios") { setPlatformHelp("ios"); return; }
+    if (deferred) {
+      const outcome = await doNativeInstall();
+      if (outcome === "accepted") return;
+    }
+    setPlatformHelp(p);
   };
 
   const showInstallBtn = !isStandalone;
