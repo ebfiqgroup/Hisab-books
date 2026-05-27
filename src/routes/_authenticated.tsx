@@ -8,6 +8,12 @@ import { RealtimeStatusProvider } from "@/hooks/useRealtimeStatus";
 
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async () => {
+    // During SSR/prerender there is no browser storage, so the Supabase
+    // session is unavailable and we would wrongly redirect to /auth on
+    // every refresh. Defer the auth check to the client.
+    if (typeof window === "undefined") {
+      return { initialUserId: undefined as string | undefined };
+    }
     const { data, error } = await supabase.auth.getSession();
     if (error || !data.session) {
       try { await supabase.auth.signOut(); } catch { /* noop */ }
