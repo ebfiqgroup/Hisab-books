@@ -58,13 +58,28 @@ export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean;
             ? "fixed top-0 left-0 flex translate-x-0"
             : "hidden -translate-x-full"}`}
         style={{
-          background: "var(--gradient-sidebar-light)",
+          background: "var(--sidebar-luminous-bg)",
           color: "var(--brand-ink)",
+          boxShadow: "inset -1px 0 0 color-mix(in oklab, var(--brand-gold-500) 25%, var(--brand-line))",
         }}
       >
-      <div className="absolute inset-y-0 right-0 w-px" style={{ background: "linear-gradient(180deg, transparent, var(--brand-line), transparent)" }} />
-      <div className="p-5 flex items-center gap-3 border-b" style={{ borderColor: "var(--brand-line)" }}>
-        <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-lg" style={{ background: "color-mix(in oklab, var(--brand-emerald-600) 12%, transparent)", border: "1px solid color-mix(in oklab, var(--brand-emerald-600) 30%, transparent)" }}>
+      {/* Top-left luminous highlight sheen */}
+      <div className="absolute inset-0 pointer-events-none" style={{
+        background: "radial-gradient(90% 50% at 0% 0%, color-mix(in oklab, white 60%, transparent) 0%, transparent 50%)",
+        mixBlendMode: "screen",
+        opacity: 0.6,
+      }} />
+      {/* Right-edge glow strip */}
+      <div className="absolute inset-y-0 right-0 w-[2px]" style={{ background: "var(--sidebar-glow-right)" }} />
+
+      <div className="relative z-10 flex flex-col h-full">
+      <div className="p-5 flex items-center gap-3 border-b relative" style={{ borderColor: "var(--brand-line)" }}>
+        {/* Logo icon with soft glow */}
+        <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-lg relative" style={{
+          background: "color-mix(in oklab, var(--brand-emerald-600) 12%, transparent)",
+          border: "1px solid color-mix(in oklab, var(--brand-emerald-600) 30%, transparent)",
+          boxShadow: "0 0 20px -4px color-mix(in oklab, var(--brand-emerald-500) 45%, transparent), 0 2px 8px -2px color-mix(in oklab, var(--brand-emerald-900) 15%, transparent)",
+        }}>
           <Wallet className="w-5 h-5" style={{ color: "var(--brand-emerald-700)" }} />
         </div>
         <div className="flex-1">
@@ -94,22 +109,34 @@ export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean;
                     background: "color-mix(in oklab, var(--brand-emerald-500) 10%, transparent)",
                     border: "1px solid color-mix(in oklab, var(--brand-emerald-500) 35%, transparent)",
                     color: "var(--brand-emerald-800)",
+                    boxShadow: "0 0 18px -6px color-mix(in oklab, var(--brand-emerald-500) 45%, transparent), inset 0 1px 0 color-mix(in oklab, white 60%, transparent)",
                   }
                 : { color: "var(--brand-ink-soft)" }}
             >
-              {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full" style={{ background: "var(--brand-emerald-600)" }} />}
-              <n.icon className="w-4 h-4" style={active ? { color: "var(--brand-emerald-700)" } : undefined} />
+              {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full shadow-[0_0_10px_-2px_var(--brand-emerald-500)]" style={{ background: "var(--brand-emerald-600)" }} />}
+              <n.icon className="w-4 h-4" style={active ? { color: "var(--brand-emerald-700)", filter: "drop-shadow(0 0 3px color-mix(in oklab, var(--brand-emerald-500) 50%, transparent))" } : undefined} />
               <span className="font-medium">{t(n.key)}</span>
             </Link>
           );
         })}
       </nav>
       <RefCodeBadge variant="sidebar" />
-      <div className="mx-4 mb-4 p-4 rounded-xl relative overflow-hidden" style={{ background: "color-mix(in oklab, var(--brand-gold-300) 15%, transparent)", border: "1px solid color-mix(in oklab, var(--brand-gold-500) 20%, var(--brand-line))" }}>
+      <div className="mx-4 mb-4 p-4 rounded-xl relative overflow-hidden" style={{
+        background: "color-mix(in oklab, var(--brand-gold-300) 15%, transparent)",
+        border: "1px solid color-mix(in oklab, var(--brand-gold-500) 20%, var(--brand-line))",
+        boxShadow: "0 0 24px -8px color-mix(in oklab, var(--brand-gold-500) 40%, transparent), inset 0 1px 0 color-mix(in oklab, white 50%, transparent)",
+      }}>
+        {/* Luminous sheen overlay for quote card */}
+        <div className="absolute inset-0 pointer-events-none" style={{
+          background: "radial-gradient(120% 80% at 0% 0%, color-mix(in oklab, white 50%, transparent) 0%, transparent 55%)",
+          mixBlendMode: "screen",
+          opacity: 0.5,
+        }} />
         <span className="absolute -top-2 left-3 text-4xl leading-none" style={{ color: "color-mix(in oklab, var(--brand-gold-500) 50%, transparent)", fontFamily: "var(--font-display)" }}>"</span>
-        <p className="text-xs leading-relaxed pt-2 whitespace-pre-line" style={{ fontFamily: "var(--font-display)", fontStyle: "italic", fontSize: "0.95rem", color: "var(--brand-ink-soft)" }}>
+        <p className="relative z-10 text-xs leading-relaxed pt-2 whitespace-pre-line" style={{ fontFamily: "var(--font-display)", fontStyle: "italic", fontSize: "0.95rem", color: "var(--brand-ink-soft)" }}>
           {t("brand.quote")}
         </p>
+      </div>
       </div>
       </aside>
     </>
