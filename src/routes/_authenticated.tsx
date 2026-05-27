@@ -8,6 +8,12 @@ import { RealtimeStatusProvider } from "@/hooks/useRealtimeStatus";
 
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async () => {
+    // During SSR/prerender there is no browser storage, so the Supabase
+    // session is unavailable and we would wrongly redirect to /auth on
+    // every refresh. Defer the auth check to the client.
+    if (typeof window === "undefined") {
+      return { initialUserId: undefined as string | undefined };
+    }
     const { data, error } = await supabase.auth.getSession();
     if (error || !data.session) {
       try { await supabase.auth.signOut(); } catch { /* noop */ }
@@ -28,13 +34,28 @@ function AuthGate() {
 
   useEffect(() => {
     let cancel = false;
+    // If SSR could not resolve the session (no browser storage), check it
+    // on the client and redirect to /auth only if truly unauthenticated.
     const checkStatus = async (uid: string) => {
       const { data } = await supabase.from("profiles").select("status").eq("id", uid).maybeSingle();
       if (cancel) return;
       const s = (data?.status as "approved" | "pending" | "suspended" | null) || "approved";
       setStatus(s);
     };
-    if (initialUserId) checkStatus(initialUserId);
+    if (initialUserId) {
+      checkStatus(initialUserId);
+    } else {
+      // SSR could not resolve a session; verify on the client.
+      supabase.auth.getSession().then(({ data }) => {
+        if (cancel) return;
+        if (!data.session) {
+          navigate({ to: "/auth" });
+          return;
+        }
+        setUserId(data.session.user.id);
+        checkStatus(data.session.user.id);
+      });
+    }
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
       // Only react to real sign-in/out transitions. INITIAL_SESSION and
       // TOKEN_REFRESHED events fire frequently and would otherwise trigger
