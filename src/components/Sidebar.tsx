@@ -103,7 +103,7 @@ export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean;
               key={i}
               to={n.to}
               onClick={onClose}
-              className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${active ? "shadow-md" : "hover:bg-black/[0.03]"}`}
+              className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${active ? "shadow-md" : "hover:bg-black/[0.03] hover:translate-x-1"}`}
               style={active
                 ? {
                     background: "color-mix(in oklab, var(--brand-emerald-500) 10%, transparent)",
@@ -113,9 +113,23 @@ export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean;
                   }
                 : { color: "var(--brand-ink-soft)" }}
             >
+              {/* Hover glow background */}
+              <span className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" style={{
+                background: "radial-gradient(80% 80% at 0% 50%, color-mix(in oklab, var(--brand-gold-300) 35%, transparent) 0%, transparent 70%)",
+              }} />
+              {/* Left border glow on hover */}
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 h-0 w-[3px] rounded-r-full bg-[var(--brand-gold-500)] opacity-0 group-hover:opacity-100 group-hover:h-5 transition-all duration-300" style={{
+                boxShadow: "0 0 10px 1px color-mix(in oklab, var(--brand-gold-500) 70%, transparent)",
+              }} />
               {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full shadow-[0_0_10px_-2px_var(--brand-emerald-500)]" style={{ background: "var(--brand-emerald-600)" }} />}
-              <n.icon className="w-4 h-4" style={active ? { color: "var(--brand-emerald-700)", filter: "drop-shadow(0 0 3px color-mix(in oklab, var(--brand-emerald-500) 50%, transparent))" } : undefined} />
-              <span className="font-medium">{t(n.key)}</span>
+              <n.icon className="w-4 h-4 relative z-10 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3" style={active ? { color: "var(--brand-emerald-700)", filter: "drop-shadow(0 0 3px color-mix(in oklab, var(--brand-emerald-500) 50%, transparent))" } : { transition: "color 200ms ease, transform 300ms cubic-bezier(0.2,0.8,0.2,1)" }} />
+              <span className="font-medium relative z-10 group-hover:text-[var(--brand-ink)] transition-colors duration-200">{t(n.key)}</span>
+              {/* Subtle shimmer on hover */}
+              <span className="absolute inset-0 rounded-lg overflow-hidden pointer-events-none">
+                <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out" style={{
+                  background: "linear-gradient(90deg, transparent, color-mix(in oklab, white 15%, transparent), transparent)",
+                }} />
+              </span>
             </Link>
           );
         })}
