@@ -53,7 +53,15 @@ export async function flush(): Promise<{ flushed: number; conflicts: number; fai
       try {
         if (op.table === "transactions") {
           if (op.op === "insert") {
-            const { error } = await supabase.from("transactions").insert({ user_id: op.userId, ...op.payload });
+            const p = op.payload as Record<string, unknown>;
+            const { error } = await supabase.from("transactions").insert({
+              user_id: op.userId,
+              type: p.type as "income" | "expense",
+              category: String(p.category),
+              amount: Number(p.amount),
+              occurred_on: String(p.occurred_on),
+              note: (p.note as string | null) ?? null,
+            });
             if (error) throw error;
             await removeOp(op.id);
             flushed++;
@@ -82,9 +90,16 @@ export async function flush(): Promise<{ flushed: number; conflicts: number; fai
               }
               continue;
             }
+            const p = op.payload as Record<string, unknown>;
             const { error } = await supabase
               .from("transactions")
-              .update(op.payload)
+              .update({
+                type: p.type as "income" | "expense",
+                category: String(p.category),
+                amount: Number(p.amount),
+                occurred_on: String(p.occurred_on),
+                note: (p.note as string | null) ?? null,
+              })
               .eq("id", op.rowId)
               .eq("user_id", op.userId);
             if (error) throw error;
