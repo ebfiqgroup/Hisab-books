@@ -66,6 +66,15 @@ export function useRealtimeSync(userId: string | undefined) {
   useEffect(() => {
     if (!userId) { setStatus("disconnected"); return; }
     setStatus("connecting");
+    // Realtime needs the user's JWT so RLS-filtered postgres_changes events
+    // actually reach the client. Without this, the websocket connects but
+    // no row-change events are delivered for protected tables.
+    void supabase.auth.getSession().then(({ data }) => {
+      const token = data.session?.access_token;
+      if (token) {
+        try { (supabase.realtime as unknown as { setAuth: (t: string) => void }).setAuth(token); } catch { /* noop */ }
+      }
+    });
     let channel = supabase.channel(`rt-user-${userId}`, {
       config: { broadcast: { self: false }, presence: { key: "" } },
     });
@@ -152,10 +161,24 @@ export function useRealtimeSync(userId: string | undefined) {
     window.addEventListener("online", onOnline);
     window.addEventListener("focus", onFocus);
 
+    // Re-authenticate the realtime socket whenever Supabase issues a new
+    // access token (sign-in, token refresh). Otherwise postgres_changes
+    // stops delivering events once the original JWT expires.
+    const { data: { subscription: authSub } } = supabase.auth.onAuthStateChange((_e, session) => {
+      const token = session?.access_token;
+      if (token) {
+        try { (supabase.realtime as unknown as { setAuth: (t: string) => void }).setAuth(token); } catch { /* noop */ }
+      }
+      if (_e === "TOKEN_REFRESHED" || _e === "SIGNED_IN") {
+        if (channel.state !== "joined") reconnect();
+      }
+    });
+
     return () => {
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("online", onOnline);
       window.removeEventListener("focus", onFocus);
+      authSub.unsubscribe();
       supabase.removeChannel(channel);
       setStatus("disconnected");
     };
