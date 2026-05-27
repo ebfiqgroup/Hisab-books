@@ -9,6 +9,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useRealtimeStatus } from "@/hooks/useRealtimeStatus";
 import { RealtimeStatusBadge } from "./RealtimeStatusBadge";
 import { useSocialLinks } from "@/hooks/useSocialLinks";
+import { Tooltip } from "./Tooltip";
 
 export function AppShell({ title, actions, children }: { title: ReactNode; actions?: ReactNode; children: ReactNode }) {
   const { user, signOut } = useAuth();
