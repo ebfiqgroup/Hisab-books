@@ -362,36 +362,41 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
             >
               {lang === "bn" ? "EN" : "বাং"}
             </button>
-            <div className="relative">
-              <button onClick={() => { setMenuOpen(o => !o); setBellOpen(false); }} className="flex items-center gap-1 px-1.5 py-1 rounded-lg hover:bg-white/60 transition">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: "var(--gradient-brand)" }}>
-                  {name.charAt(0).toUpperCase()}
-                </div>
-                <span className="text-sm hidden sm:inline max-w-[120px] truncate">{name}</span>
-                <ChevronDown className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
-              </button>
-              {menuOpen && (
-                <div className="absolute right-0 top-12 w-56 max-w-[calc(100vw-5rem)] bg-white rounded-xl p-1 z-50 brand-card">
-                  <div className="px-3 py-2 border-b" style={{ borderColor: "var(--brand-line)" }}>
-                    <div className="text-sm font-semibold truncate" style={{ color: "var(--brand-ink)" }}>{name}</div>
-                    <div className="text-xs text-slate-500 truncate">{user?.email}</div>
-                  </div>
-                  <RefCodeBadge variant="menu" />
-                  <Link to="/settings" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-md">
-                    <UserIcon className="w-4 h-4" /> {t("header.profile")}
-                  </Link>
-                  <Link to="/settings" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-md">
-                    <SettingsIcon className="w-4 h-4" /> {t("header.settings")}
-                  </Link>
-                  <button onClick={doSignOut} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-rose-600 hover:bg-rose-50 rounded-md">
-                    <LogOut className="w-4 h-4" /> {t("header.signOut")}
-                  </button>
-                </div>
-              )}
-            </div>
+            <button onClick={() => { setMenuOpen(o => !o); setBellOpen(false); }} className="flex items-center gap-1 px-1.5 py-1 rounded-lg hover:bg-white/60 transition shrink-0">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0" style={{ background: "var(--gradient-brand)" }}>
+                {name.charAt(0).toUpperCase()}
+              </div>
+              <span className="text-sm hidden sm:inline max-w-[100px] truncate">{name}</span>
+              <ChevronDown className="w-4 h-4 shrink-0" style={{ color: "var(--brand-ink-soft)" }} />
+            </button>
             </div>
           </div>
         </div>
+        {menuOpen && (
+          <>
+            <div className="lg:hidden fixed inset-0 z-[55]" onMouseDown={() => setMenuOpen(false)} onTouchStart={() => setMenuOpen(false)} aria-hidden="true" />
+            <div
+              className="lg:hidden fixed right-3 top-[calc(env(safe-area-inset-top)+7.5rem)] w-56 max-w-[calc(100vw-1.5rem)] bg-white rounded-xl p-1 z-[60] brand-card shadow-2xl"
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+            >
+              <div className="px-3 py-2 border-b" style={{ borderColor: "var(--brand-line)" }}>
+                <div className="text-sm font-semibold truncate" style={{ color: "var(--brand-ink)" }}>{name}</div>
+                <div className="text-xs text-slate-500 truncate">{user?.email}</div>
+              </div>
+              <RefCodeBadge variant="menu" />
+              <Link to="/settings" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-md">
+                <UserIcon className="w-4 h-4" /> {t("header.profile")}
+              </Link>
+              <Link to="/settings" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-md">
+                <SettingsIcon className="w-4 h-4" /> {t("header.settings")}
+              </Link>
+              <button onClick={doSignOut} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-rose-600 hover:bg-rose-50 rounded-md">
+                <LogOut className="w-4 h-4" /> {t("header.signOut")}
+              </button>
+            </div>
+          </>
+        )}
         <div className="pt-2 sm:pt-3 lg:pt-6">
           {children}
         </div>
