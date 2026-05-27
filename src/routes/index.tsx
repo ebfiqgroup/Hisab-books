@@ -281,7 +281,7 @@ const TIERS: Tier[] = [
     period: "/মাস",
     tagline: "সিরিয়াস ব্যবহারকারীদের জন্য",
     features: ["আনলিমিটেড লেনদেন", "এআই পরামর্শ ও ইনসাইট", "অ্যাডভান্সড রিপোর্ট ও পিডিএফ", "দেনা-পাওনা রিমাইন্ডার", "অগ্রাধিকার সাপোর্ট"],
-    cta: "প্রো নিন",
+    cta: "শীঘ্রই আসছে",
     highlight: true,
     Icon: Sparkles,
     monthlyPriceId: "pro_monthly",
@@ -293,7 +293,7 @@ const TIERS: Tier[] = [
     period: "/মাস",
     tagline: "পরিবার ও ছোট ব্যবসার জন্য",
     features: ["প্রো-এর সব ফিচার", "৫টি পর্যন্ত সদস্য", "কাস্টম ক্যাটাগরি ও ট্যাগ", "এপিআই অ্যাক্সেস", "ডেডিকেটেড ম্যানেজার"],
-    cta: "প্রিমিয়াম নিন",
+    cta: "শীঘ্রই আসছে",
     Icon: Crown,
     monthlyPriceId: "premium_monthly",
     yearlyPriceId: "premium_yearly",
@@ -398,7 +398,7 @@ function PricingSection({ primaryTo }: { primaryTo: string }) {
       </div>
 
       <p className="mt-6 text-center text-xs" style={{ color: "var(--brand-ink-soft)" }}>
-        সকল পরিকল্পনায় ১৪ দিনের ফ্রি ট্রায়াল • যেকোনো সময় বাতিল
+        ফ্রি প্ল্যানে সাইন আপ করুন — পেইড প্ল্যান শীঘ্রই আসছে।
       </p>
     </section>
   );
@@ -512,8 +512,8 @@ function Footer() {
         <div className="max-w-6xl mx-auto px-5 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs" style={{ color: "var(--brand-ink-soft)" }}>
           <div>© {new Date().getFullYear()} আমার হিসাব — যত্নে তৈরি, বাংলায়।</div>
           <div className="flex gap-4">
-            <span>প্রাইভেসি</span>
-            <span>শর্তাবলি</span>
+            <Link to="/privacy" className="hover:text-emerald-800">প্রাইভেসি</Link>
+            <Link to="/terms" className="hover:text-emerald-800">শর্তাবলি</Link>
           </div>
         </div>
       </div>

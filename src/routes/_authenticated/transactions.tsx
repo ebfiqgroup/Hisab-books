@@ -68,7 +68,10 @@ function TransactionsPage() {
         .range(from, to);
       if (filter !== "all") query = query.eq("type", filter);
       if (cat) query = query.eq("category", cat);
-      if (debouncedQ) query = query.ilike("note", `%${debouncedQ}%`);
+      if (debouncedQ) {
+        const esc = debouncedQ.replace(/[,()]/g, " ").trim();
+        if (esc) query = query.or(`note.ilike.%${esc}%,category.ilike.%${esc}%`);
+      }
       const { data, error } = await query;
       if (error) throw error;
       return (data ?? []) as Txn[];
