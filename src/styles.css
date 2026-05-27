@@ -165,14 +165,14 @@
   --brand-emerald-700: oklch(0.44 0.12 160);
   --brand-emerald-600: oklch(0.55 0.13 160);
   --brand-emerald-500: oklch(0.65 0.13 160);
-  --brand-gold-600:    oklch(0.72 0.14 80);
-  --brand-gold-500:    oklch(0.80 0.13 85);
-  --brand-gold-300:    oklch(0.90 0.09 88);
-  --brand-ivory:       oklch(0.985 0.012 90);
-  --brand-cream:       oklch(0.965 0.018 85);
+  --brand-gold-600:    oklch(0.80 0.16 85);
+  --brand-gold-500:    oklch(0.88 0.15 88);
+  --brand-gold-300:    oklch(0.95 0.11 90);
+  --brand-ivory:       oklch(0.995 0.014 92);
+  --brand-cream:       oklch(0.985 0.022 88);
   --brand-ink:         oklch(0.22 0.02 160);
   --brand-ink-soft:    oklch(0.40 0.02 160);
-  --brand-line:        oklch(0.92 0.015 90);
+  --brand-line:        oklch(0.95 0.018 90);
 
   /* Override the legacy chrome tokens used by Sidebar / AppShell */
   --sidebar-bg: var(--brand-emerald-900);
@@ -434,12 +434,12 @@ main [style*="gradient-brand"] > * { position: relative; z-index: 1; }
 
 /* Brighter page ambient — adds a second warm light source for extra glow. */
 :root {
-  --gradient-page: radial-gradient(900px 500px at 8% -10%,
-      color-mix(in oklab, white 55%, transparent) 0%, transparent 55%),
-    radial-gradient(1100px 600px at 100% 0%,
-      color-mix(in oklab, var(--brand-gold-300) 55%, transparent) 0%, transparent 60%),
-    radial-gradient(900px 700px at 50% 110%,
-      color-mix(in oklab, var(--brand-emerald-500) 18%, transparent) 0%, transparent 65%),
+  --gradient-page: radial-gradient(1100px 600px at 8% -10%,
+      color-mix(in oklab, white 80%, transparent) 0%, transparent 60%),
+    radial-gradient(1300px 700px at 100% 0%,
+      color-mix(in oklab, var(--brand-gold-300) 75%, transparent) 0%, transparent 65%),
+    radial-gradient(1000px 800px at 50% 110%,
+      color-mix(in oklab, var(--brand-emerald-500) 28%, transparent) 0%, transparent 70%),
     linear-gradient(180deg, var(--brand-ivory) 0%, var(--brand-cream) 100%);
 }
 .dark {
