@@ -1,6 +1,6 @@
 import { ReactNode, useState, useRef, useEffect } from "react";
 import { Sidebar } from "./Sidebar";
-import { Bell, ChevronDown, LogOut, User as UserIcon, Settings as SettingsIcon, Headphones, ArrowLeft, Sun, Moon } from "lucide-react";
+import { Bell, ChevronDown, LogOut, User as UserIcon, Settings as SettingsIcon, Headset, ArrowLeft, Sun, Moon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useNavigate, useRouter, useLocation } from "@tanstack/react-router";
 import { RefCodeBadge } from "./RefCodeBadge";
