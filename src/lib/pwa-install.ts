@@ -23,8 +23,13 @@ export function getDeferredPrompt() {
 
 export function promptInstall() {
   if (deferredEvt) {
-    deferredEvt.prompt();
-    return deferredEvt.userChoice;
+    const evt = deferredEvt;
+    evt.prompt();
+    const choice = evt.userChoice;
+    choice.then((r) => {
+      if (r.outcome === "accepted") setDeferredPrompt(null);
+    }).catch(() => {});
+    return choice;
   }
   return Promise.resolve<{ outcome: "accepted" | "dismissed" }>({ outcome: "dismissed" });
 }
@@ -33,7 +38,27 @@ export function useDeferredPrompt() {
   const [evt, setEvt] = useState<BIPEvent | null>(deferredEvt);
   useEffect(() => {
     listeners.add(setEvt);
+    setEvt(deferredEvt);
     return () => { listeners.delete(setEvt); };
   }, []);
   return evt;
+}
+
+// Register the listener at module load (NOT inside React useEffect) — Chrome
+// fires `beforeinstallprompt` very early and listeners attached later miss it.
+if (typeof window !== "undefined") {
+  const onBIP = (e: Event) => {
+    e.preventDefault();
+    setDeferredPrompt(e as BIPEvent);
+  };
+  const onInstalled = () => {
+    setDeferredPrompt(null);
+  };
+  // Guard against double-registration during HMR
+  const w = window as unknown as { __ahPWAInit?: boolean };
+  if (!w.__ahPWAInit) {
+    w.__ahPWAInit = true;
+    window.addEventListener("beforeinstallprompt", onBIP);
+    window.addEventListener("appinstalled", onInstalled);
+  }
 }
