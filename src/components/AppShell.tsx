@@ -108,6 +108,18 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                   <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
                 </a>
               </Tooltip>
+              {deferred && (
+                <Tooltip label={t("অ্যাপ ডাউনলোড", "Install app")} side="bottom">
+                  <button
+                    onClick={() => promptInstall()}
+                    aria-label={t("অ্যাপ ডাউনলোড", "Install app")}
+                    className="p-1 rounded-lg hover:bg-white/60 transition w-8 h-8 flex items-center justify-center"
+                    style={{ color: "var(--brand-ink-soft)" }}
+                  >
+                    <Download className="w-4 h-4" />
+                  </button>
+                </Tooltip>
+              )}
               <Tooltip label={t("nav.support")} side="bottom">
                 <Link
                   to="/support"
