@@ -22,6 +22,14 @@ function matchesPrefix(queryKey: QueryKey, prefix: string[]) {
   return prefix.every((value, index) => queryKey[index] === value);
 }
 
+type RTPayload = {
+  eventType: "INSERT" | "UPDATE" | "DELETE";
+  new: Record<string, unknown> | null;
+  old: Record<string, unknown> | null;
+};
+
+type RowLike = { id?: string | number } & Record<string, unknown>;
+
 /**
  * Subscribes to postgres_changes for the current user's data and invalidates
  * matching react-query caches so the UI updates in real time.
@@ -46,6 +54,56 @@ export function useRealtimeSync(userId: string | undefined) {
         type: "active",
         predicate: (query) => matchesPrefix(query.queryKey, key),
       });
+    }
+  }, [qc]);
+
+  // Incremental cache patcher. Applies UPDATE/DELETE directly to cached row
+  // arrays / single-row objects with no network refetch. Falls back to a
+  // narrowly-scoped invalidate only for queries we can't safely patch
+  // (aggregations, filtered lists not containing the row, or INSERTs whose
+  // filter membership we can't determine from the payload alone).
+  const applyChange = useCallback((keys: string[][], p: RTPayload) => {
+    const rowId = (p.eventType === "DELETE" ? p.old?.id : p.new?.id) as
+      | string | number | undefined;
+
+    for (const key of keys) {
+      const matches = qc.getQueriesData({
+        predicate: (q) => matchesPrefix(q.queryKey, key),
+      });
+      for (const [queryKey, data] of matches) {
+        let handled = false;
+
+        if (p.eventType !== "INSERT" && rowId != null) {
+          if (Array.isArray(data)) {
+            const arr = data as RowLike[];
+            const idx = arr.findIndex((r) => r && r.id === rowId);
+            if (idx >= 0) {
+              if (p.eventType === "DELETE") {
+                qc.setQueryData(queryKey, arr.filter((_, i) => i !== idx));
+              } else {
+                const next = arr.slice();
+                next[idx] = { ...arr[idx], ...(p.new ?? {}) };
+                qc.setQueryData(queryKey, next);
+              }
+              handled = true;
+            } else if (arr.length > 0 && arr.every((r) => r && typeof r === "object" && "id" in r)) {
+              // Row-list shape that simply doesn't contain this row → no-op.
+              handled = true;
+            }
+          } else if (data && typeof data === "object" && (data as RowLike).id === rowId) {
+            if (p.eventType === "DELETE") {
+              qc.setQueryData(queryKey, undefined);
+            } else {
+              qc.setQueryData(queryKey, { ...(data as object), ...(p.new ?? {}) });
+            }
+            handled = true;
+          }
+        }
+
+        if (!handled) {
+          qc.invalidateQueries({ queryKey, exact: true, refetchType: "active" });
+        }
+      }
     }
   }, [qc]);
 
@@ -99,19 +157,19 @@ export function useRealtimeSync(userId: string | undefined) {
       (Object.keys(TABLE_CONFIG) as Array<keyof typeof TABLE_CONFIG>).forEach((table) => {
         const { keys, userCol } = TABLE_CONFIG[table];
         (ch as unknown as {
-          on: (e: string, f: { event: string; schema: string; table: string; filter?: string }, cb: () => void) => unknown;
+          on: (e: string, f: { event: string; schema: string; table: string; filter?: string }, cb: (payload: RTPayload) => void) => unknown;
         }).on(
           "postgres_changes",
           { event: "*", schema: "public", table, filter: `${userCol}=eq.${userId}` },
-          () => refreshKeys(keys),
+          (payload) => applyChange(keys, payload),
         );
       });
       (ch as unknown as {
-        on: (e: string, f: { event: string; schema: string; table: string; filter?: string }, cb: () => void) => unknown;
+        on: (e: string, f: { event: string; schema: string; table: string; filter?: string }, cb: (payload: RTPayload) => void) => unknown;
       }).on(
         "postgres_changes",
         { event: "*", schema: "public", table: "support_messages", filter: `sender_id=eq.${userId}` },
-        () => refreshKeys([["support_messages"], ["support_tickets"]]),
+        (payload) => applyChange([["support_messages"], ["support_tickets"]], payload),
       );
       ch.subscribe((s: string) => {
         if (s === "SUBSCRIBED") {
@@ -198,7 +256,7 @@ export function useRealtimeSync(userId: string | undefined) {
       if (channel) { try { supabase.removeChannel(channel); } catch { /* noop */ } }
       setStatus("disconnected");
     };
-  }, [userId, refreshKeys]);
+  }, [userId, refreshKeys, applyChange]);
 
   return status;
 }
