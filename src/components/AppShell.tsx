@@ -9,6 +9,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useRealtimeStatus } from "@/hooks/useRealtimeStatus";
 import { RealtimeStatusBadge } from "./RealtimeStatusBadge";
 import { useSocialLinks } from "@/hooks/useSocialLinks";
+import { Tooltip } from "./Tooltip";
 
 export function AppShell({ title, actions, children }: { title: ReactNode; actions?: ReactNode; children: ReactNode }) {
   const { user, signOut } = useAuth();
@@ -113,30 +114,34 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
               <RealtimeStatusBadge status={rtStatus} />
               {/* Mobile top-right icons */}
               <div className="flex lg:hidden items-center gap-2">
+              <Tooltip label={t("header.facebook")} side="bottom">
                 <a
                   href={fbUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  title="Facebook"
-                  aria-label="Facebook"
+                  aria-label={t("header.facebook")}
                   className="p-2 bg-white rounded-lg border hover:shadow-sm transition w-9 h-9 flex items-center justify-center"
                   style={{ borderColor: "var(--brand-line)", color: "var(--brand-ink-soft)" }}
                 >
                   <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
                 </a>
+              </Tooltip>
+              <Tooltip label={t("nav.support")} side="bottom">
                 <Link
                   to="/support"
-                  title={t("nav.support")}
                   aria-label={t("nav.support")}
                   className="p-2 bg-white rounded-lg border hover:shadow-sm transition w-9 h-9 flex items-center justify-center"
                   style={{ borderColor: "var(--brand-line)" }}
                 >
                   <LifeBuoy className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
                 </Link>
-                <div className="relative">
+              </Tooltip>
+              <div className="relative">
+                <Tooltip label={t("header.notifications")} side="bottom">
                   <button onClick={() => { setBellOpen(o => !o); setMenuOpen(false); }} className="relative p-2 bg-white rounded-lg border hover:shadow-sm transition w-9 h-9 flex items-center justify-center" style={{ borderColor: "var(--brand-line)" }}>
                     <Bell className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
                   </button>
+                </Tooltip>
                   {bellOpen && (
                     <div className="absolute right-0 top-12 w-72 bg-white rounded-xl p-3 z-50 brand-card">
                       <div className="text-sm font-semibold mb-2" style={{ color: "var(--brand-ink)" }}>{t("header.notifications")}</div>
@@ -167,30 +172,34 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                 >
                   {lang === "bn" ? "EN" : "বাং"}
                 </button>
-                <a
-                  href={fbUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title="Facebook"
-                  aria-label="Facebook"
-                  className="p-2 bg-white rounded-lg border hover:shadow-sm transition w-9 h-9 flex items-center justify-center"
-                  style={{ borderColor: "var(--brand-line)", color: "var(--brand-ink-soft)" }}
-                >
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
-                </a>
-                <Link
-                  to="/support"
-                  title={t("nav.support")}
-                  aria-label={t("nav.support")}
-                  className="p-2 bg-white rounded-lg border hover:shadow-sm transition"
-                  style={{ borderColor: "var(--brand-line)" }}
-                >
-                  <LifeBuoy className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
-                </Link>
+                <Tooltip label={t("header.facebook")} side="bottom">
+                  <a
+                    href={fbUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={t("header.facebook")}
+                    className="p-2 bg-white rounded-lg border hover:shadow-sm transition w-9 h-9 flex items-center justify-center"
+                    style={{ borderColor: "var(--brand-line)", color: "var(--brand-ink-soft)" }}
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+                  </a>
+                </Tooltip>
+                <Tooltip label={t("nav.support")} side="bottom">
+                  <Link
+                    to="/support"
+                    aria-label={t("nav.support")}
+                    className="p-2 bg-white rounded-lg border hover:shadow-sm transition"
+                    style={{ borderColor: "var(--brand-line)" }}
+                  >
+                    <LifeBuoy className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
+                  </Link>
+                </Tooltip>
                 <div className="relative">
-                  <button onClick={() => { setBellOpen(o => !o); setMenuOpen(false); }} className="relative p-2 bg-white rounded-lg border hover:shadow-sm transition" style={{ borderColor: "var(--brand-line)" }}>
-                    <Bell className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
-                  </button>
+                  <Tooltip label={t("header.notifications")} side="bottom">
+                    <button onClick={() => { setBellOpen(o => !o); setMenuOpen(false); }} className="relative p-2 bg-white rounded-lg border hover:shadow-sm transition" style={{ borderColor: "var(--brand-line)" }}>
+                      <Bell className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
+                    </button>
+                  </Tooltip>
                   {bellOpen && (
                     <div className="absolute right-0 top-12 w-72 bg-white rounded-xl p-3 z-50 brand-card">
                       <div className="text-sm font-semibold mb-2" style={{ color: "var(--brand-ink)" }}>{t("header.notifications")}</div>
