@@ -41,7 +41,6 @@ export function useRealtimeSync(userId: string | undefined) {
       qc.invalidateQueries({ queryKey: key, refetchType: "active" });
       qc.refetchQueries({
         type: "active",
-        stale: false,
         predicate: (query) => matchesPrefix(query.queryKey, key),
       });
     }
