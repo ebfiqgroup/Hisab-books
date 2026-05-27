@@ -3,12 +3,15 @@ import { Sparkles, X, PartyPopper } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
+import { useSearch, useNavigate } from "@tanstack/react-router";
 
 const WELCOME_SHOWN_KEY = "welcome_shown_for_session";
 
 export function WelcomePopup() {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const search = useSearch({ from: "/_authenticated" });
+  const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
   const [dismissing, setDismissing] = useState(false);
 
@@ -26,15 +29,16 @@ export function WelcomePopup() {
     if (!user) return;
     const userId = user.id;
     const lastShownFor = sessionStorage.getItem(WELCOME_SHOWN_KEY);
-    // Only show if this is a fresh login (different session/user)
-    if (lastShownFor !== userId) {
+    const fromLogin = search?.welcome === "1";
+    // Show if explicitly coming from login flow OR if not shown in this session yet
+    if (fromLogin || lastShownFor !== userId) {
       const timer = setTimeout(() => {
         setVisible(true);
         sessionStorage.setItem(WELCOME_SHOWN_KEY, userId);
       }, 600);
       return () => clearTimeout(timer);
     }
-  }, [user]);
+  }, [user, search?.welcome]);
 
   // Auto-dismiss after 5 seconds
   useEffect(() => {
