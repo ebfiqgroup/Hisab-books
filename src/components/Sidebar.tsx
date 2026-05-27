@@ -126,6 +126,7 @@ export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean;
           {t("brand.quote")}
         </p>
       </div>
+      </div>
       </aside>
     </>
   );
