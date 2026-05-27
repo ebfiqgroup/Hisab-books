@@ -214,18 +214,18 @@
   /* Luminous lighting system — soft top-left highlight + warm ambient glow.
      Layered on every card/banner/section for a bright, lit-from-within feel. */
   --luminous-highlight: radial-gradient(120% 80% at 0% 0%,
-      color-mix(in oklab, white 75%, transparent) 0%,
-      color-mix(in oklab, white 25%, transparent) 28%,
+      color-mix(in oklab, white 90%, transparent) 0%,
+      color-mix(in oklab, white 40%, transparent) 28%,
       transparent 60%);
   --luminous-glow: radial-gradient(90% 70% at 100% 100%,
-      color-mix(in oklab, var(--brand-gold-300) 38%, transparent) 0%,
+      color-mix(in oklab, var(--brand-gold-300) 55%, transparent) 0%,
       transparent 65%);
   --luminous-surface: linear-gradient(180deg,
-      color-mix(in oklab, white 96%, var(--brand-gold-300) 4%) 0%,
-      color-mix(in oklab, white 88%, var(--brand-ivory) 12%) 100%);
-  --shadow-glow:     0 0 0 1px color-mix(in oklab, white 55%, transparent) inset,
-                     0 1px 0 color-mix(in oklab, white 80%, transparent) inset,
-                     0 14px 38px -18px color-mix(in oklab, var(--brand-gold-500) 55%, transparent),
+      color-mix(in oklab, white 98%, var(--brand-gold-300) 2%) 0%,
+      color-mix(in oklab, white 94%, var(--brand-ivory) 6%) 100%);
+  --shadow-glow:     0 0 0 1px color-mix(in oklab, white 70%, transparent) inset,
+                     0 1px 0 color-mix(in oklab, white 90%, transparent) inset,
+                     0 14px 38px -18px color-mix(in oklab, var(--brand-gold-500) 70%, transparent),
                      0 6px 18px -10px color-mix(in oklab, var(--brand-emerald-900) 18%, transparent);
 
   --font-display: "Nikosh", "Instrument Serif", "Cormorant Garamond", "Hind Siliguri", serif;
