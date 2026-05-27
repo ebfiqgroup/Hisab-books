@@ -250,10 +250,11 @@ function Dashboard() {
   const budgetRows = useMemo(() => {
     const list = budgetsQ.data ?? [];
     return list.map((b) => {
-      const sIso = b.start_at.slice(0, 10);
       const eIso = b.end_at.slice(0, 10);
+      // Count all expenses in this category up to the budget end date.
+      // (Don't require >= start_at — users often create budgets after spending starts.)
       const spent = all
-        .filter((t) => t.type === "expense" && t.category === b.category && t.occurred_on >= sIso && t.occurred_on <= eIso)
+        .filter((t) => t.type === "expense" && t.category === b.category && t.occurred_on <= eIso)
         .reduce((s, t) => s + Number(t.amount), 0);
       const auto: "pending" | "ongoing" | "completed" =
         nowIsoFull < b.start_at ? "pending" : nowIsoFull > b.end_at ? "completed" : "ongoing";
