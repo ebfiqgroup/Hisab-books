@@ -8,6 +8,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { useTheme } from "@/hooks/useTheme";
 import { useRealtimeStatus } from "@/hooks/useRealtimeStatus";
 import { RealtimeStatusBadge } from "./RealtimeStatusBadge";
+import { useSocialLinks } from "@/hooks/useSocialLinks";
 
 export function AppShell({ title, actions, children }: { title: ReactNode; actions?: ReactNode; children: ReactNode }) {
   const { user, signOut } = useAuth();
@@ -17,6 +18,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
   const { t, lang, toggle } = useLanguage();
   const { theme, toggle: toggleTheme } = useTheme();
   const rtStatus = useRealtimeStatus();
+  const { facebook: fbUrl } = useSocialLinks();
   const [menuOpen, setMenuOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
@@ -112,7 +114,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
               {/* Mobile top-right icons */}
               <div className="flex lg:hidden items-center gap-2">
                 <a
-                  href="https://www.facebook.com"
+                  href={fbUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   title="Facebook"
@@ -166,7 +168,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                   {lang === "bn" ? "EN" : "বাং"}
                 </button>
                 <a
-                  href="https://www.facebook.com"
+                  href={fbUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   title="Facebook"
