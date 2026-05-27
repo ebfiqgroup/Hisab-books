@@ -71,6 +71,7 @@ const dict = {
     "brand.quote": "Financial discipline is\nthe key to success",
     "header.notifications": "Notifications",
     "header.noNotifications": "No new notifications",
+    "header.facebook": "Facebook Page",
     "header.profile": "Profile",
     "header.settings": "Settings",
     "header.signOut": "Sign out",
