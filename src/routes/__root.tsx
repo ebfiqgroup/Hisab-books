@@ -11,7 +11,7 @@ import {
 } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
 import { LanguageProvider } from "@/hooks/useLanguage";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { attachPerfTracker } from "@/lib/perf-tracker";
 import { OfflineBadge } from "@/components/OfflineBadge";
 import { InstallPrompt } from "@/components/InstallPrompt";
