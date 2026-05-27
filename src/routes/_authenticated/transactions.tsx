@@ -10,6 +10,7 @@ import { ArrowUp, ArrowDown, Plus, Trash2, Pencil, TrendingUp, TrendingDown, Act
 import { toast } from "sonner";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useCurrentUserId } from "@/hooks/useCurrentUserId";
+import { deleteTxnOffline } from "@/lib/offline-tx";
 
 export const Route = createFileRoute("/_authenticated/transactions")({
   component: TransactionsPage,
@@ -127,9 +128,11 @@ function TransactionsPage() {
 
   const remove = async (id: string) => {
     if (!confirm(t("লেনদেনটি মুছে ফেলবেন?", "Delete this transaction?"))) return;
-    const { error } = await supabase.from("transactions").delete().eq("id", id).eq("user_id", uid);
-    if (error) { toast.error(error.message); return; }
-    toast.success(t("মুছে ফেলা হয়েছে", "Deleted"));
+    const r = await deleteTxnOffline(uid!, id);
+    if (!r.ok) { toast.error(r.error); return; }
+    toast.success(r.queued
+      ? t("অফলাইন ডিলিট জমা হয়েছে — অনলাইন হলে সিঙ্ক হবে", "Delete queued — will sync when online")
+      : t("মুছে ফেলা হয়েছে", "Deleted"));
     qc.invalidateQueries({ queryKey: ["transactions"] });
   };
   const openEdit = (t: Txn) => {
