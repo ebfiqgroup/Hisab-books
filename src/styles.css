@@ -435,11 +435,11 @@ main [style*="gradient-brand"] > * { position: relative; z-index: 1; }
 /* Brighter page ambient — adds a second warm light source for extra glow. */
 :root {
   --gradient-page: radial-gradient(1100px 600px at 8% -10%,
-      color-mix(in oklab, white 80%, transparent) 0%, transparent 60%),
+      color-mix(in oklab, white 90%, transparent) 0%, transparent 60%),
     radial-gradient(1300px 700px at 100% 0%,
-      color-mix(in oklab, var(--brand-gold-300) 75%, transparent) 0%, transparent 65%),
+      color-mix(in oklab, var(--brand-gold-300) 90%, transparent) 0%, transparent 65%),
     radial-gradient(1000px 800px at 50% 110%,
-      color-mix(in oklab, var(--brand-emerald-500) 28%, transparent) 0%, transparent 70%),
+      color-mix(in oklab, var(--brand-emerald-500) 40%, transparent) 0%, transparent 70%),
     linear-gradient(180deg, var(--brand-ivory) 0%, var(--brand-cream) 100%);
 }
 .dark {
