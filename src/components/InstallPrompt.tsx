@@ -1,23 +1,17 @@
 import { useEffect, useState } from "react";
 import { Download, X } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
-
-type BIPEvent = Event & {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-};
+import { setDeferredPrompt, promptInstall } from "@/lib/pwa-install";
 
 const DISMISS_KEY = "amar-hishab-install-dismissed";
 
 export function InstallPrompt() {
   const { t } = useLanguage();
-  const [evt, setEvt] = useState<BIPEvent | null>(null);
   const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (localStorage.getItem(DISMISS_KEY)) { setHidden(true); return; }
-    // Already installed?
     const standalone =
       window.matchMedia("(display-mode: standalone)").matches ||
       // @ts-expect-error iOS
@@ -26,25 +20,24 @@ export function InstallPrompt() {
 
     const handler = (e: Event) => {
       e.preventDefault();
-      setEvt(e as BIPEvent);
+      setDeferredPrompt(e as any);
     };
     window.addEventListener("beforeinstallprompt", handler);
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
-  if (hidden || !evt) return null;
-
   const install = async () => {
-    await evt.prompt();
-    const { outcome } = await evt.userChoice;
-    if (outcome === "dismissed") localStorage.setItem(DISMISS_KEY, "1");
-    setEvt(null);
+    await promptInstall();
+    setHidden(true);
   };
 
   const dismiss = () => {
     localStorage.setItem(DISMISS_KEY, "1");
     setHidden(true);
   };
+
+  if (hidden) return null;
+
 
   return (
     <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:bottom-4 sm:max-w-sm z-50 bg-white rounded-xl shadow-2xl border border-slate-200 p-3 flex items-center gap-3">
