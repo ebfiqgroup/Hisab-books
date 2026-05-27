@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -16,6 +16,11 @@ const TABLE_CONFIG: Record<string, { keys: string[][]; userCol: string }> = {
   profiles: { keys: [["profile"], ["ref_code"]], userCol: "id" },
   support_tickets: { keys: [["support_tickets"]], userCol: "user_id" },
 };
+
+function matchesPrefix(queryKey: QueryKey, prefix: string[]) {
+  if (!Array.isArray(queryKey) || queryKey.length < prefix.length) return false;
+  return prefix.every((value, index) => queryKey[index] === value);
+}
 
 /**
  * Subscribes to postgres_changes for the current user's data and invalidates
