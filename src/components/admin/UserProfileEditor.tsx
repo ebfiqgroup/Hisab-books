@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ImagePlus, Save, Mail, KeyRound, Ban, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import { useAvatarUrl } from "@/lib/avatar-url";
 
 type Props = {
   userId: string;
@@ -24,6 +25,7 @@ export function UserProfileEditor({ userId, open, onOpenChange, onSaved }: Props
   const [busy, setBusy] = useState(false);
   const [fullName, setFullName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
+  const previewUrl = useAvatarUrl(avatarUrl);
   const [refCode, setRefCode] = useState<string>("");
   const [email, setEmail] = useState("");
   const [newPwd, setNewPwd] = useState("");
@@ -56,8 +58,7 @@ export function UserProfileEditor({ userId, open, onOpenChange, onSaved }: Props
       const path = `${userId}/avatar-${Date.now()}.${ext}`;
       const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
       if (upErr) throw upErr;
-      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
-      setAvatarUrl(pub.publicUrl);
+      setAvatarUrl(path);
       toast.success("আপলোড হয়েছে", { id: t });
     } catch (e: any) {
       toast.error(e?.message || "ব্যর্থ", { id: t });
@@ -151,7 +152,7 @@ export function UserProfileEditor({ userId, open, onOpenChange, onSaved }: Props
               <h4 className="text-sm font-semibold">মূল প্রোফাইল</h4>
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-full overflow-hidden bg-slate-200 flex items-center justify-center text-xl font-bold text-slate-500">
-                  {avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" /> : (fullName || "?").charAt(0).toUpperCase()}
+                  {previewUrl ? <img src={previewUrl} alt="" className="w-full h-full object-cover" /> : (fullName || "?").charAt(0).toUpperCase()}
                 </div>
                 <label className="flex items-center gap-2 px-3 py-2 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg text-sm font-medium hover:bg-indigo-100 cursor-pointer">
                   <ImagePlus className="w-4 h-4" /> ছবি বদলান
