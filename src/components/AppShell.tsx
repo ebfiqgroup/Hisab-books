@@ -122,8 +122,8 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
             {/* LEFT: logo+name on all sizes; then back/divider/title on desktop */}
             <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1 lg:flex-none lg:w-auto">
               <Link to="/app" className="flex items-center gap-2 hover:opacity-80 transition shrink-0">
-                <img src="/icon-512.png" alt="logo" className="h-5 w-5 rounded-sm object-contain" />
-                <span className="text-sm font-bold tracking-wide" style={{ fontFamily: "var(--font-display)", color: "var(--brand-ink)" }}>{t("appName", "আমার হিসাব")}</span>
+                <img src="/logo-moneybag.png" alt="logo" className="h-7 w-7 object-contain" />
+                <span className="text-base font-bold tracking-wide" style={{ fontFamily: "var(--font-display)", color: "var(--brand-ink)" }}>আমার হিসাব</span>
               </Link>
               {/* Desktop left side: back + divider + title */}
               <div className="hidden lg:flex items-center gap-2 md:gap-3 min-w-0">
