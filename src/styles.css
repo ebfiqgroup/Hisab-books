@@ -191,6 +191,19 @@
   --gradient-sidebar-light: linear-gradient(180deg,
     var(--brand-ivory) 0%,
     var(--brand-cream) 100%);
+  /* Luminous sidebar — rich ambient glow + top highlight for vibrant feel */
+  --sidebar-luminous-bg:
+    radial-gradient(120% 60% at 10% 0%,
+      color-mix(in oklab, var(--brand-gold-300) 55%, transparent) 0%,
+      transparent 55%),
+    radial-gradient(100% 80% at 100% 20%,
+      color-mix(in oklab, var(--brand-emerald-500) 22%, transparent) 0%,
+      transparent 50%),
+    linear-gradient(180deg, var(--brand-ivory) 0%, var(--brand-cream) 100%);
+  --sidebar-glow-right: linear-gradient(180deg, transparent 0%,
+    color-mix(in oklab, var(--brand-gold-500) 45%, transparent) 20%,
+    color-mix(in oklab, var(--brand-emerald-500) 35%, transparent) 60%,
+    transparent 100%);
   --gradient-page: radial-gradient(1200px 600px at 100% -10%,
       color-mix(in oklab, var(--brand-gold-300) 40%, transparent) 0%, transparent 60%),
     linear-gradient(180deg, var(--brand-ivory) 0%, var(--brand-cream) 100%);
