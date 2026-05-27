@@ -279,10 +279,8 @@ function SettingsPage() {
       const path = `${user.id}/avatar-${Date.now()}.${ext}`;
       const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
       if (upErr) throw upErr;
-      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
-      const url = pub.publicUrl;
-      setAvatar(url);
-      const { error: updErr } = await supabase.from("profiles").update({ avatar_url: url }).eq("id", user.id);
+      setAvatar(path);
+      const { error: updErr } = await supabase.from("profiles").update({ avatar_url: path }).eq("id", user.id);
       if (updErr) throw updErr;
       toast.success(t("ছবি আপলোড হয়েছে", "Image uploaded"));
       qc.invalidateQueries({ queryKey: ["profile"] });
