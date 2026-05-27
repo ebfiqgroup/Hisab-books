@@ -140,7 +140,27 @@ function BudgetPage() {
     },
   });
 
-  const spentFor = (b: Budget) => Number(b.current ?? 0);
+  // Pull all expense transactions to auto-compute spent per budget category
+  const txQ = useQuery({
+    queryKey: ["transactions", "expense-by-category", uid],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("category,amount,type,occurred_on")
+        .eq("user_id", uid)
+        .eq("type", "expense");
+      if (error) throw error;
+      return (data ?? []) as { category: string; amount: number; occurred_on: string }[];
+    },
+  });
+  const txList = txQ.data ?? [];
+  const spentFor = (b: Budget) => {
+    const eIso = b.end_at.slice(0, 10);
+    const auto = txList
+      .filter((t) => t.category === b.category && t.occurred_on <= eIso)
+      .reduce((s, t) => s + Number(t.amount), 0);
+    return Math.max(Number(b.current ?? 0), auto);
+  };
 
   const openCreate = () => {
     setForm(emptyForm(cats[0] ?? ""));

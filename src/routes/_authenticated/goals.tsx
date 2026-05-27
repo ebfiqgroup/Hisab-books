@@ -107,6 +107,32 @@ function GoalsPage() {
     },
   });
 
+  // Auto-compute saved amount per goal category from income transactions
+  const txAgg = useQuery({
+    queryKey: ["transactions", "income-by-category", uid],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("category,amount,type,occurred_on")
+        .eq("user_id", uid)
+        .eq("type", "income");
+      if (error) throw error;
+      const map: Record<string, number> = {};
+      for (const r of (data ?? []) as { category: string; amount: number }[]) {
+        map[r.category] = (map[r.category] ?? 0) + Number(r.amount);
+      }
+      return map;
+    },
+  });
+  const catSums = txAgg.data ?? {};
+  const currentOf = (g: Goal) => {
+    const stored = Number(g.current) || 0;
+    if (g.category && catSums[g.category] != null) {
+      return Math.max(stored, catSums[g.category]);
+    }
+    return stored;
+  };
+
   const openNew = () => { setEdit(null); setForm({ label: "", target: "", current: "", start_date: "", deadline: "", color: "emerald", category: "" }); setOpen(true); };
   const openEdit = (g: Goal) => { setEdit(g); setForm({ label: g.label, target: String(g.target), current: String(g.current), start_date: g.start_date ?? "", deadline: g.deadline ?? "", color: g.color, category: g.category ?? "" }); setOpen(true); };
 
@@ -144,7 +170,7 @@ function GoalsPage() {
 
   const list = q.data ?? [];
   const autoStatus = (g: Goal): "pending" | "ongoing" | "completed" => {
-    const c = Number(g.current), tg = Number(g.target);
+    const c = currentOf(g), tg = Number(g.target);
     return c >= tg ? "completed" : c > 0 ? "ongoing" : "pending";
   };
   const effStatus = (g: Goal) => g.status ?? autoStatus(g);
@@ -180,10 +206,10 @@ function GoalsPage() {
   ];
 
   const totalTarget = filteredList.reduce((s, g) => s + Number(g.target), 0);
-  const totalCurrent = filteredList.reduce((s, g) => s + Number(g.current), 0);
+  const totalCurrent = filteredList.reduce((s, g) => s + currentOf(g), 0);
   const totalPct = totalTarget > 0 ? Math.min(100, (totalCurrent / totalTarget) * 100) : 0;
   const totalRemaining = Math.max(0, totalTarget - totalCurrent);
-  const completedCount = filteredList.filter((g) => Number(g.current) >= Number(g.target) && Number(g.target) > 0).length;
+  const completedCount = filteredList.filter((g) => currentOf(g) >= Number(g.target) && Number(g.target) > 0).length;
 
   return (
     <AppShell title={t("সঞ্চয় লক্ষ্য", "Savings goals")} actions={
@@ -308,7 +334,8 @@ function GoalsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredList.map((g) => {
           const c = colorOf(g.color);
-          const pct = g.target > 0 ? Math.min(100, (Number(g.current) / Number(g.target)) * 100) : 0;
+          const curVal = currentOf(g);
+          const pct = g.target > 0 ? Math.min(100, (curVal / Number(g.target)) * 100) : 0;
           const status = effStatus(g);
           const statusBtns: { key: "pending" | "ongoing" | "completed"; labelBn: string; labelEn: string; active: string }[] = [
             { key: "pending", labelBn: "অপেক্ষিত", labelEn: "Pending", active: "bg-amber-500 text-white border-amber-500" },
@@ -359,7 +386,7 @@ function GoalsPage() {
               {/* Money progress */}
               <div className="flex items-center justify-between text-[11px] mb-1">
                 <span className="text-slate-500 font-medium">💰 {t("টাকা", "Money")}</span>
-                <span className="text-slate-400">{t("বাকি", "Left")}: {fmtTk(Math.max(0, Number(g.target) - Number(g.current)))}</span>
+                <span className="text-slate-400">{t("বাকি", "Left")}: {fmtTk(Math.max(0, Number(g.target) - curVal))}</span>
               </div>
               <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden mb-1 shadow-inner">
                 <div className="h-full rounded-full transition-all shadow-sm" style={{ width: `${pct}%`, background: grad }} />

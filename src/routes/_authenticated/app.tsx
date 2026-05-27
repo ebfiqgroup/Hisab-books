@@ -24,7 +24,7 @@ export const Route = createFileRoute("/_authenticated/app")({ component: Dashboa
 
 type Txn = { id: string; type: "income" | "expense"; category: string; amount: number; occurred_on: string; note: string | null };
 type Debt = { id: string; kind: "receivable" | "payable"; amount: number; settled: boolean };
-type Goal = { id: string; label: string; target: number; current: number; color: string };
+type Goal = { id: string; label: string; target: number; current: number; color: string; category: string | null };
 type Note = { id: string; body: string; created_at: string };
 type PlanTask = { id: string; task: string; due_text: string | null; amount_text: string | null; priority: "উচ্চ" | "মাঝারি" | "নিম্ন"; done: boolean };
 
@@ -76,7 +76,7 @@ function Dashboard() {
   const goalsQ = useQuery({
     queryKey: ["goals", uid],
     queryFn: async () => {
-      const { data, error } = await supabase.from("goals").select("id,label,target,current,color").eq("user_id", uid).order("created_at", { ascending: false }).limit(4);
+      const { data, error } = await supabase.from("goals").select("id,label,target,current,color,category").eq("user_id", uid).order("created_at", { ascending: false }).limit(4);
       if (error) throw error;
       return (data ?? []) as Goal[];
     },
@@ -245,15 +245,32 @@ function Dashboard() {
 
   const recent = all.slice(0, 5);
 
+  // Auto-compute saved amount per goal from income transactions matching its category
+  const incomeByCat = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const t of all) {
+      if (t.type === "income") map[t.category] = (map[t.category] ?? 0) + Number(t.amount);
+    }
+    return map;
+  }, [all]);
+  const goalCurrent = (g: Goal) => {
+    const stored = Number(g.current) || 0;
+    if (g.category && incomeByCat[g.category] != null) {
+      return Math.max(stored, incomeByCat[g.category]);
+    }
+    return stored;
+  };
+
   // Budget rows (with computed spent for each budget's own date range)
   const nowIsoFull = now.toISOString();
   const budgetRows = useMemo(() => {
     const list = budgetsQ.data ?? [];
     return list.map((b) => {
-      const sIso = b.start_at.slice(0, 10);
       const eIso = b.end_at.slice(0, 10);
+      // Count all expenses in this category up to the budget end date.
+      // (Don't require >= start_at — users often create budgets after spending starts.)
       const spent = all
-        .filter((t) => t.type === "expense" && t.category === b.category && t.occurred_on >= sIso && t.occurred_on <= eIso)
+        .filter((t) => t.type === "expense" && t.category === b.category && t.occurred_on <= eIso)
         .reduce((s, t) => s + Number(t.amount), 0);
       const auto: "pending" | "ongoing" | "completed" =
         nowIsoFull < b.start_at ? "pending" : nowIsoFull > b.end_at ? "completed" : "ongoing";
@@ -695,7 +712,8 @@ function Dashboard() {
           <div className="space-y-3">
             {goals.length === 0 && <div className="text-sm text-slate-400 text-center py-4">{t("কোনো লক্ষ্য নেই", "No goals")}</div>}
             {goals.map((g) => {
-              const pct = g.target > 0 ? Math.min(100, (Number(g.current) / Number(g.target)) * 100) : 0;
+              const curVal = goalCurrent(g);
+              const pct = g.target > 0 ? Math.min(100, (curVal / Number(g.target)) * 100) : 0;
               const done = pct >= 100;
               const accent = g.color || "#6366f1";
               return (
@@ -714,7 +732,7 @@ function Dashboard() {
                         {g.label}
                         {done && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 ring-1 ring-amber-200 shrink-0">{t("অর্জিত", "Achieved")}</span>}
                       </span>
-                      <span className="text-slate-500 shrink-0 text-[11px]">{fmtTk(Number(g.current))} / {fmtTk(Number(g.target))}</span>
+                      <span className="text-slate-500 shrink-0 text-[11px]">{fmtTk(curVal)} / {fmtTk(Number(g.target))}</span>
                     </div>
                     <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                       <div
