@@ -15,12 +15,20 @@ export const Route = createFileRoute("/_authenticated")({
     if (typeof window === "undefined") {
       return { initialUserId: undefined as string | undefined };
     }
-    const { data, error } = await supabase.auth.getSession();
-    if (error || !data.session) {
+    // Validate the session against the server. getSession() only reads
+    // localStorage and will happily return a stale/expired session, which
+    // would let an unauthenticated visitor reach the dashboard. getUser()
+    // verifies the token with Supabase and fails if it is invalid.
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      throw redirect({ to: "/auth" });
+    }
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData.user) {
       try { await supabase.auth.signOut(); } catch { /* noop */ }
       throw redirect({ to: "/auth" });
     }
-    return { initialUserId: data.session.user.id };
+    return { initialUserId: userData.user.id };
   },
   component: AuthGate,
 });
@@ -47,15 +55,23 @@ function AuthGate() {
       checkStatus(initialUserId);
     } else {
       // SSR could not resolve a session; verify on the client.
-      supabase.auth.getSession().then(({ data }) => {
+      (async () => {
+        const { data: sessionData } = await supabase.auth.getSession();
         if (cancel) return;
-        if (!data.session) {
+        if (!sessionData.session) {
           navigate({ to: "/auth" });
           return;
         }
-        setUserId(data.session.user.id);
-        checkStatus(data.session.user.id);
-      });
+        const { data: userData, error: userError } = await supabase.auth.getUser();
+        if (cancel) return;
+        if (userError || !userData.user) {
+          try { await supabase.auth.signOut(); } catch { /* noop */ }
+          navigate({ to: "/auth" });
+          return;
+        }
+        setUserId(userData.user.id);
+        checkStatus(userData.user.id);
+      })();
     }
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
       // Only react to real sign-in/out transitions. INITIAL_SESSION and
