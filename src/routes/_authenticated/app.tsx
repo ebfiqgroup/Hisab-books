@@ -248,11 +248,12 @@ function Dashboard() {
   // Auto-compute saved amount per goal from income transactions matching its category
   const incomeByCat = useMemo(() => {
     const map: Record<string, number> = {};
-    for (const t of all) {
+    const raw = txnQ.data ?? [];
+    for (const t of raw) {
       if (t.type === "income") map[t.category] = (map[t.category] ?? 0) + Number(t.amount);
     }
     return map;
-  }, [all]);
+  }, [txnQ.data]);
   const goalCurrent = (g: Goal) => {
     const stored = Number(g.current) || 0;
     if (g.category && incomeByCat[g.category] != null) {
@@ -265,11 +266,12 @@ function Dashboard() {
   const nowIsoFull = now.toISOString();
   const budgetRows = useMemo(() => {
     const list = budgetsQ.data ?? [];
+    const raw = txnQ.data ?? [];
     return list.map((b) => {
       const eIso = b.end_at.slice(0, 10);
       // Count all expenses in this category up to the budget end date.
       // (Don't require >= start_at — users often create budgets after spending starts.)
-      const spent = all
+      const spent = raw
         .filter((t) => t.type === "expense" && t.category === b.category && t.occurred_on <= eIso)
         .reduce((s, t) => s + Number(t.amount), 0);
       const auto: "pending" | "ongoing" | "completed" =
@@ -277,7 +279,7 @@ function Dashboard() {
       const status = b.status ?? auto;
       return { ...b, spent, status };
     });
-  }, [budgetsQ.data, all, nowIsoFull]);
+  }, [budgetsQ.data, txnQ.data, nowIsoFull]);
   const activeBudgets = useMemo(
     () => budgetRows.filter((b) => b.status !== "completed").slice(0, 4),
     [budgetRows],
