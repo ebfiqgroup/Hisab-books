@@ -34,6 +34,18 @@ function AuthGate() {
 
   useEffect(() => {
     let cancel = false;
+    // If SSR could not resolve the session (no browser storage), check it
+    // on the client and redirect to /auth only if truly unauthenticated.
+    if (!initialUserId) {
+      supabase.auth.getSession().then(({ data }) => {
+        if (cancel) return;
+        if (!data.session) {
+          navigate({ to: "/auth" });
+          return;
+        }
+        setUserId(data.session.user.id);
+      });
+    }
     const checkStatus = async (uid: string) => {
       const { data } = await supabase.from("profiles").select("status").eq("id", uid).maybeSingle();
       if (cancel) return;
