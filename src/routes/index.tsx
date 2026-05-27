@@ -381,17 +381,28 @@ function PricingSection({ primaryTo }: { primaryTo: string }) {
                   </li>
                 ))}
               </ul>
-              <Link
-                to={primaryTo}
-                className="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium"
-                style={
-                  t.highlight
-                    ? { background: "var(--gradient-brand)", color: "white" }
-                    : { background: "white", color: "var(--brand-emerald-800)", border: "1px solid var(--brand-line)" }
-                }
-              >
-                {t.cta} <ArrowRight className="w-4 h-4" />
-              </Link>
+              {t.price === "৳ ০" ? (
+                <Link
+                  to={primaryTo}
+                  className="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium"
+                  style={{ background: "white", color: "var(--brand-emerald-800)", border: "1px solid var(--brand-line)" }}
+                >
+                  {t.cta} <ArrowRight className="w-4 h-4" />
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  className="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium cursor-not-allowed opacity-80"
+                  style={
+                    t.highlight
+                      ? { background: "var(--gradient-brand)", color: "white" }
+                      : { background: "white", color: "var(--brand-emerald-800)", border: "1px solid var(--brand-line)" }
+                  }
+                >
+                  {t.cta}
+                </button>
+              )}
             </div>
           );
         })}
