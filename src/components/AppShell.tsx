@@ -25,6 +25,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
   const [menuOpen, setMenuOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
+  const [installHelpOpen, setInstallHelpOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -57,6 +58,22 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
     await signOut();
     navigate({ to: "/auth" });
   };
+
+  const isStandalone =
+    typeof window !== "undefined" &&
+    (window.matchMedia?.("(display-mode: standalone)").matches ||
+      // @ts-expect-error iOS
+      window.navigator.standalone === true);
+
+  const handleInstallClick = async () => {
+    if (deferred) {
+      await promptInstall();
+    } else {
+      setInstallHelpOpen(true);
+    }
+  };
+
+  const showInstallBtn = !isStandalone;
 
   return (
     <div className="h-[100dvh] lg:h-screen flex overflow-hidden min-h-0 min-w-0" style={{ background: "var(--gradient-page)" }}>
@@ -108,10 +125,10 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                   <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
                 </a>
               </Tooltip>
-              {deferred && (
+              {showInstallBtn && (
                 <Tooltip label={t("অ্যাপ ডাউনলোড", "Install app")} side="bottom">
                   <button
-                    onClick={() => promptInstall()}
+                    onClick={handleInstallClick}
                     aria-label={t("অ্যাপ ডাউনলোড", "Install app")}
                     className="p-1 rounded-lg hover:bg-white/60 transition w-8 h-8 flex items-center justify-center"
                     style={{ color: "var(--brand-ink-soft)" }}
@@ -165,10 +182,10 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                 >
                   {lang === "bn" ? "EN" : "বাং"}
                 </button>
-                {deferred && (
+                {showInstallBtn && (
                   <Tooltip label={t("অ্যাপ ডাউনলোড", "Install app")} side="bottom">
                     <button
-                      onClick={() => promptInstall()}
+                      onClick={handleInstallClick}
                       aria-label={t("অ্যাপ ডাউনলোড", "Install app")}
                       className="p-2 bg-white rounded-lg border hover:shadow-sm transition w-9 h-9 flex items-center justify-center"
                       style={{ borderColor: "var(--brand-line)", color: "var(--brand-ink-soft)" }}
