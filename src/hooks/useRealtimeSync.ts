@@ -66,67 +66,15 @@ export function useRealtimeSync(userId: string | undefined) {
   useEffect(() => {
     if (!userId) { setStatus("disconnected"); return; }
     setStatus("connecting");
-    // Realtime needs the user's JWT so RLS-filtered postgres_changes events
-    // actually reach the client. Without this, the websocket connects but
-    // no row-change events are delivered for protected tables.
-    void supabase.auth.getSession().then(({ data }) => {
-      const token = data.session?.access_token;
-      if (token) {
-        try { (supabase.realtime as unknown as { setAuth: (t: string) => void }).setAuth(token); } catch { /* noop */ }
-      }
-    });
-    let channel = supabase.channel(`rt-user-${userId}`, {
-      config: { broadcast: { self: false }, presence: { key: "" } },
-    });
 
-    (Object.keys(TABLE_CONFIG) as Array<keyof typeof TABLE_CONFIG>).forEach((table) => {
-      const { keys, userCol } = TABLE_CONFIG[table];
-      (channel as unknown as {
-        on: (
-          event: string,
-          filter: { event: string; schema: string; table: string; filter?: string },
-          cb: () => void,
-        ) => unknown;
-      }).on(
-        "postgres_changes",
-        { event: "*", schema: "public", table, filter: `${userCol}=eq.${userId}` },
-        () => refreshKeys(keys),
-      );
-    });
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let cancelled = false;
 
-    // support_messages: filter by sender_id so users see their own message echoes;
-    // ticket-owner messages from admins flow via support_tickets bump trigger.
-    (channel as unknown as {
-      on: (e: string, f: { event: string; schema: string; table: string; filter?: string }, cb: () => void) => unknown;
-    }).on(
-      "postgres_changes",
-      { event: "*", schema: "public", table: "support_messages", filter: `sender_id=eq.${userId}` },
-      () => refreshKeys([["support_messages"], ["support_tickets"]]),
-    );
-
-    const subscribe = () => {
-      channel.subscribe((s: string) => {
-        if (s === "SUBSCRIBED") setStatus("connected");
-        else if (s === "CHANNEL_ERROR" || s === "TIMED_OUT" || s === "CLOSED") setStatus("disconnected");
-        else setStatus("connecting");
-      });
-    };
-    subscribe();
-
-    // Mobile/tablet browsers aggressively suspend websockets when the tab is
-    // backgrounded or the device sleeps. Force a reconnect + refetch on
-    // visibility/online so users always see fresh data when they return.
-    const reconnect = () => {
-      try {
-        supabase.removeChannel(channel);
-      } catch { /* noop */ }
-      setStatus("connecting");
-      channel = supabase.channel(`rt-user-${userId}`, {
-        config: { broadcast: { self: false }, presence: { key: "" } },
-      });
+    const buildChannel = () => {
+      const ch = supabase.channel(`rt-user-${userId}-${Date.now()}`);
       (Object.keys(TABLE_CONFIG) as Array<keyof typeof TABLE_CONFIG>).forEach((table) => {
         const { keys, userCol } = TABLE_CONFIG[table];
-        (channel as unknown as {
+        (ch as unknown as {
           on: (e: string, f: { event: string; schema: string; table: string; filter?: string }, cb: () => void) => unknown;
         }).on(
           "postgres_changes",
@@ -134,52 +82,76 @@ export function useRealtimeSync(userId: string | undefined) {
           () => refreshKeys(keys),
         );
       });
-      (channel as unknown as {
+      (ch as unknown as {
         on: (e: string, f: { event: string; schema: string; table: string; filter?: string }, cb: () => void) => unknown;
       }).on(
         "postgres_changes",
         { event: "*", schema: "public", table: "support_messages", filter: `sender_id=eq.${userId}` },
         () => refreshKeys([["support_messages"], ["support_tickets"]]),
       );
-      subscribe();
+      ch.subscribe((s: string) => {
+        if (s === "SUBSCRIBED") setStatus("connected");
+        else if (s === "CHANNEL_ERROR" || s === "TIMED_OUT" || s === "CLOSED") setStatus("disconnected");
+        else setStatus("connecting");
+      });
+      return ch;
+    };
+
+    // CRITICAL: authenticate realtime socket BEFORE subscribing. Otherwise
+    // postgres_changes joins without a JWT and RLS silently drops every event.
+    const start = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        const token = data.session?.access_token;
+        if (token) {
+          try { (supabase.realtime as unknown as { setAuth: (t: string) => void }).setAuth(token); } catch { /* noop */ }
+        }
+      } catch { /* noop */ }
+      if (cancelled) return;
+      channel = buildChannel();
+    };
+    void start();
+
+    const reconnect = async () => {
+      if (channel) { try { supabase.removeChannel(channel); } catch { /* noop */ } channel = null; }
+      setStatus("connecting");
+      await start();
       refreshKeys();
     };
 
     const onVisibility = () => {
       if (document.visibilityState === "visible") {
         refreshKeys();
-        if (channel.state !== "joined") reconnect();
+        if (!channel || channel.state !== "joined") void reconnect();
       }
     };
-    const onOnline = () => { reconnect(); };
+    const onOnline = () => { void reconnect(); };
     const onFocus = () => {
       refreshKeys();
-      if (channel.state !== "joined") reconnect();
+      if (!channel || channel.state !== "joined") void reconnect();
     };
 
     document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("online", onOnline);
     window.addEventListener("focus", onFocus);
 
-    // Re-authenticate the realtime socket whenever Supabase issues a new
-    // access token (sign-in, token refresh). Otherwise postgres_changes
-    // stops delivering events once the original JWT expires.
     const { data: { subscription: authSub } } = supabase.auth.onAuthStateChange((_e, session) => {
       const token = session?.access_token;
       if (token) {
         try { (supabase.realtime as unknown as { setAuth: (t: string) => void }).setAuth(token); } catch { /* noop */ }
       }
       if (_e === "TOKEN_REFRESHED" || _e === "SIGNED_IN") {
-        if (channel.state !== "joined") reconnect();
+        void reconnect();
       }
     });
 
     return () => {
+      cancelled = true;
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("online", onOnline);
       window.removeEventListener("focus", onFocus);
       authSub.unsubscribe();
-      supabase.removeChannel(channel);
+      if (channel) { try { supabase.removeChannel(channel); } catch { /* noop */ } }
       setStatus("disconnected");
     };
   }, [userId, refreshKeys]);
