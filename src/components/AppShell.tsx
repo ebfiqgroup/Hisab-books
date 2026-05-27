@@ -340,6 +340,42 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
           {children}
         </div>
       </main>
+      {installHelpOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.5)" }}
+          onClick={() => setInstallHelpOpen(false)}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white" style={{ background: "var(--gradient-brand)" }}>
+                <Download className="w-5 h-5" />
+              </div>
+              <div className="text-base font-semibold" style={{ color: "var(--brand-ink)" }}>
+                {t("অ্যাপ ইনস্টল করুন", "Install the app")}
+              </div>
+            </div>
+            <div className="text-sm space-y-2" style={{ color: "var(--brand-ink-soft)" }}>
+              <p className="font-semibold">{t("Android (Chrome):", "Android (Chrome):")}</p>
+              <p>{t("ব্রাউজার মেনু (⋮) → \"Install app\" / \"হোম স্ক্রিনে যোগ করুন\" নির্বাচন করুন।", "Open browser menu (⋮) → tap \"Install app\" / \"Add to Home screen\".")}</p>
+              <p className="font-semibold mt-3">{t("iPhone (Safari):", "iPhone (Safari):")}</p>
+              <p>{t("Share বাটন (⬆) → \"Add to Home Screen\" নির্বাচন করুন।", "Tap the Share button (⬆) → choose \"Add to Home Screen\".")}</p>
+              <p className="font-semibold mt-3">{t("ডেস্কটপ:", "Desktop:")}</p>
+              <p>{t("অ্যাড্রেস বারের ডানে ইনস্টল আইকনে ক্লিক করুন।", "Click the install icon on the right side of the address bar.")}</p>
+            </div>
+            <button
+              onClick={() => setInstallHelpOpen(false)}
+              className="mt-4 w-full px-4 py-2 rounded-lg text-white text-sm font-semibold"
+              style={{ background: "var(--gradient-brand)" }}
+            >
+              {t("ঠিক আছে", "OK")}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
