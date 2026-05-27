@@ -41,6 +41,7 @@ const dict = {
     "brand.quote": "আর্থিক শৃঙ্খলাই\nসফলতার চাবিকাঠি",
     "header.notifications": "নোটিফিকেশন",
     "header.noNotifications": "কোনো নতুন নোটিফিকেশন নেই",
+    "header.facebook": "ফেসবুক পেজ",
     "header.profile": "প্রোফাইল",
     "header.settings": "সেটিংস",
     "header.signOut": "সাইন আউট",
