@@ -2,29 +2,43 @@ import { useEffect, useState } from "react";
 import { Sparkles, X, PartyPopper } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/hooks/useLanguage";
+import { supabase } from "@/integrations/supabase/client";
+import { useSearch, useNavigate } from "@tanstack/react-router";
 
 const WELCOME_SHOWN_KEY = "welcome_shown_for_session";
 
 export function WelcomePopup() {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const search = useSearch({ from: "/_authenticated" });
+  const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
   const [dismissing, setDismissing] = useState(false);
+
+  useEffect(() => {
+    // Clear the flag when the user signs out so the next login shows the popup again
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") {
+        sessionStorage.removeItem(WELCOME_SHOWN_KEY);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     if (!user) return;
     const userId = user.id;
     const lastShownFor = sessionStorage.getItem(WELCOME_SHOWN_KEY);
-    // Only show if this is a fresh login (different session/user)
-    if (lastShownFor !== userId) {
-      // Small delay for dramatic effect
+    const fromLogin = search?.welcome === "1";
+    // Show if explicitly coming from login flow OR if not shown in this session yet
+    if (fromLogin || lastShownFor !== userId) {
       const timer = setTimeout(() => {
         setVisible(true);
         sessionStorage.setItem(WELCOME_SHOWN_KEY, userId);
       }, 600);
       return () => clearTimeout(timer);
     }
-  }, [user]);
+  }, [user, search?.welcome]);
 
   // Auto-dismiss after 5 seconds
   useEffect(() => {
@@ -38,6 +52,10 @@ export function WelcomePopup() {
   const handleClose = () => {
     setDismissing(true);
     setTimeout(() => setVisible(false), 350);
+    // Remove the ?welcome=1 param from the URL so refresh does not re-trigger
+    if (search?.welcome === "1") {
+      navigate({ to: ".", search: (prev: Record<string, unknown>) => ({ ...prev, welcome: undefined }) });
+    }
   };
 
   if (!visible && !dismissing) return null;
