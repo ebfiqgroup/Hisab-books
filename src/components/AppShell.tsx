@@ -1,6 +1,6 @@
 import { ReactNode, useState, useRef, useEffect } from "react";
 import { Sidebar } from "./Sidebar";
-import { Bell, ChevronDown, LogOut, User as UserIcon, Settings as SettingsIcon, Headset, ArrowLeft, Sun, Moon, Download } from "lucide-react";
+import { Bell, ChevronDown, LogOut, User as UserIcon, Settings as SettingsIcon, Headset, ArrowLeft, Sun, Moon, Download, Copy, Check, Share2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useNavigate, useRouter, useLocation } from "@tanstack/react-router";
 import { RefCodeBadge } from "./RefCodeBadge";
@@ -26,6 +26,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
   const [bellOpen, setBellOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
   const [installHelpOpen, setInstallHelpOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -66,11 +67,47 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
       window.navigator.standalone === true);
 
   const handleInstallClick = async () => {
-    if (deferred) {
-      await promptInstall();
-    } else {
-      setInstallHelpOpen(true);
+    setInstallHelpOpen(true);
+  };
+
+  const appUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/`
+      : "https://amarhishabs.lovable.app/";
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(appUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      // fallback
+      const ta = document.createElement("textarea");
+      ta.value = appUrl;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy"); setCopied(true); setTimeout(() => setCopied(false), 1800); } catch { /* noop */ }
+      document.body.removeChild(ta);
     }
+  };
+
+  const shareLink = async () => {
+    if (typeof navigator !== "undefined" && (navigator as Navigator & { share?: (d: ShareData) => Promise<void> }).share) {
+      try {
+        await (navigator as Navigator & { share: (d: ShareData) => Promise<void> }).share({
+          title: "আমার হিসাব",
+          text: t("আমার হিসাব অ্যাপ", "Amar Hishab app"),
+          url: appUrl,
+        });
+      } catch { /* user cancelled */ }
+    } else {
+      copyLink();
+    }
+  };
+
+  const doNativeInstall = async () => {
+    const res = await promptInstall();
+    if (res.outcome === "accepted") setInstallHelpOpen(false);
   };
 
   const showInstallBtn = !isStandalone;
@@ -358,7 +395,45 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                 {t("অ্যাপ ইনস্টল করুন", "Install the app")}
               </div>
             </div>
-            <div className="text-sm space-y-2" style={{ color: "var(--brand-ink-soft)" }}>
+
+            {deferred && (
+              <button
+                onClick={doNativeInstall}
+                className="w-full mb-3 px-4 py-2.5 rounded-lg text-white text-sm font-semibold flex items-center justify-center gap-2"
+                style={{ background: "var(--gradient-brand)" }}
+              >
+                <Download className="w-4 h-4" />
+                {t("এক ক্লিকে ইনস্টল করুন", "Install with one click")}
+              </button>
+            )}
+
+            <div className="flex gap-2 mb-3">
+              <div
+                className="flex-1 px-3 py-2 rounded-lg border text-xs truncate font-mono"
+                style={{ borderColor: "var(--brand-line)", color: "var(--brand-ink-soft)", background: "var(--brand-ivory)" }}
+              >
+                {appUrl}
+              </div>
+              <button
+                onClick={copyLink}
+                title={t("লিংক কপি", "Copy link")}
+                className="px-3 py-2 rounded-lg border text-sm font-semibold flex items-center gap-1.5"
+                style={{ borderColor: "var(--brand-line)", color: "var(--brand-ink)" }}
+              >
+                {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                {copied ? t("কপি হয়েছে", "Copied") : t("কপি", "Copy")}
+              </button>
+              <button
+                onClick={shareLink}
+                title={t("শেয়ার", "Share")}
+                className="px-3 py-2 rounded-lg border text-sm font-semibold flex items-center"
+                style={{ borderColor: "var(--brand-line)", color: "var(--brand-ink)" }}
+              >
+                <Share2 className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="text-sm space-y-2 border-t pt-3" style={{ color: "var(--brand-ink-soft)", borderColor: "var(--brand-line)" }}>
               <p className="font-semibold">{t("Android (Chrome):", "Android (Chrome):")}</p>
               <p>{t("ব্রাউজার মেনু (⋮) → \"Install app\" / \"হোম স্ক্রিনে যোগ করুন\" নির্বাচন করুন।", "Open browser menu (⋮) → tap \"Install app\" / \"Add to Home screen\".")}</p>
               <p className="font-semibold mt-3">{t("iPhone (Safari):", "iPhone (Safari):")}</p>
@@ -368,8 +443,8 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
             </div>
             <button
               onClick={() => setInstallHelpOpen(false)}
-              className="mt-4 w-full px-4 py-2 rounded-lg text-white text-sm font-semibold"
-              style={{ background: "var(--gradient-brand)" }}
+              className="mt-4 w-full px-4 py-2 rounded-lg border text-sm font-semibold"
+              style={{ borderColor: "var(--brand-line)", color: "var(--brand-ink)" }}
             >
               {t("ঠিক আছে", "OK")}
             </button>
