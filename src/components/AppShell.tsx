@@ -1,6 +1,6 @@
 import { ReactNode, useState, useRef, useEffect } from "react";
 import { Sidebar } from "./Sidebar";
-import { Bell, ChevronDown, LogOut, User as UserIcon, Settings as SettingsIcon, Headset, ArrowLeft, Sun, Moon, Download } from "lucide-react";
+import { Bell, ChevronDown, LogOut, User as UserIcon, Settings as SettingsIcon, Headset, ArrowLeft, Sun, Moon, Download, Copy, Check, Share2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useNavigate, useRouter, useLocation } from "@tanstack/react-router";
 import { RefCodeBadge } from "./RefCodeBadge";
@@ -26,6 +26,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
   const [bellOpen, setBellOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
   const [installHelpOpen, setInstallHelpOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -66,11 +67,47 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
       window.navigator.standalone === true);
 
   const handleInstallClick = async () => {
-    if (deferred) {
-      await promptInstall();
-    } else {
-      setInstallHelpOpen(true);
+    setInstallHelpOpen(true);
+  };
+
+  const appUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/`
+      : "https://amarhishabs.lovable.app/";
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(appUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      // fallback
+      const ta = document.createElement("textarea");
+      ta.value = appUrl;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy"); setCopied(true); setTimeout(() => setCopied(false), 1800); } catch { /* noop */ }
+      document.body.removeChild(ta);
     }
+  };
+
+  const shareLink = async () => {
+    if (typeof navigator !== "undefined" && (navigator as Navigator & { share?: (d: ShareData) => Promise<void> }).share) {
+      try {
+        await (navigator as Navigator & { share: (d: ShareData) => Promise<void> }).share({
+          title: "আমার হিসাব",
+          text: t("আমার হিসাব অ্যাপ", "Amar Hishab app"),
+          url: appUrl,
+        });
+      } catch { /* user cancelled */ }
+    } else {
+      copyLink();
+    }
+  };
+
+  const doNativeInstall = async () => {
+    const res = await promptInstall();
+    if (res.outcome === "accepted") setInstallHelpOpen(false);
   };
 
   const showInstallBtn = !isStandalone;
