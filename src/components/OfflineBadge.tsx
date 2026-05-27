@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Wifi, WifiOff, RotateCw, AlertTriangle } from "lucide-react";
 import { useOfflineSync } from "@/hooks/useOfflineSync";
 import { ConflictDialog } from "./ConflictDialog";
@@ -10,9 +10,9 @@ export function OfflineBadge() {
   const [showConflicts, setShowConflicts] = useState(false);
 
   // Auto-open conflict dialog when new conflicts arrive
-  if (conflicts.length > 0 && !showConflicts) {
-    queueMicrotask(() => setShowConflicts(true));
-  }
+  useEffect(() => {
+    if (conflicts.length > 0) setShowConflicts(true);
+  }, [conflicts.length]);
 
   if (online && pending === 0 && conflicts.length === 0) {
     // Tiny indicator only — keep header clean
