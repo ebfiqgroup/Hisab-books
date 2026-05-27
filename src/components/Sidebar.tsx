@@ -58,11 +58,19 @@ export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean;
             ? "fixed top-0 left-0 flex translate-x-0"
             : "hidden -translate-x-full"}`}
         style={{
-          background: "var(--gradient-sidebar-light)",
+          background: "var(--sidebar-luminous-bg)",
           color: "var(--brand-ink)",
+          boxShadow: "inset -1px 0 0 color-mix(in oklab, var(--brand-gold-500) 25%, var(--brand-line))",
         }}
       >
-      <div className="absolute inset-y-0 right-0 w-px" style={{ background: "linear-gradient(180deg, transparent, var(--brand-line), transparent)" }} />
+      {/* Top-left luminous highlight sheen */}
+      <div className="absolute inset-0 pointer-events-none" style={{
+        background: "radial-gradient(90% 50% at 0% 0%, color-mix(in oklab, white 60%, transparent) 0%, transparent 50%)",
+        mixBlendMode: "screen",
+        opacity: 0.6,
+      }} />
+      {/* Right-edge glow strip */}
+      <div className="absolute inset-y-0 right-0 w-[2px]" style={{ background: "var(--sidebar-glow-right)" }} />
       <div className="p-5 flex items-center gap-3 border-b" style={{ borderColor: "var(--brand-line)" }}>
         <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-lg" style={{ background: "color-mix(in oklab, var(--brand-emerald-600) 12%, transparent)", border: "1px solid color-mix(in oklab, var(--brand-emerald-600) 30%, transparent)" }}>
           <Wallet className="w-5 h-5" style={{ color: "var(--brand-emerald-700)" }} />
