@@ -128,18 +128,12 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const setLang = useCallback((l: Lang) => {
-    const prev = lang;
     setLangState(l);
     setFinanceLang(l);
     try { localStorage.setItem(KEY, l); } catch { /* noop */ }
     if (typeof document !== "undefined") document.documentElement.lang = "bn";
     setGoogTransCookie(l);
-    // Force a clean re-render of every consumer (including non-context ones
-    // like fmtTk-based currency labels) when the user explicitly switches.
-    if (prev !== l && typeof window !== "undefined") {
-      setTimeout(() => window.location.reload(), 50);
-    }
-  }, [lang]);
+  }, []);
 
   const toggle = useCallback(() => setLang(lang === "bn" ? "en" : "bn"), [lang, setLang]);
 
