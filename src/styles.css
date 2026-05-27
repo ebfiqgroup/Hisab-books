@@ -198,6 +198,23 @@
   --shadow-elegant: 0 10px 30px -12px color-mix(in oklab, var(--brand-emerald-900) 35%, transparent);
   --shadow-soft:    0 4px 14px -6px color-mix(in oklab, var(--brand-emerald-900) 18%, transparent);
 
+  /* Luminous lighting system — soft top-left highlight + warm ambient glow.
+     Layered on every card/banner/section for a bright, lit-from-within feel. */
+  --luminous-highlight: radial-gradient(120% 80% at 0% 0%,
+      color-mix(in oklab, white 75%, transparent) 0%,
+      color-mix(in oklab, white 25%, transparent) 28%,
+      transparent 60%);
+  --luminous-glow: radial-gradient(90% 70% at 100% 100%,
+      color-mix(in oklab, var(--brand-gold-300) 38%, transparent) 0%,
+      transparent 65%);
+  --luminous-surface: linear-gradient(180deg,
+      color-mix(in oklab, white 96%, var(--brand-gold-300) 4%) 0%,
+      color-mix(in oklab, white 88%, var(--brand-ivory) 12%) 100%);
+  --shadow-glow:     0 0 0 1px color-mix(in oklab, white 55%, transparent) inset,
+                     0 1px 0 color-mix(in oklab, white 80%, transparent) inset,
+                     0 14px 38px -18px color-mix(in oklab, var(--brand-gold-500) 55%, transparent),
+                     0 6px 18px -10px color-mix(in oklab, var(--brand-emerald-900) 18%, transparent);
+
   --font-display: "Nikosh", "Instrument Serif", "Cormorant Garamond", "Hind Siliguri", serif;
   --font-body:    "Nikosh", "Work Sans", "Hind Siliguri", "Noto Sans Bengali", system-ui, sans-serif;
 }
@@ -226,6 +243,24 @@
 
   --shadow-elegant: 0 10px 30px -12px oklch(0 0 0 / 0.55);
   --shadow-soft:    0 4px 14px -6px  oklch(0 0 0 / 0.45);
+}
+
+/* Dark-mode luminous tokens — softer cool highlight + emerald ambient glow. */
+.dark {
+  --luminous-highlight: radial-gradient(120% 80% at 0% 0%,
+      color-mix(in oklab, white 18%, transparent) 0%,
+      color-mix(in oklab, white 6%, transparent) 30%,
+      transparent 65%);
+  --luminous-glow: radial-gradient(90% 70% at 100% 100%,
+      color-mix(in oklab, var(--brand-emerald-500) 28%, transparent) 0%,
+      transparent 65%);
+  --luminous-surface: linear-gradient(180deg,
+      oklch(0.24 0.025 160) 0%,
+      oklch(0.18 0.02 160) 100%);
+  --shadow-glow: 0 0 0 1px color-mix(in oklab, white 10%, transparent) inset,
+                 0 1px 0 color-mix(in oklab, white 14%, transparent) inset,
+                 0 16px 40px -18px color-mix(in oklab, var(--brand-emerald-500) 45%, transparent),
+                 0 8px 22px -12px oklch(0 0 0 / 0.6);
 }
 
 /* Re-skin hardcoded white surfaces & slate text in dark mode without
