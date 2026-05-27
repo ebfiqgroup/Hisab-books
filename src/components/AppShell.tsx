@@ -25,6 +25,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
   const [menuOpen, setMenuOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
+  const [installHelpOpen, setInstallHelpOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -57,6 +58,22 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
     await signOut();
     navigate({ to: "/auth" });
   };
+
+  const isStandalone =
+    typeof window !== "undefined" &&
+    (window.matchMedia?.("(display-mode: standalone)").matches ||
+      // @ts-expect-error iOS
+      window.navigator.standalone === true);
+
+  const handleInstallClick = async () => {
+    if (deferred) {
+      await promptInstall();
+    } else {
+      setInstallHelpOpen(true);
+    }
+  };
+
+  const showInstallBtn = !isStandalone;
 
   return (
     <div className="h-[100dvh] lg:h-screen flex overflow-hidden min-h-0 min-w-0" style={{ background: "var(--gradient-page)" }}>
@@ -108,10 +125,10 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                   <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
                 </a>
               </Tooltip>
-              {deferred && (
+              {showInstallBtn && (
                 <Tooltip label={t("অ্যাপ ডাউনলোড", "Install app")} side="bottom">
                   <button
-                    onClick={() => promptInstall()}
+                    onClick={handleInstallClick}
                     aria-label={t("অ্যাপ ডাউনলোড", "Install app")}
                     className="p-1 rounded-lg hover:bg-white/60 transition w-8 h-8 flex items-center justify-center"
                     style={{ color: "var(--brand-ink-soft)" }}
@@ -165,10 +182,10 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                 >
                   {lang === "bn" ? "EN" : "বাং"}
                 </button>
-                {deferred && (
+                {showInstallBtn && (
                   <Tooltip label={t("অ্যাপ ডাউনলোড", "Install app")} side="bottom">
                     <button
-                      onClick={() => promptInstall()}
+                      onClick={handleInstallClick}
                       aria-label={t("অ্যাপ ডাউনলোড", "Install app")}
                       className="p-2 bg-white rounded-lg border hover:shadow-sm transition w-9 h-9 flex items-center justify-center"
                       style={{ borderColor: "var(--brand-line)", color: "var(--brand-ink-soft)" }}
@@ -323,6 +340,42 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
           {children}
         </div>
       </main>
+      {installHelpOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.5)" }}
+          onClick={() => setInstallHelpOpen(false)}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white" style={{ background: "var(--gradient-brand)" }}>
+                <Download className="w-5 h-5" />
+              </div>
+              <div className="text-base font-semibold" style={{ color: "var(--brand-ink)" }}>
+                {t("অ্যাপ ইনস্টল করুন", "Install the app")}
+              </div>
+            </div>
+            <div className="text-sm space-y-2" style={{ color: "var(--brand-ink-soft)" }}>
+              <p className="font-semibold">{t("Android (Chrome):", "Android (Chrome):")}</p>
+              <p>{t("ব্রাউজার মেনু (⋮) → \"Install app\" / \"হোম স্ক্রিনে যোগ করুন\" নির্বাচন করুন।", "Open browser menu (⋮) → tap \"Install app\" / \"Add to Home screen\".")}</p>
+              <p className="font-semibold mt-3">{t("iPhone (Safari):", "iPhone (Safari):")}</p>
+              <p>{t("Share বাটন (⬆) → \"Add to Home Screen\" নির্বাচন করুন।", "Tap the Share button (⬆) → choose \"Add to Home Screen\".")}</p>
+              <p className="font-semibold mt-3">{t("ডেস্কটপ:", "Desktop:")}</p>
+              <p>{t("অ্যাড্রেস বারের ডানে ইনস্টল আইকনে ক্লিক করুন।", "Click the install icon on the right side of the address bar.")}</p>
+            </div>
+            <button
+              onClick={() => setInstallHelpOpen(false)}
+              className="mt-4 w-full px-4 py-2 rounded-lg text-white text-sm font-semibold"
+              style={{ background: "var(--gradient-brand)" }}
+            >
+              {t("ঠিক আছে", "OK")}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
