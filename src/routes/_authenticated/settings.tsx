@@ -68,6 +68,7 @@ function SettingsPage() {
   const { lang, setLang, t } = useLanguage();
   const [name, setName] = useState("");
   const [avatar, setAvatar] = useState("");
+  const avatarSrc = useAvatarUrl(avatar);
   const [busy, setBusy] = useState(false);
   const [newPwd, setNewPwd] = useState("");
   const [confirmPwd, setConfirmPwd] = useState("");
@@ -299,7 +300,7 @@ function SettingsPage() {
           <div className="absolute -bottom-24 -left-16 w-72 h-72 bg-fuchsia-300/20 rounded-full blur-3xl" />
           <div className="relative flex items-center gap-4">
             <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden ring-4 ring-white/30 bg-white/20 flex items-center justify-center text-white text-2xl sm:text-3xl font-extrabold shrink-0">
-              {avatar ? <img src={avatar} alt="" className="w-full h-full object-cover" /> : (name || user?.email || "U").charAt(0).toUpperCase()}
+              {avatarSrc ? <img src={avatarSrc} alt="" className="w-full h-full object-cover" /> : (name || user?.email || "U").charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
               <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-white/15 backdrop-blur rounded-full text-xs font-medium mb-1.5">
@@ -315,7 +316,7 @@ function SettingsPage() {
         <Section icon={<UserIcon className="w-4 h-4 text-indigo-600" />} title={t("প্রোফাইল", "Profile")}>
           <div className="flex items-center gap-4 mb-4">
             <div className="w-16 h-16 rounded-full overflow-hidden bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-white text-2xl font-bold">
-              {avatar ? <img src={avatar} alt="" className="w-full h-full object-cover" /> : (name || user?.email || "U").charAt(0).toUpperCase()}
+              {avatarSrc ? <img src={avatarSrc} alt="" className="w-full h-full object-cover" /> : (name || user?.email || "U").charAt(0).toUpperCase()}
             </div>
             <div className="text-sm text-slate-500">{t("আপনার ছবি ও নাম অ্যাপ জুড়ে দেখা যাবে।", "Your photo and name appear throughout the app.")}</div>
           </div>
