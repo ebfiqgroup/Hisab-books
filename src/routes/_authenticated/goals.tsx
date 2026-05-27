@@ -334,7 +334,8 @@ function GoalsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredList.map((g) => {
           const c = colorOf(g.color);
-          const pct = g.target > 0 ? Math.min(100, (Number(g.current) / Number(g.target)) * 100) : 0;
+          const curVal = currentOf(g);
+          const pct = g.target > 0 ? Math.min(100, (curVal / Number(g.target)) * 100) : 0;
           const status = effStatus(g);
           const statusBtns: { key: "pending" | "ongoing" | "completed"; labelBn: string; labelEn: string; active: string }[] = [
             { key: "pending", labelBn: "অপেক্ষিত", labelEn: "Pending", active: "bg-amber-500 text-white border-amber-500" },
@@ -385,7 +386,7 @@ function GoalsPage() {
               {/* Money progress */}
               <div className="flex items-center justify-between text-[11px] mb-1">
                 <span className="text-slate-500 font-medium">💰 {t("টাকা", "Money")}</span>
-                <span className="text-slate-400">{t("বাকি", "Left")}: {fmtTk(Math.max(0, Number(g.target) - Number(g.current)))}</span>
+                <span className="text-slate-400">{t("বাকি", "Left")}: {fmtTk(Math.max(0, Number(g.target) - curVal))}</span>
               </div>
               <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden mb-1 shadow-inner">
                 <div className="h-full rounded-full transition-all shadow-sm" style={{ width: `${pct}%`, background: grad }} />
