@@ -245,6 +245,22 @@ function Dashboard() {
 
   const recent = all.slice(0, 5);
 
+  // Auto-compute saved amount per goal from income transactions matching its category
+  const incomeByCat = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const t of all) {
+      if (t.type === "income") map[t.category] = (map[t.category] ?? 0) + Number(t.amount);
+    }
+    return map;
+  }, [all]);
+  const goalCurrent = (g: Goal) => {
+    const stored = Number(g.current) || 0;
+    if (g.category && incomeByCat[g.category] != null) {
+      return Math.max(stored, incomeByCat[g.category]);
+    }
+    return stored;
+  };
+
   // Budget rows (with computed spent for each budget's own date range)
   const nowIsoFull = now.toISOString();
   const budgetRows = useMemo(() => {
