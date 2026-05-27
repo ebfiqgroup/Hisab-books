@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,13 +38,10 @@ function AuthPage() {
     }
   };
 
-  useEffect(() => {
-    let cancel = false;
-    supabase.auth.getSession().then(({ data }) => {
-      if (!cancel && data.session) navigate({ to: "/app", replace: true });
-    });
-    return () => { cancel = true; };
-  }, [navigate]);
+  // Always show the login form on /auth. Do NOT auto-redirect to /app even
+  // if a previous Supabase session is cached in localStorage — the user must
+  // explicitly log in. If they already have a valid session and want the
+  // dashboard, they can navigate to /app directly.
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
