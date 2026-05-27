@@ -400,7 +400,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center p-4"
           style={{ background: "rgba(0,0,0,0.5)" }}
-          onClick={() => setInstallHelpOpen(false)}
+          onClick={() => { setInstallHelpOpen(false); setPlatformHelp(null); }}
         >
           <div
             className="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl"
@@ -508,7 +508,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
               </div>
             )}
             <button
-              onClick={() => setInstallHelpOpen(false)}
+              onClick={() => { setInstallHelpOpen(false); setPlatformHelp(null); }}
               className="mt-4 w-full px-4 py-2 rounded-lg border text-sm font-semibold"
               style={{ borderColor: "var(--brand-line)", color: "var(--brand-ink)" }}
             >
