@@ -52,6 +52,10 @@ export function WelcomePopup() {
   const handleClose = () => {
     setDismissing(true);
     setTimeout(() => setVisible(false), 350);
+    // Remove the ?welcome=1 param from the URL so refresh does not re-trigger
+    if (search?.welcome === "1") {
+      navigate({ to: ".", search: (prev) => ({ ...prev, welcome: undefined }) });
+    }
   };
 
   if (!visible && !dismissing) return null;
