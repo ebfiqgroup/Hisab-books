@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
@@ -64,15 +64,6 @@ function BudgetPage() {
   const qc = useQueryClient();
   const uid = useCurrentUserId();
   const { forType } = useCustomCategories();
-  // One-time clear of any pre-existing expense categories so the budget
-  // page starts fresh and the user defines categories from scratch here.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (localStorage.getItem("budget_cats_reset_v1")) return;
-    const m = loadCustomCats();
-    saveCustomCats({ ...m, expense: [] });
-    localStorage.setItem("budget_cats_reset_v1", "1");
-  }, []);
   const cats = forType("expense");
   const [newCat, setNewCat] = useState("");
   const [editingCat, setEditingCat] = useState<string | null>(null);
