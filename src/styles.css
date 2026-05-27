@@ -396,11 +396,11 @@ main .rounded-3xl:where(.bg-white, .bg-card, [class*="bg-white"]):hover,
 main [class*="border"]:where(.bg-white, .bg-card):hover {
   transform: translateY(-2px);
   box-shadow:
-    0 0 0 1px color-mix(in oklab, white 60%, transparent) inset,
-    0 1px 0 color-mix(in oklab, white 85%, transparent) inset,
-    0 20px 44px -20px color-mix(in oklab, var(--brand-gold-500) 60%, transparent),
+    0 0 0 1px color-mix(in oklab, white 70%, transparent) inset,
+    0 1px 0 color-mix(in oklab, white 90%, transparent) inset,
+    0 20px 44px -20px color-mix(in oklab, var(--brand-gold-500) 75%, transparent),
     0 8px 20px -12px color-mix(in oklab, var(--brand-emerald-900) 20%, transparent);
-  border-color: color-mix(in oklab, var(--brand-gold-500) 50%, var(--brand-line));
+  border-color: color-mix(in oklab, var(--brand-gold-500) 60%, var(--brand-line));
 }
 
 /* Banners / hero strips that use the brand gradient get a luminous sheen. */
