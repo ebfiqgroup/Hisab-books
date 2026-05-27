@@ -170,7 +170,7 @@ function GoalsPage() {
 
   const list = q.data ?? [];
   const autoStatus = (g: Goal): "pending" | "ongoing" | "completed" => {
-    const c = Number(g.current), tg = Number(g.target);
+    const c = currentOf(g), tg = Number(g.target);
     return c >= tg ? "completed" : c > 0 ? "ongoing" : "pending";
   };
   const effStatus = (g: Goal) => g.status ?? autoStatus(g);
@@ -206,10 +206,10 @@ function GoalsPage() {
   ];
 
   const totalTarget = filteredList.reduce((s, g) => s + Number(g.target), 0);
-  const totalCurrent = filteredList.reduce((s, g) => s + Number(g.current), 0);
+  const totalCurrent = filteredList.reduce((s, g) => s + currentOf(g), 0);
   const totalPct = totalTarget > 0 ? Math.min(100, (totalCurrent / totalTarget) * 100) : 0;
   const totalRemaining = Math.max(0, totalTarget - totalCurrent);
-  const completedCount = filteredList.filter((g) => Number(g.current) >= Number(g.target) && Number(g.target) > 0).length;
+  const completedCount = filteredList.filter((g) => currentOf(g) >= Number(g.target) && Number(g.target) > 0).length;
 
   return (
     <AppShell title={t("সঞ্চয় লক্ষ্য", "Savings goals")} actions={
