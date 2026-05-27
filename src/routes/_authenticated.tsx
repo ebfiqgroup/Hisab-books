@@ -115,6 +115,7 @@ function AuthGate() {
 
   return (
     <RealtimeStatusProvider value={rtStatus}>
+      <WelcomePopup />
       <Outlet />
     </RealtimeStatusProvider>
   );
