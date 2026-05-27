@@ -11,6 +11,7 @@ import {
   Download, Upload, Trash2, AlertTriangle, Save, ImagePlus, Languages, Coins,
 } from "lucide-react";
 import { getFinanceSymbol, setFinanceSymbol, fmtTk } from "@/lib/finance";
+import { loadSocialLinks, setSocialLinks } from "@/hooks/useSocialLinks";
 
 export const Route = createFileRoute("/_authenticated/settings")({ component: SettingsPage });
 
@@ -74,11 +75,13 @@ function SettingsPage() {
   const [confirmDelete, setConfirmDelete] = useState("");
   const [currency, setCurrency] = useState<string>("৳");
   const [customCurrency, setCustomCurrency] = useState<string>("");
+  const [facebookUrl, setFacebookUrl] = useState<string>("");
 
   useEffect(() => {
     setPrefs(loadPrefs());
     setAi(loadAi());
     setCurrency(getFinanceSymbol());
+    setFacebookUrl(loadSocialLinks().facebook);
   }, []);
 
   const CURRENCY_PRESETS: { sym: string; name: string }[] = [
@@ -252,6 +255,20 @@ function SettingsPage() {
 
   const doSignOut = async () => { await signOut(); navigate({ to: "/auth" }); };
 
+  const saveFacebook = () => {
+    const url = facebookUrl.trim();
+    if (!url) { toast.error(t("লিংক দিন", "Enter a URL")); return; }
+    try {
+      const u = new URL(url);
+      if (u.protocol !== "http:" && u.protocol !== "https:") throw new Error("bad protocol");
+    } catch {
+      toast.error(t("সঠিক URL দিন (https://...)", "Enter a valid URL (https://...)"));
+      return;
+    }
+    setSocialLinks({ facebook: url });
+    toast.success(t("ফেসবুক লিংক সংরক্ষিত", "Facebook link saved"));
+  };
+
   const uploadAvatar = async (file: File) => {
     if (!user) return;
     if (!file.type.startsWith("image/")) { toast.error(t("শুধু ছবি ফাইল আপলোড করুন", "Please upload an image file")); return; }
@@ -424,6 +441,30 @@ function SettingsPage() {
               </button>
             </div>
             <p className="text-xs text-slate-500 mt-2">{t("বর্তমান উদাহরণ", "Current example")}: <span className="font-semibold text-slate-700">{fmtTk(12345)}</span></p>
+          </Field>
+        </Section>
+
+        {/* Social links */}
+        <Section icon={<SlidersHorizontal className="w-4 h-4 text-indigo-600" />} title={t("সোশ্যাল লিংক", "Social Links")}>
+          <Field label={t("ফেসবুক সাপোর্ট পেজ লিংক", "Facebook support page URL")}>
+            <div className="flex gap-2">
+              <input
+                type="url"
+                value={facebookUrl}
+                onChange={(e) => setFacebookUrl(e.target.value)}
+                placeholder="https://www.facebook.com/yourpage"
+                className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm"
+              />
+              <button
+                onClick={saveFacebook}
+                className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg inline-flex items-center gap-1.5"
+              >
+                <Save className="w-4 h-4" /> {t("সংরক্ষণ", "Save")}
+              </button>
+            </div>
+            <p className="text-xs text-slate-500 mt-2">
+              {t("হেডারের ফেসবুক আইকন এই লিংকে নিয়ে যাবে।", "The Facebook icon in the header will open this link.")}
+            </p>
           </Field>
         </Section>
 
