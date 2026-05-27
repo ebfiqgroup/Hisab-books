@@ -117,6 +117,13 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
       <Sidebar mobileOpen={navOpen} onClose={() => setNavOpen(false)} />
       <main className="flex-1 px-2 sm:px-3 lg:px-6 pb-2 sm:pb-3 lg:pb-6 overflow-y-auto overflow-x-hidden h-full w-full min-w-0 min-h-0">
         <div className="sticky top-0 z-30 flex flex-col gap-0 mb-3 lg:mb-4 -mx-2 sm:-mx-3 lg:-mx-6 px-2 sm:px-3 lg:px-6 pb-1 border-b lg:flex-row lg:items-center lg:justify-between lg:gap-2" style={{ backgroundColor: "color-mix(in oklab, var(--brand-ivory) 92%, transparent)", backdropFilter: "blur(8px)", borderColor: "var(--brand-line)" }} ref={ref}>
+          {/* === BRAND / LOGO ROW === */}
+          <div className="flex items-center justify-center gap-2 py-1.5 border-b lg:border-b-0 lg:py-0 lg:hidden" style={{ borderColor: "var(--brand-line)" }}>
+            <Link to="/app" className="flex items-center gap-2 hover:opacity-80 transition">
+              <img src="/icon-512.png" alt="logo" className="h-5 w-5 rounded-sm object-contain" />
+              <span className="text-sm font-bold tracking-wide" style={{ fontFamily: "var(--font-display)", color: "var(--brand-ink)" }}>{t("appName", "আমার হিসাব")}</span>
+            </Link>
+          </div>
           {/* === TOP ROW (mobile) / single row (desktop) === */}
           <div className="flex items-center justify-between gap-1 lg:gap-3 min-w-0">
             {/* LEFT: hamburger only on mobile/tablet; full left on desktop */}
