@@ -11,6 +11,12 @@ import {
 } from "recharts";
 import { useAvatarUrl } from "@/lib/avatar-url";
 
+function ProfileAvatar({ url, fallback }: { url: string | null; fallback: string | null }) {
+  const src = useAvatarUrl(url);
+  if (src) return <img src={src} alt="" className="w-full h-full object-cover" />;
+  return <>{(fallback || "?").charAt(0).toUpperCase()}</>;
+}
+
 type Txn = { id: string; type: "income" | "expense"; category: string; amount: number; occurred_on: string; note: string | null };
 type Debt = { id: string; kind: "receivable" | "payable"; amount: number; settled: boolean; person: string; due_date: string | null; note: string | null };
 type Goal = { id: string; label: string; target: number; current: number; color: string; deadline: string | null };
