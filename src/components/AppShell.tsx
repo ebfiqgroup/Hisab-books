@@ -60,7 +60,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
     <div className="h-[100dvh] lg:h-screen flex overflow-hidden min-h-0 min-w-0" style={{ background: "var(--gradient-page)" }}>
       <Sidebar mobileOpen={navOpen} onClose={() => setNavOpen(false)} />
       <main className="flex-1 px-2 sm:px-3 lg:px-6 pb-2 sm:pb-3 lg:pb-6 overflow-y-auto overflow-x-hidden h-full w-full min-w-0 min-h-0">
-        <div className="sticky top-0 z-30 flex flex-col gap-1 mb-3 lg:mb-4 -mx-2 sm:-mx-3 lg:-mx-6 px-2 sm:px-3 lg:px-6 pb-1 border-b lg:flex-row lg:items-center lg:justify-between lg:gap-2" style={{ backgroundColor: "color-mix(in oklab, var(--brand-ivory) 92%, transparent)", backdropFilter: "blur(8px)", borderColor: "var(--brand-line)" }} ref={ref}>
+        <div className="sticky top-0 z-30 flex flex-col gap-0 mb-3 lg:mb-4 -mx-2 sm:-mx-3 lg:-mx-6 px-2 sm:px-3 lg:px-6 pb-1 border-b lg:flex-row lg:items-center lg:justify-between lg:gap-2" style={{ backgroundColor: "color-mix(in oklab, var(--brand-ivory) 92%, transparent)", backdropFilter: "blur(8px)", borderColor: "var(--brand-line)" }} ref={ref}>
           {/* === TOP ROW (mobile) / single row (desktop) === */}
           <div className="flex items-center justify-between gap-1 lg:gap-3 min-w-0">
             {/* LEFT: hamburger only on mobile/tablet; full left on desktop */}
@@ -218,7 +218,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
           </div>
 
           {/* === BOTTOM ROW: mobile/tablet — left: hamburger + back + title; right: theme/lang/profile === */}
-          <div className="flex lg:hidden items-center justify-between gap-2 pt-0.5">
+          <div className="flex lg:hidden items-center justify-between gap-2 pt-0">
             <div className="flex items-center gap-2 min-w-0 flex-1">
               <button
                 type="button"
