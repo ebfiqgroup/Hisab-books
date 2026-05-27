@@ -712,7 +712,8 @@ function Dashboard() {
           <div className="space-y-3">
             {goals.length === 0 && <div className="text-sm text-slate-400 text-center py-4">{t("কোনো লক্ষ্য নেই", "No goals")}</div>}
             {goals.map((g) => {
-              const pct = g.target > 0 ? Math.min(100, (Number(g.current) / Number(g.target)) * 100) : 0;
+              const curVal = goalCurrent(g);
+              const pct = g.target > 0 ? Math.min(100, (curVal / Number(g.target)) * 100) : 0;
               const done = pct >= 100;
               const accent = g.color || "#6366f1";
               return (
@@ -731,7 +732,7 @@ function Dashboard() {
                         {g.label}
                         {done && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 ring-1 ring-amber-200 shrink-0">{t("অর্জিত", "Achieved")}</span>}
                       </span>
-                      <span className="text-slate-500 shrink-0 text-[11px]">{fmtTk(Number(g.current))} / {fmtTk(Number(g.target))}</span>
+                      <span className="text-slate-500 shrink-0 text-[11px]">{fmtTk(curVal)} / {fmtTk(Number(g.target))}</span>
                     </div>
                     <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                       <div
