@@ -6,7 +6,7 @@ import { AppShell } from "@/components/AppShell";
 import { TxnDialog, type EditTxn } from "@/components/dashboard/TxnDialog";
 import { CategoryManager } from "@/components/dashboard/CategoryManager";
 import { fmtTk, toBn } from "@/lib/finance";
-import { Plus, Trash2, Wallet, Pencil, Tags, TrendingUp, Sparkles, Calendar, ArrowUpRight, Filter } from "lucide-react";
+import { Plus, Trash2, Wallet, Pencil, Tags, TrendingUp, Sparkles, Calendar, ArrowUpRight } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useCurrentUserId } from "@/hooks/useCurrentUserId";
