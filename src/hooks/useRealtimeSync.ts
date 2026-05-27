@@ -31,6 +31,9 @@ export function useRealtimeSync(userId: string | undefined) {
   const [status, setStatus] = useState<"connecting" | "connected" | "disconnected">("connecting");
   const prevStatusRef = useRef<"connecting" | "connected" | "disconnected">("connecting");
   const everConnectedRef = useRef(false);
+  const lastErrorRef = useRef<string | null>(null);
+  const failCountRef = useRef(0);
+  const reconnectRef = useRef<(() => void) | null>(null);
 
   const refreshKeys = useCallback((keys?: string[][]) => {
     if (!keys) {
@@ -51,17 +54,38 @@ export function useRealtimeSync(userId: string | undefined) {
     if (prev !== status) {
       if (status === "connected") {
         if (everConnectedRef.current) {
-          toast.success("রিয়েলটাইম সংযোগ পুনরায় স্থাপন হয়েছে");
+          toast.success("রিয়েলটাইম সংযোগ পুনরায় স্থাপন হয়েছে", {
+            description: "আপনার ডেটা এখন আবার লাইভ আপডেট হচ্ছে।",
+          });
         }
         everConnectedRef.current = true;
+        failCountRef.current = 0;
+        lastErrorRef.current = null;
       } else if (status === "disconnected" && everConnectedRef.current) {
-        toast.error("রিয়েলটাইম সংযোগ বিচ্ছিন্ন হয়েছে", {
-          description: "আপডেটগুলো সাময়িকভাবে দেরিতে আসতে পারে।",
+        const reason = lastErrorRef.current ?? "unknown";
+        const friendly =
+          reason === "TIMED_OUT" ? "সার্ভারের সাড়া পাওয়া যাচ্ছে না।" :
+          reason === "CHANNEL_ERROR" ? "সার্ভারে সংযোগ ত্রুটি হয়েছে।" :
+          reason === "CLOSED" ? "সংযোগ বন্ধ হয়ে গেছে।" :
+          "ইন্টারনেট সংযোগ পরীক্ষা করুন।";
+        // Structured developer log for debugging.
+        console.warn("[realtime] disconnected", {
+          userId: userId ? `${userId.slice(0, 8)}…` : null,
+          reason,
+          failCount: failCountRef.current,
+          tables: Object.keys(TABLE_CONFIG),
+          time: new Date().toISOString(),
+        });
+        toast.error("রিয়েলটাইম সংযোগ বিচ্ছিন্ন", {
+          description: `${friendly} আপডেটগুলো সাময়িকভাবে দেরিতে আসতে পারে।`,
+          action: reconnectRef.current
+            ? { label: "পুনঃচেষ্টা", onClick: () => reconnectRef.current?.() }
+            : undefined,
         });
       }
       prevStatusRef.current = status;
     }
-  }, [status]);
+  }, [status, userId]);
 
   useEffect(() => {
     if (!userId) { setStatus("disconnected"); return; }
@@ -90,9 +114,17 @@ export function useRealtimeSync(userId: string | undefined) {
         () => refreshKeys([["support_messages"], ["support_tickets"]]),
       );
       ch.subscribe((s: string) => {
-        if (s === "SUBSCRIBED") setStatus("connected");
-        else if (s === "CHANNEL_ERROR" || s === "TIMED_OUT" || s === "CLOSED") setStatus("disconnected");
-        else setStatus("connecting");
+        if (s === "SUBSCRIBED") {
+          lastErrorRef.current = null;
+          setStatus("connected");
+        } else if (s === "CHANNEL_ERROR" || s === "TIMED_OUT" || s === "CLOSED") {
+          lastErrorRef.current = s;
+          failCountRef.current += 1;
+          console.warn("[realtime] subscribe status", s, { failCount: failCountRef.current });
+          setStatus("disconnected");
+        } else {
+          setStatus("connecting");
+        }
       });
       return ch;
     };
@@ -113,11 +145,13 @@ export function useRealtimeSync(userId: string | undefined) {
     void start();
 
     const reconnect = async () => {
+      console.info("[realtime] reconnecting", { reason: lastErrorRef.current });
       if (channel) { try { supabase.removeChannel(channel); } catch { /* noop */ } channel = null; }
       setStatus("connecting");
       await start();
       refreshKeys();
     };
+    reconnectRef.current = () => { void reconnect(); };
 
     const onVisibility = () => {
       if (document.visibilityState === "visible") {
@@ -147,6 +181,7 @@ export function useRealtimeSync(userId: string | undefined) {
 
     return () => {
       cancelled = true;
+      reconnectRef.current = null;
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("online", onOnline);
       window.removeEventListener("focus", onFocus);
