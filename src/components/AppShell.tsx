@@ -26,11 +26,15 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const onClick = (e: MouseEvent) => {
+    const onClick = (e: Event) => {
       if (!ref.current?.contains(e.target as Node)) { setMenuOpen(false); setBellOpen(false); }
     };
     document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
+    document.addEventListener("touchstart", onClick, { passive: true });
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("touchstart", onClick);
+    };
   }, []);
 
   const name = (user?.user_metadata?.full_name as string) || user?.email?.split("@")[0] || t("header.you");
@@ -62,8 +66,9 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
             {/* LEFT: hamburger only on mobile/tablet; full left on desktop */}
             <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1 lg:flex-none lg:w-auto">
               <button
+                type="button"
                 onClick={() => setNavOpen(true)}
-                className="lg:hidden p-2 bg-white rounded-lg border hover:shadow-sm transition shrink-0 flex flex-col gap-[3px] items-center justify-center w-9 h-9"
+                className="lg:hidden relative z-[35] p-2 bg-white rounded-lg border hover:shadow-sm transition shrink-0 flex flex-col gap-[3px] items-center justify-center w-9 h-9"
                 style={{ borderColor: "var(--brand-line)" }}
                 aria-label="মেনু খুলুন"
               >
@@ -75,10 +80,11 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
               <div className="hidden lg:flex items-center gap-2 md:gap-3 min-w-0">
                 {showBack && (
                   <button
+                    type="button"
                     onClick={goBack}
                     title={t("ফিরে যান", "Back")}
                     aria-label={t("ফিরে যান", "Back")}
-                    className="p-2 bg-white rounded-lg border hover:shadow-sm transition shrink-0 w-9 h-9 flex items-center justify-center"
+                    className="relative z-[35] p-2 bg-white rounded-lg border hover:shadow-sm transition shrink-0 w-9 h-9 flex items-center justify-center"
                     style={{ borderColor: "var(--brand-line)" }}
                   >
                     <ArrowLeft className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
@@ -91,10 +97,11 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
               <div className="flex lg:hidden items-center gap-2 min-w-0">
                 {showBack && (
                   <button
+                    type="button"
                     onClick={goBack}
                     title={t("ফিরে যান", "Back")}
                     aria-label={t("ফিরে যান", "Back")}
-                    className="p-2 bg-white rounded-lg border hover:shadow-sm transition shrink-0 w-9 h-9 flex items-center justify-center"
+                    className="relative z-[35] p-2 bg-white rounded-lg border hover:shadow-sm transition shrink-0 w-9 h-9 flex items-center justify-center"
                     style={{ borderColor: "var(--brand-line)" }}
                   >
                     <ArrowLeft className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
@@ -143,7 +150,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                   </button>
                 </Tooltip>
                   {bellOpen && (
-                    <div className="absolute right-0 top-12 w-72 bg-white rounded-xl p-3 z-50 brand-card">
+                    <div className="absolute right-0 top-12 w-[min(18rem,calc(100vw-5rem))] bg-white rounded-xl p-3 z-50 brand-card">
                       <div className="text-sm font-semibold mb-2" style={{ color: "var(--brand-ink)" }}>{t("header.notifications")}</div>
                       <div className="text-xs text-slate-500 py-6 text-center">{t("header.noNotifications")}</div>
                     </div>
@@ -201,7 +208,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                     </button>
                   </Tooltip>
                   {bellOpen && (
-                    <div className="absolute right-0 top-12 w-72 bg-white rounded-xl p-3 z-50 brand-card">
+                    <div className="absolute right-0 top-12 w-72 max-w-[calc(100vw-2rem)] bg-white rounded-xl p-3 z-50 brand-card">
                       <div className="text-sm font-semibold mb-2" style={{ color: "var(--brand-ink)" }}>{t("header.notifications")}</div>
                       <div className="text-xs text-slate-500 py-6 text-center">{t("header.noNotifications")}</div>
                     </div>
@@ -216,7 +223,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                     <ChevronDown className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
                   </button>
                   {menuOpen && (
-                    <div className="absolute right-0 top-12 w-56 bg-white rounded-xl p-1 z-50 brand-card">
+                    <div className="absolute right-0 top-12 w-56 max-w-[calc(100vw-2rem)] bg-white rounded-xl p-1 z-50 brand-card">
                       <div className="px-3 py-2 border-b" style={{ borderColor: "var(--brand-line)" }}>
                         <div className="text-sm font-semibold truncate" style={{ color: "var(--brand-ink)" }}>{name}</div>
                         <div className="text-xs text-slate-500 truncate">{user?.email}</div>
@@ -269,7 +276,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                 <ChevronDown className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
               </button>
               {menuOpen && (
-                <div className="absolute right-0 top-12 w-56 bg-white rounded-xl p-1 z-50 brand-card">
+                <div className="absolute right-0 top-12 w-56 max-w-[calc(100vw-5rem)] bg-white rounded-xl p-1 z-50 brand-card">
                   <div className="px-3 py-2 border-b" style={{ borderColor: "var(--brand-line)" }}>
                     <div className="text-sm font-semibold truncate" style={{ color: "var(--brand-ink)" }}>{name}</div>
                     <div className="text-xs text-slate-500 truncate">{user?.email}</div>
