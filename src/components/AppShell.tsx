@@ -165,6 +165,18 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                 >
                   {lang === "bn" ? "EN" : "বাং"}
                 </button>
+                {deferred && (
+                  <Tooltip label={t("অ্যাপ ডাউনলোড", "Install app")} side="bottom">
+                    <button
+                      onClick={() => promptInstall()}
+                      aria-label={t("অ্যাপ ডাউনলোড", "Install app")}
+                      className="p-2 bg-white rounded-lg border hover:shadow-sm transition w-9 h-9 flex items-center justify-center"
+                      style={{ borderColor: "var(--brand-line)", color: "var(--brand-ink-soft)" }}
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                  </Tooltip>
+                )}
                 <Tooltip label={t("header.facebook")} side="bottom">
                   <a
                     href={fbUrl}
