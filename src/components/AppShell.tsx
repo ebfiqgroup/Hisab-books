@@ -211,9 +211,9 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                   </button>
                 </Tooltip>
                   {bellOpen && (
-                    <div className="absolute right-0 top-11 w-[min(18rem,calc(100vw-5rem))] bg-white rounded-xl p-3 z-50 brand-card">
+                    <div className="absolute right-0 top-11 w-[min(18rem,calc(100vw-5rem))] bg-white rounded-xl p-3 z-50 shadow-lg border" style={{ borderColor: "var(--brand-line)" }}>
                       <div className="text-sm font-semibold mb-2" style={{ color: "var(--brand-ink)" }}>{t("header.notifications")}</div>
-                      <div className="text-xs text-slate-500 py-6 text-center">{t("header.noNotifications")}</div>
+                      <div className="text-xs py-6 text-center" style={{ color: "var(--brand-ink-soft)" }}>{t("header.noNotifications")}</div>
                     </div>
                   )}
                 </div>
@@ -281,9 +281,9 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                     </button>
                   </Tooltip>
                   {bellOpen && (
-                    <div className="absolute right-0 top-12 w-72 max-w-[calc(100vw-2rem)] bg-white rounded-xl p-3 z-50 brand-card" style={{ position: "absolute" }}>
+                    <div className="absolute right-0 top-12 w-72 max-w-[calc(100vw-2rem)] bg-white rounded-xl p-3 z-50 shadow-lg border" style={{ position: "absolute", borderColor: "var(--brand-line)" }}>
                       <div className="text-sm font-semibold mb-2" style={{ color: "var(--brand-ink)" }}>{t("header.notifications")}</div>
-                      <div className="text-xs text-slate-500 py-6 text-center">{t("header.noNotifications")}</div>
+                      <div className="text-xs py-6 text-center" style={{ color: "var(--brand-ink-soft)" }}>{t("header.noNotifications")}</div>
                     </div>
                   )}
                 </div>
