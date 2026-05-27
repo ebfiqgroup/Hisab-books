@@ -32,6 +32,21 @@ export function useRealtimeSync(userId: string | undefined) {
   const prevStatusRef = useRef<"connecting" | "connected" | "disconnected">("connecting");
   const everConnectedRef = useRef(false);
 
+  const refreshKeys = useCallback((keys?: string[][]) => {
+    if (!keys) {
+      qc.invalidateQueries({ refetchType: "active" });
+      return;
+    }
+    for (const key of keys) {
+      qc.invalidateQueries({ queryKey: key, refetchType: "active" });
+      qc.refetchQueries({
+        type: "active",
+        stale: false,
+        predicate: (query) => matchesPrefix(query.queryKey, key),
+      });
+    }
+  }, [qc]);
+
   useEffect(() => {
     const prev = prevStatusRef.current;
     if (prev !== status) {
@@ -56,18 +71,6 @@ export function useRealtimeSync(userId: string | undefined) {
       config: { broadcast: { self: false }, presence: { key: "" } },
     });
 
-    // Coalesce bursts of changes into a single invalidate per key (per ~80ms)
-    const pending = new Map<string, ReturnType<typeof setTimeout>>();
-    const scheduleInvalidate = (key: string[]) => {
-      const k = key.join("/");
-      if (pending.has(k)) return;
-      const t = setTimeout(() => {
-        pending.delete(k);
-        qc.invalidateQueries({ queryKey: key, refetchType: "active" });
-      }, 20);
-      pending.set(k, t);
-    };
-
     (Object.keys(TABLE_CONFIG) as Array<keyof typeof TABLE_CONFIG>).forEach((table) => {
       const { keys, userCol } = TABLE_CONFIG[table];
       (channel as unknown as {
@@ -79,7 +82,7 @@ export function useRealtimeSync(userId: string | undefined) {
       }).on(
         "postgres_changes",
         { event: "*", schema: "public", table, filter: `${userCol}=eq.${userId}` },
-        () => { for (const key of keys) scheduleInvalidate(key); },
+        () => refreshKeys(keys),
       );
     });
 
@@ -90,7 +93,7 @@ export function useRealtimeSync(userId: string | undefined) {
     }).on(
       "postgres_changes",
       { event: "*", schema: "public", table: "support_messages", filter: `sender_id=eq.${userId}` },
-      () => { scheduleInvalidate(["support_messages"]); scheduleInvalidate(["support_tickets"]); },
+      () => refreshKeys([["support_messages"], ["support_tickets"]]),
     );
 
     const subscribe = () => {
