@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { getFinanceSymbol, setFinanceSymbol, fmtTk } from "@/lib/finance";
 import { loadSocialLinks, setSocialLinks } from "@/hooks/useSocialLinks";
+import { useAvatarUrl } from "@/lib/avatar-url";
 
 export const Route = createFileRoute("/_authenticated/settings")({ component: SettingsPage });
 
