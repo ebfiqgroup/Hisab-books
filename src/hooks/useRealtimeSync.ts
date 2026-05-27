@@ -172,10 +172,19 @@ export function useRealtimeSync(userId: string | undefined) {
     const { data: { subscription: authSub } } = supabase.auth.onAuthStateChange((_e, session) => {
       const token = session?.access_token;
       if (token) {
-        try { (supabase.realtime as unknown as { setAuth: (t: string) => void }).setAuth(token); } catch { /* noop */ }
+        // Re-authenticate the existing realtime socket in-place. This keeps
+        // the channel joined (no event flash) while the new JWT propagates
+        // to postgres_changes RLS checks. Only fall back to a full reconnect
+        // if the socket isn't actually joined.
+        try {
+          (supabase.realtime as unknown as { setAuth: (t: string) => void }).setAuth(token);
+        } catch { /* noop */ }
       }
-      if (_e === "TOKEN_REFRESHED" || _e === "SIGNED_IN") {
+      if (_e === "SIGNED_IN" && (!channel || channel.state !== "joined")) {
         void reconnect();
+      } else if (_e === "SIGNED_OUT") {
+        if (channel) { try { supabase.removeChannel(channel); } catch { /* noop */ } channel = null; }
+        setStatus("disconnected");
       }
     });
 
