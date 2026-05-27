@@ -137,7 +137,9 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
             {/* LEFT: logo+name on all sizes; then back/divider/title on desktop */}
             <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1 lg:flex-none lg:w-auto">
               <Link to="/app" className="flex lg:hidden items-center gap-2 hover:opacity-80 transition shrink-0">
-                <img src="/logo-moneybag.png" alt="logo" className="h-7 w-7 object-contain" />
+                <div className="h-7 w-7 rounded-lg flex items-center justify-center" style={{ background: "var(--gradient-brand)" }}>
+                  <Wallet className="w-4 h-4 text-white" />
+                </div>
                 <span className="text-base font-bold tracking-wide" style={{ fontFamily: "var(--font-display)", color: "var(--brand-ink)" }}>আমার হিসাব</span>
               </Link>
               {/* Desktop left side: back + divider + title */}
