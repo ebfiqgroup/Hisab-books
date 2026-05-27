@@ -62,12 +62,12 @@ function AuthPage() {
         });
         if (error) throw error;
         toast.success(t("সাইনআপ সফল! ড্যাশবোর্ডে নিয়ে যাচ্ছি...", "Sign-up successful! Redirecting…"));
-        navigate({ to: "/app" });
+        navigate({ to: "/app", search: { welcome: "1" } });
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success(t("স্বাগতম!", "Welcome!"));
-        navigate({ to: "/app" });
+        navigate({ to: "/app", search: { welcome: "1" } });
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : t("ত্রুটি হয়েছে", "Something went wrong");
