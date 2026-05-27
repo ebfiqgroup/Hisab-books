@@ -109,11 +109,12 @@ export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean;
                     background: "color-mix(in oklab, var(--brand-emerald-500) 10%, transparent)",
                     border: "1px solid color-mix(in oklab, var(--brand-emerald-500) 35%, transparent)",
                     color: "var(--brand-emerald-800)",
+                    boxShadow: "0 0 18px -6px color-mix(in oklab, var(--brand-emerald-500) 45%, transparent), inset 0 1px 0 color-mix(in oklab, white 60%, transparent)",
                   }
                 : { color: "var(--brand-ink-soft)" }}
             >
-              {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full" style={{ background: "var(--brand-emerald-600)" }} />}
-              <n.icon className="w-4 h-4" style={active ? { color: "var(--brand-emerald-700)" } : undefined} />
+              {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full shadow-[0_0_10px_-2px_var(--brand-emerald-500)]" style={{ background: "var(--brand-emerald-600)" }} />}
+              <n.icon className="w-4 h-4" style={active ? { color: "var(--brand-emerald-700)", filter: "drop-shadow(0 0 3px color-mix(in oklab, var(--brand-emerald-500) 50%, transparent))" } : undefined} />
               <span className="font-medium">{t(n.key)}</span>
             </Link>
           );
