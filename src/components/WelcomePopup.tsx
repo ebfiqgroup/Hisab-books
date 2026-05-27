@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Sparkles, X, PartyPopper } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/hooks/useLanguage";
+import { supabase } from "@/integrations/supabase/client";
 
 const WELCOME_SHOWN_KEY = "welcome_shown_for_session";
 
@@ -12,12 +13,21 @@ export function WelcomePopup() {
   const [dismissing, setDismissing] = useState(false);
 
   useEffect(() => {
+    // Clear the flag when the user signs out so the next login shows the popup again
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") {
+        sessionStorage.removeItem(WELCOME_SHOWN_KEY);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
     if (!user) return;
     const userId = user.id;
     const lastShownFor = sessionStorage.getItem(WELCOME_SHOWN_KEY);
     // Only show if this is a fresh login (different session/user)
     if (lastShownFor !== userId) {
-      // Small delay for dramatic effect
       const timer = setTimeout(() => {
         setVisible(true);
         sessionStorage.setItem(WELCOME_SHOWN_KEY, userId);
