@@ -1,6 +1,6 @@
 import { ReactNode, useState, useRef, useEffect } from "react";
 import { Sidebar } from "./Sidebar";
-import { Bell, ChevronDown, LogOut, User as UserIcon, Settings as SettingsIcon, Headset, ArrowLeft, Sun, Moon } from "lucide-react";
+import { Bell, ChevronDown, LogOut, User as UserIcon, Settings as SettingsIcon, Headset, ArrowLeft, Sun, Moon, Download } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useNavigate, useRouter, useLocation } from "@tanstack/react-router";
 import { RefCodeBadge } from "./RefCodeBadge";
@@ -10,6 +10,7 @@ import { useRealtimeStatus } from "@/hooks/useRealtimeStatus";
 import { RealtimeStatusBadge } from "./RealtimeStatusBadge";
 import { useSocialLinks } from "@/hooks/useSocialLinks";
 import { Tooltip } from "./Tooltip";
+import { useDeferredPrompt, promptInstall } from "@/lib/pwa-install";
 
 export function AppShell({ title, actions, children }: { title: ReactNode; actions?: ReactNode; children: ReactNode }) {
   const { user, signOut } = useAuth();
