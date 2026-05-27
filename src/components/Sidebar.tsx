@@ -121,9 +121,19 @@ export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean;
         })}
       </nav>
       <RefCodeBadge variant="sidebar" />
-      <div className="mx-4 mb-4 p-4 rounded-xl relative overflow-hidden" style={{ background: "color-mix(in oklab, var(--brand-gold-300) 15%, transparent)", border: "1px solid color-mix(in oklab, var(--brand-gold-500) 20%, var(--brand-line))" }}>
+      <div className="mx-4 mb-4 p-4 rounded-xl relative overflow-hidden" style={{
+        background: "color-mix(in oklab, var(--brand-gold-300) 15%, transparent)",
+        border: "1px solid color-mix(in oklab, var(--brand-gold-500) 20%, var(--brand-line))",
+        boxShadow: "0 0 24px -8px color-mix(in oklab, var(--brand-gold-500) 40%, transparent), inset 0 1px 0 color-mix(in oklab, white 50%, transparent)",
+      }}>
+        {/* Luminous sheen overlay for quote card */}
+        <div className="absolute inset-0 pointer-events-none" style={{
+          background: "radial-gradient(120% 80% at 0% 0%, color-mix(in oklab, white 50%, transparent) 0%, transparent 55%)",
+          mixBlendMode: "screen",
+          opacity: 0.5,
+        }} />
         <span className="absolute -top-2 left-3 text-4xl leading-none" style={{ color: "color-mix(in oklab, var(--brand-gold-500) 50%, transparent)", fontFamily: "var(--font-display)" }}>"</span>
-        <p className="text-xs leading-relaxed pt-2 whitespace-pre-line" style={{ fontFamily: "var(--font-display)", fontStyle: "italic", fontSize: "0.95rem", color: "var(--brand-ink-soft)" }}>
+        <p className="relative z-10 text-xs leading-relaxed pt-2 whitespace-pre-line" style={{ fontFamily: "var(--font-display)", fontStyle: "italic", fontSize: "0.95rem", color: "var(--brand-ink-soft)" }}>
           {t("brand.quote")}
         </p>
       </div>
