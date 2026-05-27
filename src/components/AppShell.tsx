@@ -211,9 +211,9 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                   </button>
                 </Tooltip>
                   {bellOpen && (
-                    <div className="absolute right-0 top-11 w-[min(18rem,calc(100vw-5rem))] bg-white rounded-xl p-3 z-50 brand-card">
+                    <div className="absolute right-0 top-11 w-[min(18rem,calc(100vw-5rem))] bg-white rounded-xl p-3 z-50 shadow-lg border" style={{ borderColor: "var(--brand-line)" }}>
                       <div className="text-sm font-semibold mb-2" style={{ color: "var(--brand-ink)" }}>{t("header.notifications")}</div>
-                      <div className="text-xs text-slate-500 py-6 text-center">{t("header.noNotifications")}</div>
+                      <div className="text-xs py-6 text-center" style={{ color: "var(--brand-ink-soft)" }}>{t("header.noNotifications")}</div>
                     </div>
                   )}
                 </div>
@@ -281,9 +281,9 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                     </button>
                   </Tooltip>
                   {bellOpen && (
-                    <div className="absolute right-0 top-12 w-72 max-w-[calc(100vw-2rem)] bg-white rounded-xl p-3 z-50 brand-card" style={{ position: "absolute" }}>
+                    <div className="absolute right-0 top-12 w-72 max-w-[calc(100vw-2rem)] bg-white rounded-xl p-3 z-50 shadow-lg border" style={{ position: "absolute", borderColor: "var(--brand-line)" }}>
                       <div className="text-sm font-semibold mb-2" style={{ color: "var(--brand-ink)" }}>{t("header.notifications")}</div>
-                      <div className="text-xs text-slate-500 py-6 text-center">{t("header.noNotifications")}</div>
+                      <div className="text-xs py-6 text-center" style={{ color: "var(--brand-ink-soft)" }}>{t("header.noNotifications")}</div>
                     </div>
                   )}
                 </div>
@@ -296,19 +296,19 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                     <ChevronDown className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
                   </button>
                   {menuOpen && (
-                    <div className="absolute right-0 top-12 w-56 max-w-[calc(100vw-2rem)] bg-white rounded-xl p-1 z-50 brand-card" style={{ position: "absolute" }}>
+                    <div className="absolute right-0 top-12 w-56 max-w-[calc(100vw-2rem)] bg-white rounded-xl p-1 z-50 shadow-lg border" style={{ position: "absolute", borderColor: "var(--brand-line)" }}>
                       <div className="px-3 py-2 border-b" style={{ borderColor: "var(--brand-line)" }}>
                         <div className="text-sm font-semibold truncate" style={{ color: "var(--brand-ink)" }}>{name}</div>
-                        <div className="text-xs text-slate-500 truncate">{user?.email}</div>
+                        <div className="text-xs truncate" style={{ color: "var(--brand-ink-soft)" }}>{user?.email}</div>
                       </div>
                       <RefCodeBadge variant="menu" />
-                      <Link to="/settings" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-md">
+                      <Link to="/settings" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-[var(--brand-ivory)]" style={{ color: "var(--brand-ink)" }}>
                         <UserIcon className="w-4 h-4" /> {t("header.profile")}
                       </Link>
-                      <Link to="/settings" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-md">
+                      <Link to="/settings" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-[var(--brand-ivory)]" style={{ color: "var(--brand-ink)" }}>
                         <SettingsIcon className="w-4 h-4" /> {t("header.settings")}
                       </Link>
-                      <button onClick={doSignOut} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-rose-600 hover:bg-rose-50 rounded-md">
+                      <button onClick={doSignOut} className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-[var(--brand-ivory)]" style={{ color: "var(--expense)" }}>
                         <LogOut className="w-4 h-4" /> {t("header.signOut")}
                       </button>
                     </div>
@@ -378,23 +378,23 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
           <>
             <div className="lg:hidden fixed inset-0 z-[55]" onMouseDown={() => setMenuOpen(false)} onTouchStart={() => setMenuOpen(false)} aria-hidden="true" />
             <div
-              className="lg:hidden fixed right-3 top-[calc(env(safe-area-inset-top)+5.5rem)] w-56 max-w-[calc(100vw-1.5rem)] bg-white rounded-xl p-1 z-[60] brand-card shadow-2xl"
-              style={{ position: "fixed" }}
+              className="lg:hidden fixed right-3 top-[calc(env(safe-area-inset-top)+5.5rem)] w-56 max-w-[calc(100vw-1.5rem)] bg-white rounded-xl p-1 z-[60] shadow-2xl border"
+              style={{ position: "fixed", borderColor: "var(--brand-line)" }}
               onMouseDown={(e) => e.stopPropagation()}
               onTouchStart={(e) => e.stopPropagation()}
             >
               <div className="px-3 py-2 border-b" style={{ borderColor: "var(--brand-line)" }}>
                 <div className="text-sm font-semibold truncate" style={{ color: "var(--brand-ink)" }}>{name}</div>
-                <div className="text-xs text-slate-500 truncate">{user?.email}</div>
+                <div className="text-xs truncate" style={{ color: "var(--brand-ink-soft)" }}>{user?.email}</div>
               </div>
               <RefCodeBadge variant="menu" />
-              <Link to="/settings" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-md">
+              <Link to="/settings" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-[var(--brand-ivory)]" style={{ color: "var(--brand-ink)" }}>
                 <UserIcon className="w-4 h-4" /> {t("header.profile")}
               </Link>
-              <Link to="/settings" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-md">
+              <Link to="/settings" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-[var(--brand-ivory)]" style={{ color: "var(--brand-ink)" }}>
                 <SettingsIcon className="w-4 h-4" /> {t("header.settings")}
               </Link>
-              <button onClick={doSignOut} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-rose-600 hover:bg-rose-50 rounded-md">
+              <button onClick={doSignOut} className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-[var(--brand-ivory)]" style={{ color: "var(--expense)" }}>
                 <LogOut className="w-4 h-4" /> {t("header.signOut")}
               </button>
             </div>
