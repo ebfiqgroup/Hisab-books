@@ -57,6 +57,56 @@ export function useRealtimeSync(userId: string | undefined) {
     }
   }, [qc]);
 
+  // Incremental cache patcher. Applies UPDATE/DELETE directly to cached row
+  // arrays / single-row objects with no network refetch. Falls back to a
+  // narrowly-scoped invalidate only for queries we can't safely patch
+  // (aggregations, filtered lists not containing the row, or INSERTs whose
+  // filter membership we can't determine from the payload alone).
+  const applyChange = useCallback((keys: string[][], p: RTPayload) => {
+    const rowId = (p.eventType === "DELETE" ? p.old?.id : p.new?.id) as
+      | string | number | undefined;
+
+    for (const key of keys) {
+      const matches = qc.getQueriesData({
+        predicate: (q) => matchesPrefix(q.queryKey, key),
+      });
+      for (const [queryKey, data] of matches) {
+        let handled = false;
+
+        if (p.eventType !== "INSERT" && rowId != null) {
+          if (Array.isArray(data)) {
+            const arr = data as RowLike[];
+            const idx = arr.findIndex((r) => r && r.id === rowId);
+            if (idx >= 0) {
+              if (p.eventType === "DELETE") {
+                qc.setQueryData(queryKey, arr.filter((_, i) => i !== idx));
+              } else {
+                const next = arr.slice();
+                next[idx] = { ...arr[idx], ...(p.new ?? {}) };
+                qc.setQueryData(queryKey, next);
+              }
+              handled = true;
+            } else if (arr.length > 0 && arr.every((r) => r && typeof r === "object" && "id" in r)) {
+              // Row-list shape that simply doesn't contain this row → no-op.
+              handled = true;
+            }
+          } else if (data && typeof data === "object" && (data as RowLike).id === rowId) {
+            if (p.eventType === "DELETE") {
+              qc.setQueryData(queryKey, undefined);
+            } else {
+              qc.setQueryData(queryKey, { ...(data as object), ...(p.new ?? {}) });
+            }
+            handled = true;
+          }
+        }
+
+        if (!handled) {
+          qc.invalidateQueries({ queryKey, exact: true, refetchType: "active" });
+        }
+      }
+    }
+  }, [qc]);
+
   useEffect(() => {
     const prev = prevStatusRef.current;
     if (prev !== status) {
