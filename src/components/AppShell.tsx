@@ -112,7 +112,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                   aria-label={t("nav.support")}
                   className="p-1 rounded-lg hover:bg-white/60 transition w-8 h-8 flex items-center justify-center"
                 >
-                  <Headphones className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
+                  <Headset className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
                 </Link>
               </Tooltip>
               <div className="relative">
@@ -170,7 +170,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                     className="p-2 bg-white rounded-lg border hover:shadow-sm transition"
                     style={{ borderColor: "var(--brand-line)" }}
                   >
-                    <Headphones className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
+                    <Headset className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
                   </Link>
                 </Tooltip>
                 <div className="relative">
