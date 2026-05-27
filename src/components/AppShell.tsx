@@ -62,20 +62,9 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
       <main className="flex-1 px-2 sm:px-3 lg:px-6 pb-2 sm:pb-3 lg:pb-6 overflow-y-auto overflow-x-hidden h-full w-full min-w-0 min-h-0">
         <div className="sticky top-0 z-30 flex flex-col gap-2 mb-4 lg:mb-6 -mx-2 sm:-mx-3 lg:-mx-6 px-2 sm:px-3 lg:px-6 pb-2 border-b lg:flex-row lg:items-center lg:justify-between lg:gap-3" style={{ backgroundColor: "color-mix(in oklab, var(--brand-ivory) 92%, transparent)", backdropFilter: "blur(8px)", borderColor: "var(--brand-line)" }} ref={ref}>
           {/* === TOP ROW (mobile) / single row (desktop) === */}
-          <div className="flex items-center justify-between gap-2 lg:gap-3 min-w-0">
+          <div className="flex items-center justify-between gap-1 lg:gap-3 min-w-0">
             {/* LEFT: hamburger only on mobile/tablet; full left on desktop */}
-            <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1 lg:flex-none lg:w-auto">
-              <button
-                type="button"
-                onClick={() => setNavOpen(true)}
-                className="lg:hidden relative z-[35] p-2 bg-white rounded-lg border hover:shadow-sm transition shrink-0 flex flex-col gap-[3px] items-center justify-center w-9 h-9"
-                style={{ borderColor: "var(--brand-line)" }}
-                aria-label="মেনু খুলুন"
-              >
-                <span className="block w-4 h-[2px] rounded" style={{ background: "var(--brand-ink)" }} />
-                <span className="block w-4 h-[2px] rounded" style={{ background: "var(--brand-ink)" }} />
-                <span className="block w-4 h-[2px] rounded" style={{ background: "var(--brand-ink)" }} />
-              </button>
+            <div className="flex items-center gap-2 md:gap-3 min-w-0 lg:flex-none lg:w-auto">
               {/* Desktop left side: back + divider + title */}
               <div className="hidden lg:flex items-center gap-2 md:gap-3 min-w-0">
                 {showBack && (
@@ -93,26 +82,10 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                 <span className="h-7 w-1 rounded-full" style={{ background: "var(--gradient-brand)" }} />
                 <h1 className="text-lg md:text-2xl lg:text-3xl tracking-tight truncate flex-1 min-w-0" style={{ fontFamily: "var(--font-display)", color: "var(--brand-ink)" }}>{title}</h1>
               </div>
-              {/* Mobile/tablet: back + title */}
-              <div className="flex lg:hidden items-center gap-2 min-w-0">
-                {showBack && (
-                  <button
-                    type="button"
-                    onClick={goBack}
-                    title={t("ফিরে যান", "Back")}
-                    aria-label={t("ফিরে যান", "Back")}
-                    className="relative z-[35] p-2 bg-white rounded-lg border hover:shadow-sm transition shrink-0 w-9 h-9 flex items-center justify-center"
-                    style={{ borderColor: "var(--brand-line)" }}
-                  >
-                    <ArrowLeft className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
-                  </button>
-                )}
-                <h1 className="text-lg tracking-tight truncate min-w-0" style={{ fontFamily: "var(--font-display)", color: "var(--brand-ink)" }}>{title}</h1>
-              </div>
             </div>
 
             {/* RIGHT (top row): actions + realtime on mobile; full right on desktop */}
-            <div className="flex items-center gap-2 md:gap-3 flex-wrap justify-end">
+            <div className="flex items-center gap-1 md:gap-3 flex-wrap justify-end w-full lg:w-auto">
               {actions && (
                 <div className="flex items-center gap-2 flex-wrap">
                   {actions}
@@ -120,33 +93,32 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
               )}
               <RealtimeStatusBadge status={rtStatus} />
               {/* Mobile top-right icons */}
-              <div className="flex lg:hidden items-center gap-2">
+              <div className="flex lg:hidden items-center gap-0.5">
               <Tooltip label={t("header.facebook")} side="bottom">
                 <a
                   href={fbUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={t("header.facebook")}
-                  className="p-2 bg-white rounded-lg border hover:shadow-sm transition w-9 h-9 flex items-center justify-center"
-                  style={{ borderColor: "var(--brand-line)", color: "var(--brand-ink-soft)" }}
+                  className="p-1.5 rounded-lg hover:bg-white/60 transition w-9 h-9 flex items-center justify-center"
+                  style={{ color: "var(--brand-ink-soft)" }}
                 >
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
                 </a>
               </Tooltip>
               <Tooltip label={t("nav.support")} side="bottom">
                 <Link
                   to="/support"
                   aria-label={t("nav.support")}
-                  className="p-2 bg-white rounded-lg border hover:shadow-sm transition w-9 h-9 flex items-center justify-center"
-                  style={{ borderColor: "var(--brand-line)" }}
+                  className="p-1.5 rounded-lg hover:bg-white/60 transition w-9 h-9 flex items-center justify-center"
                 >
-                  <LifeBuoy className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
+                  <LifeBuoy className="w-5 h-5" style={{ color: "var(--brand-ink-soft)" }} />
                 </Link>
               </Tooltip>
               <div className="relative">
                 <Tooltip label={t("header.notifications")} side="bottom">
-                  <button onClick={() => { setBellOpen(o => !o); setMenuOpen(false); }} className="relative p-2 bg-white rounded-lg border hover:shadow-sm transition w-9 h-9 flex items-center justify-center" style={{ borderColor: "var(--brand-line)" }}>
-                    <Bell className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />
+                  <button onClick={() => { setBellOpen(o => !o); setMenuOpen(false); }} className="relative p-1.5 rounded-lg hover:bg-white/60 transition w-9 h-9 flex items-center justify-center">
+                    <Bell className="w-5 h-5" style={{ color: "var(--brand-ink-soft)" }} />
                   </button>
                 </Tooltip>
                   {bellOpen && (
@@ -245,30 +217,54 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
             </div>
           </div>
 
-          {/* === BOTTOM ROW: mobile/tablet icons only === */}
-          <div className="flex lg:hidden items-center justify-end gap-2 border-t pt-2" style={{ borderColor: "var(--brand-line)" }}>
+          {/* === BOTTOM ROW: mobile/tablet — left: hamburger + back + title; right: theme/lang/profile === */}
+          <div className="flex lg:hidden items-center justify-between gap-2 pt-1">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <button
+                type="button"
+                onClick={() => setNavOpen(true)}
+                className="relative z-[35] p-1.5 rounded-lg hover:bg-white/60 transition shrink-0 flex flex-col gap-[3px] items-center justify-center w-9 h-9"
+                aria-label="মেনু খুলুন"
+              >
+                <span className="block w-4 h-[2px] rounded" style={{ background: "var(--brand-ink)" }} />
+                <span className="block w-4 h-[2px] rounded" style={{ background: "var(--brand-ink)" }} />
+                <span className="block w-4 h-[2px] rounded" style={{ background: "var(--brand-ink)" }} />
+              </button>
+              {showBack && (
+                <button
+                  type="button"
+                  onClick={goBack}
+                  title={t("ফিরে যান", "Back")}
+                  aria-label={t("ফিরে যান", "Back")}
+                  className="relative z-[35] p-1.5 rounded-lg hover:bg-white/60 transition shrink-0 w-9 h-9 flex items-center justify-center"
+                >
+                  <ArrowLeft className="w-5 h-5" style={{ color: "var(--brand-ink-soft)" }} />
+                </button>
+              )}
+              <h1 className="text-lg tracking-tight truncate min-w-0" style={{ fontFamily: "var(--font-display)", color: "var(--brand-ink)" }}>{title}</h1>
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
             <button
               onClick={toggleTheme}
               title={theme === "dark" ? t("লাইট মোড", "Light mode") : t("ডার্ক মোড", "Dark mode")}
               aria-label={theme === "dark" ? t("লাইট মোড", "Light mode") : t("ডার্ক মোড", "Dark mode")}
-              className="p-2 bg-white rounded-lg border hover:shadow-sm transition w-9 h-9 flex items-center justify-center"
-              style={{ borderColor: "var(--brand-line)" }}
+              className="p-1.5 rounded-lg hover:bg-white/60 transition w-9 h-9 flex items-center justify-center"
             >
               {theme === "dark"
-                ? <Sun className="w-4 h-4" style={{ color: "var(--brand-gold-500)" }} />
-                : <Moon className="w-4 h-4" style={{ color: "var(--brand-ink-soft)" }} />}
+                ? <Sun className="w-5 h-5" style={{ color: "var(--brand-gold-500)" }} />
+                : <Moon className="w-5 h-5" style={{ color: "var(--brand-ink-soft)" }} />}
             </button>
             <button
               onClick={toggle}
               title={t("lang.label")}
               aria-label={t("lang.label")}
-              className="px-2.5 h-9 bg-white rounded-lg border hover:shadow-sm transition text-xs font-bold tracking-wide"
-              style={{ borderColor: "var(--brand-line)", color: "var(--brand-ink)" }}
+              className="px-2 h-9 rounded-lg hover:bg-white/60 transition text-xs font-bold tracking-wide"
+              style={{ color: "var(--brand-ink)" }}
             >
               {lang === "bn" ? "EN" : "বাং"}
             </button>
             <div className="relative">
-              <button onClick={() => { setMenuOpen(o => !o); setBellOpen(false); }} className="flex items-center gap-2 px-2 py-1 bg-white rounded-lg border hover:shadow-sm transition" style={{ borderColor: "var(--brand-line)" }}>
+              <button onClick={() => { setMenuOpen(o => !o); setBellOpen(false); }} className="flex items-center gap-1 px-1.5 py-1 rounded-lg hover:bg-white/60 transition">
                 <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: "var(--gradient-brand)" }}>
                   {name.charAt(0).toUpperCase()}
                 </div>
@@ -293,6 +289,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                   </button>
                 </div>
               )}
+            </div>
             </div>
           </div>
         </div>
