@@ -9,6 +9,7 @@ import {
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
 } from "recharts";
+import { useAvatarUrl } from "@/lib/avatar-url";
 
 type Txn = { id: string; type: "income" | "expense"; category: string; amount: number; occurred_on: string; note: string | null };
 type Debt = { id: string; kind: "receivable" | "payable"; amount: number; settled: boolean; person: string; due_date: string | null; note: string | null };
