@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Clock, Ban, LogOut } from "lucide-react";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { RealtimeStatusProvider } from "@/hooks/useRealtimeStatus";
+import { WelcomePopup } from "@/components/WelcomePopup";
 
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async () => {
@@ -114,6 +115,7 @@ function AuthGate() {
 
   return (
     <RealtimeStatusProvider value={rtStatus}>
+      <WelcomePopup />
       <Outlet />
     </RealtimeStatusProvider>
   );
