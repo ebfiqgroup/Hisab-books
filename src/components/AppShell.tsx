@@ -1,6 +1,6 @@
 import { ReactNode, useState, useRef, useEffect } from "react";
 import { Sidebar } from "./Sidebar";
-import { Bell, ChevronDown, LogOut, User as UserIcon, Settings as SettingsIcon, Headset, ArrowLeft, Sun, Moon, Download, Copy, Check, Share2 } from "lucide-react";
+import { Bell, ChevronDown, LogOut, User as UserIcon, Settings as SettingsIcon, Headset, ArrowLeft, Sun, Moon, Download, Copy, Check, Share2, Smartphone, Apple, Monitor } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useNavigate, useRouter, useLocation } from "@tanstack/react-router";
 import { RefCodeBadge } from "./RefCodeBadge";
@@ -27,6 +27,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
   const [navOpen, setNavOpen] = useState(false);
   const [installHelpOpen, setInstallHelpOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [platformHelp, setPlatformHelp] = useState<null | "ios" | "android" | "desktop">(null);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
