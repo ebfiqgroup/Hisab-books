@@ -128,7 +128,7 @@ export function UserDashboardView({
       {showHeader && (
         <div className="brand-card p-4 flex items-center gap-4">
           <div className="w-14 h-14 rounded-full flex items-center justify-center text-white text-xl font-bold overflow-hidden shrink-0" style={{ background: "var(--gradient-brand)" }}>
-            {profile.avatar_url ? <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" /> : (profile.full_name || "?").charAt(0).toUpperCase()}
+            <ProfileAvatar url={profile.avatar_url} fallback={profile.full_name} />
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-lg font-semibold truncate" style={{ fontFamily: "var(--font-display)" }}>{profile.full_name || "—"}</div>
