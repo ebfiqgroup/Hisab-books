@@ -12,6 +12,7 @@ import {
   type TxnType,
 } from "@/lib/finance";
 import { useLanguage } from "@/hooks/useLanguage";
+import { saveTxnOffline } from "@/lib/offline-tx";
 
 export type EditTxn = {
   id: string;
@@ -99,12 +100,33 @@ export function TxnDialog({
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { toast.error(t("লগইন প্রয়োজন", "Sign-in required")); setBusy(false); return; }
     const payload = { type, category, amount: amt, occurred_on: date, note: note || null };
-    const { error } = editTxn
-      ? await supabase.from("transactions").update(payload).eq("id", editTxn.id)
-      : await supabase.from("transactions").insert({ user_id: user.id, ...payload });
+    const result = await saveTxnOffline(
+      user.id,
+      payload,
+      editTxn
+        ? {
+            id: editTxn.id,
+            base: {
+              type: editTxn.type,
+              category: editTxn.category,
+              amount: editTxn.amount,
+              occurred_on: editTxn.occurred_on,
+              note: editTxn.note,
+            },
+          }
+        : undefined,
+    );
     setBusy(false);
-    if (error) { toast.error(error.message); return; }
-    toast.success(editTxn ? t("আপডেট হয়েছে", "Updated") : t("লেনদেন যুক্ত হয়েছে", "Transaction added"));
+    if (!result.ok) { toast.error(result.error); return; }
+    if (result.queued) {
+      toast.success(
+        editTxn
+          ? t("অফলাইন এডিট জমা হয়েছে — অনলাইন হলে সিঙ্ক হবে", "Edit queued — will sync when online")
+          : t("অফলাইন এন্ট্রি জমা হয়েছে — অনলাইন হলে সিঙ্ক হবে", "Saved offline — will sync when online"),
+      );
+    } else {
+      toast.success(editTxn ? t("আপডেট হয়েছে", "Updated") : t("লেনদেন যুক্ত হয়েছে", "Transaction added"));
+    }
     qc.invalidateQueries({ queryKey: ["transactions"] });
     onOpenChange(false);
   };

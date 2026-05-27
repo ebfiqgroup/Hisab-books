@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="bn">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>অফলাইন - আমার হিসাব</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <style>
+      html, body { margin: 0; height: 100%; font-family: "Hind Siliguri", system-ui, sans-serif; background: linear-gradient(135deg,#4f46e5,#7c3aed); color: #fff; }
+      .wrap { min-height: 100%; display: flex; align-items: center; justify-content: center; padding: 24px; }
+      .card { max-width: 420px; background: rgba(255,255,255,.1); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,.2); border-radius: 20px; padding: 28px; text-align: center; }
+      h1 { margin: 0 0 8px; font-size: 22px; }
+      p { margin: 0 0 18px; opacity: .9; font-size: 14px; line-height: 1.6; }
+      button { background: #fff; color: #4f46e5; border: 0; padding: 10px 18px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+      .dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:#fda4af; margin-right:6px; animation: pulse 1.4s infinite; }
+      @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <div style="font-size:42px;margin-bottom:8px">📴</div>
+        <h1>আপনি এখন অফলাইনে আছেন</h1>
+        <p><span class="dot"></span>ইন্টারনেট সংযোগ নেই। আপনার সংরক্ষিত ডাটা ব্যবহার করতে আবার চেষ্টা করুন। নতুন লেনদেন অফলাইনে জমা থাকবে এবং অনলাইন হলে সার্ভারে সিঙ্ক হবে।</p>
+        <button onclick="location.reload()">আবার চেষ্টা করুন</button>
+      </div>
+    </div>
+    <script>
+      window.addEventListener("online", () => location.reload());
+    </script>
+  </body>
+</html>

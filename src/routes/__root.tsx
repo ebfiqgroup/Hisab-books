@@ -1,4 +1,6 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import {
   Outlet,
   Link,
@@ -11,6 +13,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { LanguageProvider } from "@/hooks/useLanguage";
 import { useEffect } from "react";
 import { attachPerfTracker } from "@/lib/perf-tracker";
+import { OfflineBadge } from "@/components/OfflineBadge";
+import { InstallPrompt } from "@/components/InstallPrompt";
 
 import appCss from "../styles.css?url";
 
@@ -88,12 +92,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:description", content: "ব্যক্তিগত আর্থিক ব্যবস্থাপনা ড্যাশবোর্ড" },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/e4c74f2a-9cd0-4ed8-8fd3-2f742a2ddf81/id-preview-7a4679a1--97858387-bb12-42fe-a0f2-52f858e4f990.lovable.app-1779001011397.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/e4c74f2a-9cd0-4ed8-8fd3-2f742a2ddf81/id-preview-7a4679a1--97858387-bb12-42fe-a0f2-52f858e4f990.lovable.app-1779001011397.png" },
+      { name: "theme-color", content: "#4f46e5" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+      { name: "apple-mobile-web-app-title", content: "আমার হিসাব" },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/icon-512.png" },
       {
         rel: "preconnect",
         href: "https://fonts.googleapis.com",
@@ -159,12 +169,52 @@ function RootComponent() {
     attachPerfTracker(router);
   }, [router]);
 
-  return (
-    <QueryClientProvider client={queryClient}>
+  // Register the service worker (production only, never in iframes/preview)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const inIframe = (() => { try { return window.self !== window.top; } catch { return true; } })();
+    const host = window.location.hostname;
+    const isPreview =
+      host.includes("id-preview--") ||
+      host.includes("lovableproject.com") ||
+      host.endsWith("-dev.lovable.app") ||
+      host === "localhost";
+    if (inIframe || isPreview) {
+      // Clean up any prior SW that may have been registered
+      navigator.serviceWorker?.getRegistrations().then((rs) => rs.forEach((r) => r.unregister())).catch(() => {});
+      return;
+    }
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    }
+  }, []);
+
+  const persister = typeof window === "undefined"
+    ? undefined
+    : createSyncStoragePersister({ storage: window.localStorage, key: "amar-hishab-rq-cache" });
+
+  if (!persister) {
+    return (
       <LanguageProvider>
         <Outlet />
         <Toaster />
       </LanguageProvider>
-    </QueryClientProvider>
+    );
+  }
+
+  return (
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{ persister, maxAge: 1000 * 60 * 60 * 24 * 7 /* 7d */, buster: "v1" }}
+    >
+      <LanguageProvider>
+        <Outlet />
+        <Toaster />
+        <div className="fixed top-2 left-1/2 -translate-x-1/2 z-[60] pointer-events-auto">
+          <OfflineBadge />
+        </div>
+        <InstallPrompt />
+      </LanguageProvider>
+    </PersistQueryClientProvider>
   );
 }
