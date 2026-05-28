@@ -4,17 +4,17 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
 import { useSearch, useNavigate } from "@tanstack/react-router";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 
 const WELCOME_SHOWN_KEY = "welcome_shown_for_session";
 
-const backdropVariants = {
+const backdropVariants: Variants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { duration: 0.35, ease: "easeOut" } },
   exit: { opacity: 0, transition: { duration: 0.3, ease: "easeIn" } },
 };
 
-const cardVariants = {
+const cardVariants: Variants = {
   hidden: {
     opacity: 0,
     y: 40,
@@ -26,7 +26,7 @@ const cardVariants = {
     scale: 1,
     transition: {
       duration: 0.55,
-      ease: [0.34, 1.56, 0.64, 1],
+      ease: [0.34, 1.56, 0.64, 1] as const,
       staggerChildren: 0.08,
       delayChildren: 0.15,
     },
@@ -39,7 +39,7 @@ const cardVariants = {
   },
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 16 },
   visible: {
     opacity: 1,
@@ -144,7 +144,7 @@ export function WelcomePopup() {
                   }}
                   initial={{ scale: 0.6, opacity: 0, y: 10 }}
                   animate={{ scale: 1, opacity: 1, y: 0 }}
-                  transition={{ delay: 0.35, duration: 0.45, ease: [0.34, 1.56, 0.64, 1] }}
+                  transition={{ delay: 0.35, duration: 0.45, ease: [0.34, 1.56, 0.64, 1] as const }}
                 >
                   <img src="/logo-moneybag.png" alt="" className="h-9 w-9 object-contain animate-float" />
                 </motion.div>
