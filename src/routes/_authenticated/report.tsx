@@ -247,6 +247,48 @@ function ReportPage() {
         </div>
       </div>
 
+      {/* Download / Print Actions */}
+      <div className="flex flex-wrap items-center gap-2 mb-4 sm:mb-6">
+        <button
+          onClick={printReport}
+          className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:border-indigo-300 shadow-sm"
+        >
+          <Printer className="w-4 h-4" />
+          <span className="hidden sm:inline">প্রিন্ট</span>
+        </button>
+        <div className="relative">
+          <button
+            onClick={() => setMenuOpen((o) => !o)}
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg text-sm font-medium hover:from-indigo-700 hover:to-violet-700 shadow-sm"
+          >
+            <Download className="w-4 h-4" />
+            <span className="hidden sm:inline">ডাউনলোড</span>
+            <ChevronDown className="w-4 h-4" />
+          </button>
+          {menuOpen && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
+              <div className="absolute left-0 mt-2 w-44 bg-white border border-slate-200 rounded-lg shadow-lg z-20 overflow-hidden">
+                <button
+                  onClick={() => { setMenuOpen(false); downloadCsv(); }}
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-slate-50 flex items-center justify-between"
+                >
+                  <span>সিএসভি ফাইল</span>
+                  <span className="text-xs text-slate-400">.csv</span>
+                </button>
+                <button
+                  onClick={() => { setMenuOpen(false); downloadXlsx(); }}
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-slate-50 flex items-center justify-between border-t border-slate-100"
+                >
+                  <span>এক্সেল ফাইল</span>
+                  <span className="text-xs text-slate-400">.xlsx</span>
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
       {/* Filter */}
       <div className="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200 shadow-sm mb-4 sm:mb-6">
         <div className="flex items-center gap-2 mb-3">
