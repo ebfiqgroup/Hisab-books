@@ -145,13 +145,7 @@ function TransactionsPage() {
   const openNew = () => { setEditing(null); setOpen(true); };
 
   return (
-    <AppShell title={t("লেনদেন", "Transactions")} actions={
-      <div className="flex items-center gap-2">
-        <button onClick={openNew} className="group flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg text-sm font-semibold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.02] transition-all">
-          <Plus className="w-4 h-4" /> <span className="hidden sm:inline">{t("নতুন লেনদেন", "New transaction")}</span><span className="sm:hidden">{t("যোগ", "Add")}</span>
-        </button>
-      </div>
-    }>
+    <AppShell title={t("লেনদেন", "Transactions")}>
       {/* Hero summary */}
       <div className="relative overflow-hidden rounded-2xl p-5 sm:p-7 mb-5 text-white shadow-2xl shadow-indigo-500/30"
         style={{ background: "linear-gradient(135deg,#4f46e5 0%,#7c3aed 45%,#a855f7 100%)" }}>
@@ -190,6 +184,13 @@ function TransactionsPage() {
             <span className="text-indigo-50/80 text-xs">{t("গত মাসের তুলনায়", "vs last month")}</span>
           </span>
         </div>
+      </div>
+
+      {/* Action buttons */}
+      <div className="flex flex-wrap items-center gap-2 mb-5">
+        <button onClick={openNew} className="group flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg text-sm font-semibold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.02] transition-all">
+          <Plus className="w-4 h-4" /> {t("নতুন লেনদেন", "New transaction")}
+        </button>
       </div>
 
       {/* Mini stats */}
