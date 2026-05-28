@@ -100,16 +100,7 @@ function IncomePage() {
   const openNew = () => { setEditing(null); setOpen(true); };
 
   return (
-    <AppShell title={t("আয়", "Income")} actions={
-      <div className="flex items-center gap-2">
-        <button onClick={() => setCatOpen(true)} className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 shadow-sm">
-          <Tags className="w-4 h-4" /> {t("ক্যাটাগরি", "Categories")}
-        </button>
-        <button onClick={openNew} className="group flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg text-sm font-semibold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-[1.02] transition-all">
-          <Plus className="w-4 h-4" /> {t("নতুন আয়", "New income")}
-        </button>
-      </div>
-    }>
+    <AppShell title={t("আয়", "Income")}>
       {/* Hero summary */}
       <div className="relative overflow-hidden rounded-2xl p-5 sm:p-7 mb-5 text-white shadow-2xl shadow-emerald-500/30"
         style={{ background: "linear-gradient(135deg,#059669 0%,#10b981 45%,#14b8a6 100%)" }}>
@@ -136,6 +127,16 @@ function IncomePage() {
             <Sparkline points={spark} />
           </div>
         </div>
+      </div>
+
+      {/* Action buttons */}
+      <div className="flex flex-wrap items-center gap-2 mb-5">
+        <button onClick={openNew} className="group flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg text-sm font-semibold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-[1.02] transition-all">
+          <Plus className="w-4 h-4" /> {t("নতুন আয়", "New income")}
+        </button>
+        <button onClick={() => setCatOpen(true)} className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 shadow-sm">
+          <Tags className="w-4 h-4" /> {t("ক্যাটাগরি", "Categories")}
+        </button>
       </div>
 
       {/* Mini stats */}

@@ -212,16 +212,7 @@ function GoalsPage() {
   const completedCount = filteredList.filter((g) => currentOf(g) >= Number(g.target) && Number(g.target) > 0).length;
 
   return (
-    <AppShell title={t("সঞ্চয় লক্ষ্য", "Savings goals")} actions={
-      <div className="flex items-center gap-2">
-        <button onClick={() => setCatManagerOpen(true)} className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50">
-          <Plus className="w-4 h-4" /> {t("ক্যাটাগরি", "Category")}
-        </button>
-        <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">
-          <Plus className="w-4 h-4" /> {t("নতুন লক্ষ্য", "New goal")}
-        </button>
-      </div>
-    }>
+    <AppShell title={t("সঞ্চয় লক্ষ্য", "Savings goals")}>
       {q.isLoading && <div className="text-slate-400">{t("লোড হচ্ছে...", "Loading...")}</div>}
       {!q.isLoading && list.length === 0 && (
         <div className="bg-white rounded-xl border border-slate-200 p-12 text-center text-slate-500">
@@ -271,6 +262,16 @@ function GoalsPage() {
           </div>
         </div>
       )}
+
+      {/* Action buttons */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">
+          <Plus className="w-4 h-4" /> {t("নতুন লক্ষ্য", "New goal")}
+        </button>
+        <button onClick={() => setCatManagerOpen(true)} className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50">
+          <Plus className="w-4 h-4" /> {t("ক্যাটাগরি", "Category")}
+        </button>
+      </div>
 
       {/* Filter tabs */}
       {list.length > 0 && (

@@ -142,13 +142,7 @@ function DebtsPage() {
   };
 
   return (
-    <AppShell title={t("দেনা / পাওনা", "Receivable / Payable")} actions={
-      <div className="flex items-center gap-2">
-        <button onClick={openNew} className="group flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg text-sm font-semibold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.02] transition-all">
-          <Plus className="w-4 h-4" /> <span className="hidden sm:inline">{t("নতুন এন্ট্রি", "New entry")}</span><span className="sm:hidden">{t("যোগ", "Add")}</span>
-        </button>
-      </div>
-    }>
+    <AppShell title={t("দেনা / পাওনা", "Receivable / Payable")}>
       {/* Hero summary */}
       <div className="relative overflow-hidden rounded-2xl p-5 sm:p-7 mb-5 text-white shadow-2xl shadow-indigo-500/30"
         style={{ background: "linear-gradient(135deg,#4f46e5 0%,#7c3aed 45%,#a855f7 100%)" }}>
@@ -196,6 +190,13 @@ function DebtsPage() {
           </span>
           <span className="text-indigo-50/80 text-xs">{t("মোট এন্ট্রি", "Total entries")}: <b className="text-white">{toBn(all.length)}</b></span>
         </div>
+      </div>
+
+      {/* Action buttons */}
+      <div className="flex flex-wrap items-center gap-2 mb-5">
+        <button onClick={openNew} className="group flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg text-sm font-semibold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.02] transition-all">
+          <Plus className="w-4 h-4" /> {t("নতুন এন্ট্রি", "New entry")}
+        </button>
       </div>
 
       {/* Mini stats */}
