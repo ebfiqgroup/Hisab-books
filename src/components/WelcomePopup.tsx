@@ -115,7 +115,7 @@ export function WelcomePopup() {
         </button>
 
         {/* Content */}
-        <div className="pt-10 pb-6 px-6 text-center">
+      <div className="pt-10 pb-6 px-6 text-center">
           <div className="flex items-center justify-center gap-1.5 mb-1">
             <Sparkles className="w-4 h-4" style={{ color: "var(--brand-gold-600)" }} />
             <span className="text-xs font-semibold tracking-wide uppercase" style={{ color: "var(--brand-gold-600)" }}>
@@ -138,13 +138,18 @@ export function WelcomePopup() {
           </h2>
 
           <p className="text-sm mb-5" style={{ color: "var(--brand-ink-soft)" }}>
-            {t(
-              "আপনার আর্থিক যাত্রা আজকের দিনটি থেকে শুরু হোক। সুস্থ ও সমৃদ্ধিশালী দিন কামনা করছি।",
-              "May your financial journey flourish starting today. Wishing you a healthy and prosperous day."
-            )}
+            {name
+              ? t(
+                  `${name}, আপনার আর্থিক যাত্রা আজ থেকে আরও সুন্দর হোক। আমরা আপনার পাশে আছি প্রতিটি পদক্ষেপে।`,
+                  `${name}, may your financial journey flourish from today onward. We're with you at every step.`
+                )
+              : t(
+                  "আপনার আর্থিক যাত্রা আজকের দিনটি থেকে শুরু হোক। সুস্থ ও সমৃদ্ধিশালী দিন কামনা করছি।",
+                  "May your financial journey flourish starting today. Wishing you a healthy and prosperous day."
+                )}
           </p>
 
-          {/* Fun stat / action hint */}
+          {/* Personalized action hint */}
           <div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium"
             style={{
@@ -154,7 +159,15 @@ export function WelcomePopup() {
             }}
           >
             <PartyPopper className="w-3.5 h-3.5" />
-            {t("আজকের হিসাব দেখতে ড্যাশবোর্ড ভিজিট করুন", "Visit the dashboard to see today's summary")}
+            {name
+              ? t(
+                  `${name}, আজকের হিসাব দেখতে ড্যাশবোর্ড ভিজিট করুন`,
+                  `${name}, visit the dashboard to see today's summary`
+                )
+              : t(
+                  "আজকের হিসাব দেখতে ড্যাশবোর্ড ভিজিট করুন",
+                  "Visit the dashboard to see today's summary"
+                )}
           </div>
         </div>
 
