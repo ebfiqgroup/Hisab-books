@@ -47,6 +47,8 @@ function TransactionsPage() {
   const [cat, setCat] = useState<string>("");
   const [q, setQ] = useState("");
   const [debouncedQ, setDebouncedQ] = useState("");
+  const [dateFrom, setDateFrom] = useState<string>("");
+  const [dateTo, setDateTo] = useState<string>("");
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQ(q.trim()), 300);
@@ -54,7 +56,7 @@ function TransactionsPage() {
   }, [q]);
 
   const txnQ = useInfiniteQuery({
-    queryKey: ["transactions", "list", uid, filter, cat, debouncedQ],
+    queryKey: ["transactions", "list", uid, filter, cat, debouncedQ, dateFrom, dateTo],
     initialPageParam: 0,
     queryFn: async ({ pageParam }) => {
       const from = (pageParam as number) * PAGE_SIZE;
@@ -68,6 +70,8 @@ function TransactionsPage() {
         .range(from, to);
       if (filter !== "all") query = query.eq("type", filter);
       if (cat) query = query.eq("category", cat);
+      if (dateFrom) query = query.gte("occurred_on", dateFrom);
+      if (dateTo) query = query.lte("occurred_on", dateTo);
       if (debouncedQ) {
         const esc = debouncedQ.replace(/[,()]/g, " ").trim();
         if (esc) query = query.or(`note.ilike.%${esc}%,category.ilike.%${esc}%`);
