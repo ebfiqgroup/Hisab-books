@@ -307,22 +307,8 @@ function GoalsPage() {
               ))}
             </div>
           )}
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1.5 text-xs text-slate-500 mr-1">
-              <CalendarClock className="w-3.5 h-3.5" />
-              <span>{t("সময়", "Time")}:</span>
-            </div>
-            <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}
-              className="px-2 py-1 border border-slate-200 rounded-md text-xs" />
-            <span className="text-xs text-slate-400">→</span>
-            <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)}
-              className="px-2 py-1 border border-slate-200 rounded-md text-xs" />
-            {(dateFrom || dateTo) && (
-              <button onClick={() => { setDateFrom(""); setDateTo(""); }} className="text-xs text-slate-500 hover:text-slate-700 underline">
-                {t("রিসেট", "Reset")}
-              </button>
-            )}
-          </div>
+          <DateRangeFilter view={dateView} from={dateFrom} to={dateTo} accent="indigo" compact
+            onChange={(n) => { setDateView(n.view); setDateFrom(n.from); setDateTo(n.to); }} />
         </div>
       )}
 
