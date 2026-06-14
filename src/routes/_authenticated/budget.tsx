@@ -321,6 +321,11 @@ function BudgetPage() {
         ))}
       </div>
 
+      <div className="mb-4">
+        <DateRangeFilter view={dateView} from={dateFrom} to={dateTo} accent="indigo"
+          onChange={(n) => { setDateView(n.view); setDateFrom(n.from); setDateTo(n.to); }} />
+      </div>
+
       {/* List */}
       {filteredList.length === 0 ? (
         <div className="bg-white rounded-xl border border-dashed border-slate-300 p-10 text-center">
