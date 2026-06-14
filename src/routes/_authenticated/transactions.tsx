@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useCurrentUserId } from "@/hooks/useCurrentUserId";
 import { deleteTxnOffline } from "@/lib/offline-tx";
+import { DateRangeFilter, type DateView } from "@/components/DateRangeFilter";
 
 export const Route = createFileRoute("/_authenticated/transactions")({
   component: TransactionsPage,
@@ -49,6 +50,7 @@ function TransactionsPage() {
   const [debouncedQ, setDebouncedQ] = useState("");
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
+  const [dateView, setDateView] = useState<DateView>("all");
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQ(q.trim()), 300);
@@ -245,31 +247,6 @@ function TransactionsPage() {
             <option key={c} value={c}>{c}</option>
           ))}
         </select>
-        <div className="flex items-center gap-1.5 px-2 py-1 bg-white border border-slate-200 rounded-xl shadow-sm">
-          <Calendar className="w-4 h-4 text-slate-400" />
-          <input
-            type="date"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-            className="text-sm bg-transparent focus:outline-none px-1 py-1"
-            title={t("শুরুর তারিখ", "From date")}
-          />
-          <span className="text-slate-400 text-xs">—</span>
-          <input
-            type="date"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-            className="text-sm bg-transparent focus:outline-none px-1 py-1"
-            title={t("শেষ তারিখ", "To date")}
-          />
-          {(dateFrom || dateTo) && (
-            <button
-              onClick={() => { setDateFrom(""); setDateTo(""); }}
-              className="ml-1 text-xs text-slate-500 hover:text-rose-600 px-1.5 py-0.5 rounded hover:bg-rose-50"
-              title={t("রিসেট", "Reset")}
-            >×</button>
-          )}
-        </div>
         <div className="relative flex-1 min-w-[200px]">
           <input
             value={q}
@@ -282,6 +259,11 @@ function TransactionsPage() {
         <div className="hidden sm:flex items-center gap-1.5 px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-600">
           <span className="text-slate-400">{t("দেখাচ্ছে", "Showing")}:</span> <b>{toBn(filtered.length)}</b>
         </div>
+      </div>
+
+      <div className="mb-4">
+        <DateRangeFilter view={dateView} from={dateFrom} to={dateTo} accent="indigo"
+          onChange={(n) => { setDateView(n.view); setDateFrom(n.from); setDateTo(n.to); }} />
       </div>
 
         {/* Desktop table */}

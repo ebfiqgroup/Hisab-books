@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useCurrentUserId } from "@/hooks/useCurrentUserId";
+import { DateRangeFilter, type DateView } from "@/components/DateRangeFilter";
 
 export const Route = createFileRoute("/_authenticated/debts")({ component: DebtsPage });
 
@@ -38,6 +39,9 @@ function DebtsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ kind: "receivable" as "receivable" | "payable", person: "", amount: "", due_date: "", note: "" });
   const [query, setQuery] = useState("");
+  const [dateView, setDateView] = useState<DateView>("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const q = useQuery({
     queryKey: ["debts", "all", uid],
@@ -50,9 +54,16 @@ function DebtsPage() {
   const all = q.data ?? [];
   const list = useMemo(() => {
     const s = query.trim().toLowerCase();
-    if (!s) return all;
-    return all.filter((d) => d.person.toLowerCase().includes(s) || (d.note ?? "").toLowerCase().includes(s));
-  }, [all, query]);
+    return all.filter((d) => {
+      if (s && !(d.person.toLowerCase().includes(s) || (d.note ?? "").toLowerCase().includes(s))) return false;
+      if (dateFrom || dateTo) {
+        const key = (d.created_at || "").slice(0, 10);
+        if (dateFrom && key < dateFrom) return false;
+        if (dateTo && key > dateTo) return false;
+      }
+      return true;
+    });
+  }, [all, query, dateFrom, dateTo]);
   const receivable = all.filter((d) => d.kind === "receivable" && !d.settled).reduce((s, d) => s + Number(d.amount), 0);
   const payable = all.filter((d) => d.kind === "payable" && !d.settled).reduce((s, d) => s + Number(d.amount), 0);
   const net = receivable - payable;
@@ -242,6 +253,11 @@ function DebtsPage() {
         <div className="hidden sm:flex items-center gap-1.5 px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-600">
           <span className="text-slate-400">{t("দেখাচ্ছে", "Showing")}:</span> <b>{toBn(list.length)}</b>
         </div>
+      </div>
+
+      <div className="mb-4">
+        <DateRangeFilter view={dateView} from={dateFrom} to={dateTo} accent="indigo"
+          onChange={(n) => { setDateView(n.view); setDateFrom(n.from); setDateTo(n.to); }} />
       </div>
 
       {/* Desktop table */}

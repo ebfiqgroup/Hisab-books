@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Plus, Trash2, Pencil, Wallet, CalendarClock, X, ListFilter } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useCurrentUserId } from "@/hooks/useCurrentUserId";
+import { DateRangeFilter, type DateView } from "@/components/DateRangeFilter";
 
 export const Route = createFileRoute("/_authenticated/budget")({ component: BudgetPage });
 
@@ -115,6 +116,9 @@ function BudgetPage() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<FormState>(() => emptyForm(cats[0] ?? ""));
   const [filter, setFilter] = useState<"all" | "pending" | "ongoing" | "completed">("all");
+  const [dateView, setDateView] = useState<DateView>("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const nowIso = new Date().toISOString();
 
@@ -218,11 +222,18 @@ function BudgetPage() {
 
   const list = bQ.data ?? [];
   const filteredList = useMemo(() => {
-    if (filter === "all") return list;
     return list.filter((b) => {
-      return effStatus(b) === filter;
+      if (filter !== "all" && effStatus(b) !== filter) return false;
+      if (dateFrom || dateTo) {
+        // overlap test between budget [start_at..end_at] and [dateFrom..dateTo]
+        const bStart = (b.start_at || "").slice(0, 10);
+        const bEnd = (b.end_at || "").slice(0, 10);
+        if (dateFrom && bEnd && bEnd < dateFrom) return false;
+        if (dateTo && bStart && bStart > dateTo) return false;
+      }
+      return true;
     });
-  }, [list, filter, nowIso]);
+  }, [list, filter, nowIso, dateFrom, dateTo]);
   const totalLimit = filteredList.reduce((s, b) => s + Number(b.monthly_limit), 0);
   const totalSpent = filteredList.reduce((s, b) => s + spentFor(b), 0);
   const totalPct = totalLimit > 0 ? Math.min(100, (totalSpent / totalLimit) * 100) : 0;
@@ -309,6 +320,11 @@ function BudgetPage() {
             {t(f.labelBn, f.labelEn)}
           </button>
         ))}
+      </div>
+
+      <div className="mb-4">
+        <DateRangeFilter view={dateView} from={dateFrom} to={dateTo} accent="indigo"
+          onChange={(n) => { setDateView(n.view); setDateFrom(n.from); setDateTo(n.to); }} />
       </div>
 
       {/* List */}
