@@ -7,6 +7,7 @@ import { AppShell } from "@/components/AppShell";
 import { fmtTk, toBn, BN_MONTHS } from "@/lib/finance";
 import { Download, BarChart3, TrendingUp, TrendingDown, PiggyBank, Calendar, ChevronDown, Printer } from "lucide-react";
 import { toast } from "sonner";
+import type { DateGranularity } from "@/components/DateRangeFilter";
 
 export const Route = createFileRoute("/_authenticated/report")({
   head: () => ({
@@ -44,6 +45,7 @@ function ReportPage() {
   const [preset, setPreset] = useState<Preset>("6m");
   const [range, setRange] = useState(() => presetRange("6m"));
   const [menuOpen, setMenuOpen] = useState(false);
+  const [granularityOverride, setGranularityOverride] = useState<DateGranularity>("auto");
 
   const setPresetAndRange = (p: Preset) => {
     setPreset(p);
@@ -70,17 +72,35 @@ function ReportPage() {
     const from = new Date(range.from);
     const to = new Date(range.to);
     const days = Math.max(1, Math.round((to.getTime() - from.getTime()) / 86400000) + 1);
-    const daily = days <= 62;
+    const auto: "day" | "week" | "month" | "year" = days <= 62 ? "day" : days <= 366 * 2 ? "month" : "year";
+    const gran: "day" | "week" | "month" | "year" = granularityOverride === "auto" ? auto : granularityOverride;
     const map = new Map<string, Row>();
 
-    if (daily) {
+    if (gran === "day") {
       for (let i = 0; i < days; i++) {
         const d = new Date(from);
         d.setDate(from.getDate() + i);
         const key = isoDay(d);
         map.set(key, { key, label: `${toBn(d.getDate())} ${BN_MONTHS[d.getMonth()].slice(0, 3)}`, income: 0, expense: 0, saving: 0 });
       }
-    } else {
+    } else if (gran === "week") {
+      // Bucket by ISO week start (Saturday-based to match BD convention)
+      const startOfWeek = (d: Date) => {
+        const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        const diffToSat = (x.getDay() + 1) % 7;
+        x.setDate(x.getDate() - diffToSat);
+        return x;
+      };
+      const cur = startOfWeek(from);
+      const end = startOfWeek(to);
+      while (cur <= end) {
+        const key = isoDay(cur);
+        const endOfWeek = new Date(cur); endOfWeek.setDate(cur.getDate() + 6);
+        const label = `${toBn(cur.getDate())} ${BN_MONTHS[cur.getMonth()].slice(0, 3)} – ${toBn(endOfWeek.getDate())} ${BN_MONTHS[endOfWeek.getMonth()].slice(0, 3)}`;
+        map.set(key, { key, label, income: 0, expense: 0, saving: 0 });
+        cur.setDate(cur.getDate() + 7);
+      }
+    } else if (gran === "month") {
       const cur = new Date(from.getFullYear(), from.getMonth(), 1);
       const end = new Date(to.getFullYear(), to.getMonth(), 1);
       while (cur <= end) {
@@ -91,19 +111,36 @@ function ReportPage() {
         map.set(key, { key, label, income: 0, expense: 0, saving: 0 });
         cur.setMonth(cur.getMonth() + 1);
       }
+    } else {
+      // year
+      const startY = from.getFullYear();
+      const endY = to.getFullYear();
+      for (let y = startY; y <= endY; y++) {
+        const key = String(y);
+        map.set(key, { key, label: toBn(y), income: 0, expense: 0, saving: 0 });
+      }
     }
 
     for (const t of q.data ?? []) {
       const d = new Date(t.occurred_on);
-      const key = daily ? isoDay(d) : `${d.getFullYear()}-${d.getMonth()}`;
+      let key: string;
+      if (gran === "day") key = isoDay(d);
+      else if (gran === "week") {
+        const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        const diffToSat = (x.getDay() + 1) % 7;
+        x.setDate(x.getDate() - diffToSat);
+        key = isoDay(x);
+      }
+      else if (gran === "month") key = `${d.getFullYear()}-${d.getMonth()}`;
+      else key = String(d.getFullYear());
       const r = map.get(key);
       if (!r) continue;
       if (t.type === "income") r.income += Number(t.amount);
       else r.expense += Number(t.amount);
     }
     const rows = Array.from(map.values()).map((r) => ({ ...r, saving: r.income - r.expense }));
-    return { rows, granularity: daily ? ("day" as const) : ("month" as const) };
-  }, [q.data, range.from, range.to]);
+    return { rows, granularity: gran };
+  }, [q.data, range.from, range.to, granularityOverride]);
 
   const max = Math.max(1, ...rows.flatMap((r) => [r.income, r.expense, Math.abs(r.saving)]));
   const totals = rows.reduce(
@@ -111,8 +148,8 @@ function ReportPage() {
     { income: 0, expense: 0, saving: 0 },
   );
   const nonEmpty = rows.filter((r) => r.income || r.expense);
-  const periodLabel = granularity === "day" ? "দৈনিক" : "মাসিক";
-  const unitLabel = granularity === "day" ? "দিন" : "মাস";
+  const periodLabel = granularity === "day" ? "দৈনিক" : granularity === "week" ? "সাপ্তাহিক" : granularity === "month" ? "মাসিক" : "বার্ষিক";
+  const unitLabel = granularity === "day" ? "দিন" : granularity === "week" ? "সপ্তাহ" : granularity === "month" ? "মাস" : "বছর";
 
   const summary = [
     { label: `গড় ${periodLabel} আয়`, value: fmtTk(nonEmpty.length ? totals.income / nonEmpty.length : 0), Icon: TrendingUp, grad: "from-emerald-500 to-teal-600", ring: "ring-emerald-200" },
@@ -121,7 +158,7 @@ function ReportPage() {
     { label: "মোট রিপোর্ট", value: `${toBn(nonEmpty.length)} ${unitLabel}`, Icon: BarChart3, grad: "from-indigo-500 to-violet-600", ring: "ring-indigo-200" },
   ];
 
-  const colHeader = granularity === "day" ? "তারিখ" : "মাস";
+  const colHeader = granularity === "day" ? "তারিখ" : granularity === "week" ? "সপ্তাহ" : granularity === "month" ? "মাস" : "বছর";
 
   const downloadCsv = () => {
     const header = `${colHeader},আয়,ব্যয়,অবশিষ্ট\n`;
