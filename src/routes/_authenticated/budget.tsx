@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Plus, Trash2, Pencil, Wallet, CalendarClock, X, ListFilter } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useCurrentUserId } from "@/hooks/useCurrentUserId";
+import { DateRangeFilter, type DateView } from "@/components/DateRangeFilter";
 
 export const Route = createFileRoute("/_authenticated/budget")({ component: BudgetPage });
 
@@ -115,7 +116,7 @@ function BudgetPage() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<FormState>(() => emptyForm(cats[0] ?? ""));
   const [filter, setFilter] = useState<"all" | "pending" | "ongoing" | "completed">("all");
-  const [dateView, setDateView] = useState<import("@/components/DateRangeFilter").DateView>("all");
+  const [dateView, setDateView] = useState<DateView>("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
