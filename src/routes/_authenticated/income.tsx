@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useCurrentUserId } from "@/hooks/useCurrentUserId";
 import { useCustomCategories } from "@/hooks/useCustomCategories";
+import { DateRangeFilter, type DateView } from "@/components/DateRangeFilter";
 
 export const Route = createFileRoute("/_authenticated/income")({ component: IncomePage });
 
@@ -42,6 +43,9 @@ function IncomePage() {
   const [catOpen, setCatOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [cat, setCat] = useState<string>("");
+  const [dateView, setDateView] = useState<DateView>("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const q = useQuery({
     queryKey: ["transactions", "income", uid],
     queryFn: async () => {
@@ -56,8 +60,10 @@ function IncomePage() {
     const s = query.trim().toLowerCase();
     if (s) result = result.filter((t) => t.category.toLowerCase().includes(s) || (t.note ?? "").toLowerCase().includes(s));
     if (cat) result = result.filter((t) => t.category === cat);
+    if (dateFrom) result = result.filter((t) => t.occurred_on >= dateFrom);
+    if (dateTo) result = result.filter((t) => t.occurred_on <= dateTo);
     return result;
-  }, [all, query, cat]);
+  }, [all, query, cat, dateFrom, dateTo]);
   const total = list.reduce((s, t) => s + Number(t.amount), 0);
 
   const { spark, thisMonth, lastMonth, topCat, txCount } = useMemo(() => {
@@ -188,6 +194,11 @@ function IncomePage() {
         <div className="hidden sm:flex items-center gap-1.5 px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-600">
           <span className="text-slate-400">{t("দেখাচ্ছে", "Showing")}:</span> <b>{toBn(list.length)}</b>
         </div>
+      </div>
+
+      <div className="mb-4">
+        <DateRangeFilter view={dateView} from={dateFrom} to={dateTo} accent="emerald"
+          onChange={(n) => { setDateView(n.view); setDateFrom(n.from); setDateTo(n.to); }} />
       </div>
 
       {/* Desktop table */}
