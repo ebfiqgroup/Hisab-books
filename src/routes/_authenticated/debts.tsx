@@ -255,6 +255,11 @@ function DebtsPage() {
         </div>
       </div>
 
+      <div className="mb-4">
+        <DateRangeFilter view={dateView} from={dateFrom} to={dateTo} accent="indigo"
+          onChange={(n) => { setDateView(n.view); setDateFrom(n.from); setDateTo(n.to); }} />
+      </div>
+
       {/* Desktop table */}
       <div className="hidden lg:block bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
