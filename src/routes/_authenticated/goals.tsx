@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useCurrentUserId } from "@/hooks/useCurrentUserId";
+import { DateRangeFilter, type DateView } from "@/components/DateRangeFilter";
 
 export const Route = createFileRoute("/_authenticated/goals")({ component: GoalsPage });
 
@@ -54,6 +55,7 @@ function GoalsPage() {
   const [catFilter, setCatFilter] = useState<string>("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [dateView, setDateView] = useState<DateView>("all");
   const [cats, setCats] = useState<string[]>(() => loadGoalCats());
   const [newCat, setNewCat] = useState("");
   const [catManagerOpen, setCatManagerOpen] = useState(false);
