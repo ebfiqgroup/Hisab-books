@@ -372,6 +372,30 @@ function ReportPage() {
         <div className="text-xs text-slate-500 mt-2">
           নির্বাচিত পরিসর: <span className="font-medium text-slate-700">{range.from}</span> থেকে <span className="font-medium text-slate-700">{range.to}</span>
         </div>
+        <div className="mt-3 pt-3 border-t border-slate-100">
+          <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold mb-1.5">ভিউ অপশন (গ্রুপিং)</div>
+          <div className="flex flex-wrap gap-1.5">
+            {([
+              { k: "auto", bn: "অটো" },
+              { k: "day", bn: "দিন" },
+              { k: "week", bn: "সপ্তাহ" },
+              { k: "month", bn: "মাস" },
+              { k: "year", bn: "বছর" },
+            ] as { k: DateGranularity; bn: string }[]).map((g) => (
+              <button
+                key={g.k}
+                onClick={() => setGranularityOverride(g.k)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
+                  granularityOverride === g.k
+                    ? "bg-gradient-to-r from-indigo-600 to-violet-600 text-white border-indigo-600 shadow-md shadow-indigo-200"
+                    : "bg-white text-slate-700 border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/40"
+                }`}
+              >
+                {g.bn}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
