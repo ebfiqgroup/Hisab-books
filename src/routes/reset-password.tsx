@@ -7,7 +7,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
-    meta: [{ title: "পাসওয়ার্ড রিসেট - আমার হিসাব" }],
+    meta: [{ title: "পাসওয়ার্ড রিসেট - হিসাব বই" }],
   }),
   component: ResetPasswordPage,
 });

@@ -3,8 +3,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
-      { title: "প্রাইভেসি নীতি — আমার হিসাব" },
-      { name: "description", content: "আমার হিসাব অ্যাপের প্রাইভেসি নীতি ও ডেটা ব্যবহার সংক্রান্ত তথ্য।" },
+      { title: "প্রাইভেসি নীতি — হিসাব বই" },
+      { name: "description", content: "হিসাব বই অ্যাপের প্রাইভেসি নীতি ও ডেটা ব্যবহার সংক্রান্ত তথ্য।" },
     ],
   }),
   component: PrivacyPage,
@@ -18,7 +18,7 @@ function PrivacyPage() {
         <h1 className="text-3xl mt-4" style={{ fontFamily: "var(--font-display)" }}>প্রাইভেসি নীতি</h1>
         <p className="text-xs mt-1" style={{ color: "var(--brand-ink-soft)" }}>সর্বশেষ আপডেট: ২০২৫</p>
         <div className="prose prose-sm max-w-none mt-6 space-y-4 text-sm leading-relaxed" style={{ color: "var(--brand-ink)" }}>
-          <p>"আমার হিসাব" আপনার ব্যক্তিগত আর্থিক তথ্যকে সর্বোচ্চ গুরুত্ব দেয়। এই নীতিতে আমরা ব্যাখ্যা করছি কীভাবে আপনার তথ্য সংগ্রহ, সংরক্ষণ ও ব্যবহার করি।</p>
+          <p>"হিসাব বই" আপনার ব্যক্তিগত আর্থিক তথ্যকে সর্বোচ্চ গুরুত্ব দেয়। এই নীতিতে আমরা ব্যাখ্যা করছি কীভাবে আপনার তথ্য সংগ্রহ, সংরক্ষণ ও ব্যবহার করি।</p>
           <h2 className="text-lg font-semibold mt-6">কী ধরনের তথ্য সংগ্রহ করি</h2>
           <ul className="list-disc pl-5 space-y-1">
             <li>অ্যাকাউন্ট তথ্য: নাম, ইমেইল, প্রোফাইল ছবি (ঐচ্ছিক)।</li>

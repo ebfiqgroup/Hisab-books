@@ -897,7 +897,7 @@ function Dashboard() {
         monthLabel={`${BN_MONTHS[now.getMonth()]} ${toBn(now.getFullYear())}`}
       />
 
-      <div className="text-center text-xs text-slate-500 mt-6">© {toBn(now.getFullYear())} {t("আমার হিসাব", "My Finance")} <span className="text-rose-500">♥</span></div>
+      <div className="text-center text-xs text-slate-500 mt-6">© {toBn(now.getFullYear())} {t("হিসাব বই", "Hisab Boi")} <span className="text-rose-500">♥</span></div>
 
       <TxnDialog open={txnOpen} onOpenChange={(v) => { setTxnOpen(v); if (!v) setEditingTxn(null); }} editTxn={editingTxn} />
     </AppShell>

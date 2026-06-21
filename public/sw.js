@@ -1,4 +1,4 @@
-// Service worker for "আমার হিসাব" — app shell + offline navigation fallback.
+// Service worker for "হিসাব বই" — app shell + offline navigation fallback.
 // Strategy: network-first for HTML navigation (so new builds always win),
 // stale-while-revalidate for same-origin static assets, and an offline fallback page.
 

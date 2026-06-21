@@ -12,7 +12,7 @@ import type { DateGranularity } from "@/components/DateRangeFilter";
 export const Route = createFileRoute("/_authenticated/report")({
   head: () => ({
     meta: [
-      { title: "রিপোর্ট - আমার হিসাব" },
+      { title: "রিপোর্ট - হিসাব বই" },
       { name: "description", content: "মাসিক আর্থিক রিপোর্ট ও বিশ্লেষণ" },
     ],
   }),
