@@ -85,7 +85,7 @@ function AuthPage() {
             <Wallet className="w-6 h-6" style={{ color: "var(--brand-emerald-700)" }} />
           </div>
           <div>
-            <h1 className="text-2xl" style={{ fontFamily: "var(--font-display)", color: "var(--brand-ink)" }}>{t("হিসাব বই", "My Finance")}</h1>
+            <h1 className="text-2xl" style={{ fontFamily: "var(--font-display)", color: "var(--brand-ink)" }}>{t("হিসাব বই", "Hisab Boi")}</h1>
             <p className="text-xs text-slate-500">
               {mode === "login" ? t("লগইন করুন", "Sign in") : mode === "signup" ? t("নতুন একাউন্ট তৈরি করুন", "Create a new account") : t("পাসওয়ার্ড রিসেট করুন", "Reset password")}
             </p>

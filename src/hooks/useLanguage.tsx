@@ -66,7 +66,7 @@ const dict = {
     "nav.allDashboards": "All Dashboards",
     "nav.superAdmin": "Super Admin",
     "nav.audit": "Audit Log",
-    "brand.title": "My Finance",
+    "brand.title": "Hisab Boi",
     "brand.subtitle": "Personal Finance",
     "brand.quote": "Financial discipline is\nthe key to success",
     "header.notifications": "Notifications",
