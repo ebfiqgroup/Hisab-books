@@ -101,7 +101,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
       try {
         await (navigator as Navigator & { share: (d: ShareData) => Promise<void> }).share({
           title: "হিসাব বই",
-          text: t("হিসাব বই অ্যাপ", "Amar Hishab app"),
+          text: t("হিসাব বই অ্যাপ", "Hisab Boi app"),
           url: appUrl,
         });
       } catch { /* user cancelled */ }
@@ -514,7 +514,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                 {platformHelp === "desktop" && (
                   <>
                     <p className="font-semibold" style={{ color: "var(--brand-ink)" }}>{t("ডেস্কটপ (Chrome / Edge)", "Desktop (Chrome / Edge)")}</p>
-                    <p>{t("অ্যাড্রেস বারের ডানে ইনস্টল আইকন (⤓) চাপুন, অথবা মেনু → \"Install হিসাব বই\"।", "Click the install icon (⤓) on the right of the address bar, or menu → \"Install Amar Hishab\".")}</p>
+                    <p>{t("অ্যাড্রেস বারের ডানে ইনস্টল আইকন (⤓) চাপুন, অথবা মেনু → \"Install হিসাব বই\"।", "Click the install icon (⤓) on the right of the address bar, or menu → \"Install Hisab Boi\".")}</p>
                   </>
                 )}
               </div>
