@@ -8,8 +8,8 @@ import {
 export const Route = createFileRoute("/demo")({
   head: () => ({
     meta: [
-      { title: "লাইভ ডেমো — আমার হিসাব" },
-      { name: "description", content: "আমার হিসাব অ্যাপের ইন্টারঅ্যাক্টিভ লাইভ ডেমো। লগইন ছাড়াই আয়-ব্যয় যোগ করে দেখুন।" },
+      { title: "লাইভ ডেমো — হিসাব বই" },
+      { name: "description", content: "হিসাব বই অ্যাপের ইন্টারঅ্যাক্টিভ লাইভ ডেমো। লগইন ছাড়াই আয়-ব্যয় যোগ করে দেখুন।" },
     ],
   }),
   component: DemoPage,

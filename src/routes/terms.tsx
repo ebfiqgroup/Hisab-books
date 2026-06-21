@@ -3,8 +3,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
-      { title: "শর্তাবলি — আমার হিসাব" },
-      { name: "description", content: "আমার হিসাব ব্যবহারের শর্তাবলি ও ব্যবহারকারী চুক্তি।" },
+      { title: "শর্তাবলি — হিসাব বই" },
+      { name: "description", content: "হিসাব বই ব্যবহারের শর্তাবলি ও ব্যবহারকারী চুক্তি।" },
     ],
   }),
   component: TermsPage,
@@ -18,7 +18,7 @@ function TermsPage() {
         <h1 className="text-3xl mt-4" style={{ fontFamily: "var(--font-display)" }}>ব্যবহারের শর্তাবলি</h1>
         <p className="text-xs mt-1" style={{ color: "var(--brand-ink-soft)" }}>সর্বশেষ আপডেট: ২০২৫</p>
         <div className="prose prose-sm max-w-none mt-6 space-y-4 text-sm leading-relaxed" style={{ color: "var(--brand-ink)" }}>
-          <p>"আমার হিসাব" ব্যবহারের আগে অনুগ্রহ করে এই শর্তাবলি ভালোভাবে পড়ুন। অ্যাকাউন্ট তৈরি বা ব্যবহার করলে আপনি এই শর্তে সম্মত হয়েছেন বলে গণ্য হবে।</p>
+          <p>"হিসাব বই" ব্যবহারের আগে অনুগ্রহ করে এই শর্তাবলি ভালোভাবে পড়ুন। অ্যাকাউন্ট তৈরি বা ব্যবহার করলে আপনি এই শর্তে সম্মত হয়েছেন বলে গণ্য হবে।</p>
           <h2 className="text-lg font-semibold mt-6">অ্যাকাউন্ট</h2>
           <p>আপনার অ্যাকাউন্টের পাসওয়ার্ড গোপন রাখার দায়িত্ব আপনার। অননুমোদিত অ্যাক্সেস সন্দেহ হলে অবিলম্বে আমাদের জানান।</p>
           <h2 className="text-lg font-semibold mt-6">ব্যবহারের সীমা</h2>

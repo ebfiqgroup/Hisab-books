@@ -11,9 +11,9 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "আমার হিসাব — আপনার অর্থ, আপনার গল্প" },
+      { title: "হিসাব বই — আপনার অর্থ, আপনার গল্প" },
       { name: "description", content: "বাংলায় সহজ ব্যক্তিগত আর্থিক ব্যবস্থাপনা। আয়-ব্যয়, বাজেট, লক্ষ্য ও দেনা-পাওনা — সব এক জায়গায়।" },
-      { property: "og:title", content: "আমার হিসাব" },
+      { property: "og:title", content: "হিসাব বই" },
       { property: "og:description", content: "বাংলায় সাজানো ব্যক্তিগত ফাইন্যান্স ড্যাশবোর্ড।" },
     ],
   }),
@@ -40,7 +40,7 @@ function Landing() {
             <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white" style={{ background: "var(--gradient-brand)" }}>
               <Wallet className="w-4 h-4" />
             </div>
-            <span className="text-xl tracking-tight" style={{ fontFamily: "var(--font-display)" }}>আমার হিসাব</span>
+            <span className="text-xl tracking-tight" style={{ fontFamily: "var(--font-display)" }}>হিসাব বই</span>
           </Link>
           <nav className="hidden md:flex items-center gap-7 text-sm" style={{ color: "var(--brand-ink-soft)" }}>
             <a href="#features" className="hover:opacity-70">ফিচার</a>
@@ -454,7 +454,7 @@ function Footer() {
             <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white" style={{ background: "var(--gradient-brand)" }}>
               <Wallet className="w-4 h-4" />
             </div>
-            <span className="text-xl" style={{ fontFamily: "var(--font-display)" }}>আমার হিসাব</span>
+            <span className="text-xl" style={{ fontFamily: "var(--font-display)" }}>হিসাব বই</span>
           </div>
           <p className="mt-3 max-w-sm text-sm" style={{ color: "var(--brand-ink-soft)" }}>
             বাংলায় সাজানো আপনার ব্যক্তিগত আর্থিক জার্নাল। যত্নে তৈরি, প্রতিদিনের জন্য।
@@ -521,7 +521,7 @@ function Footer() {
 
       <div className="border-t" style={{ borderColor: "var(--brand-line)" }}>
         <div className="max-w-6xl mx-auto px-5 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs" style={{ color: "var(--brand-ink-soft)" }}>
-          <div>© {new Date().getFullYear()} আমার হিসাব — যত্নে তৈরি, বাংলায়।</div>
+          <div>© {new Date().getFullYear()} হিসাব বই — যত্নে তৈরি, বাংলায়।</div>
           <div className="flex gap-4">
             <Link to="/privacy" className="hover:text-emerald-800">প্রাইভেসি</Link>
             <Link to="/terms" className="hover:text-emerald-800">শর্তাবলি</Link>
