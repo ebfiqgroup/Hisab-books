@@ -185,7 +185,7 @@ export function WelcomePopup() {
                     {t("স্বাগতম", "Welcome")}, <span style={{ color: "var(--brand-emerald-700)" }}>{name}</span>!
                   </>
                 ) : (
-                  t("আমার হিসাবে স্বাগতম!", "Welcome to Amar Hishab!")
+                  t("হিসাব বইে স্বাগতম!", "Welcome to Amar Hishab!")
                 )}
               </motion.h2>
 

@@ -100,8 +100,8 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
     if (typeof navigator !== "undefined" && (navigator as Navigator & { share?: (d: ShareData) => Promise<void> }).share) {
       try {
         await (navigator as Navigator & { share: (d: ShareData) => Promise<void> }).share({
-          title: "আমার হিসাব",
-          text: t("আমার হিসাব অ্যাপ", "Amar Hishab app"),
+          title: "হিসাব বই",
+          text: t("হিসাব বই অ্যাপ", "Amar Hishab app"),
           url: appUrl,
         });
       } catch { /* user cancelled */ }
@@ -144,7 +144,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                 <div className="h-7 w-7 rounded-lg flex items-center justify-center" style={{ background: "var(--gradient-brand)" }}>
                   <Wallet className="w-4 h-4 text-white" />
                 </div>
-                <span className="text-base font-bold tracking-wide" style={{ fontFamily: "var(--font-display)", color: "var(--brand-ink)" }}>আমার হিসাব</span>
+                <span className="text-base font-bold tracking-wide" style={{ fontFamily: "var(--font-display)", color: "var(--brand-ink)" }}>হিসাব বই</span>
               </Link>
               {/* Desktop left side: back + divider + title */}
               <div className="hidden lg:flex items-center gap-2 md:gap-3 min-w-0">
@@ -514,7 +514,7 @@ export function AppShell({ title, actions, children }: { title: ReactNode; actio
                 {platformHelp === "desktop" && (
                   <>
                     <p className="font-semibold" style={{ color: "var(--brand-ink)" }}>{t("ডেস্কটপ (Chrome / Edge)", "Desktop (Chrome / Edge)")}</p>
-                    <p>{t("অ্যাড্রেস বারের ডানে ইনস্টল আইকন (⤓) চাপুন, অথবা মেনু → \"Install আমার হিসাব\"।", "Click the install icon (⤓) on the right of the address bar, or menu → \"Install Amar Hishab\".")}</p>
+                    <p>{t("অ্যাড্রেস বারের ডানে ইনস্টল আইকন (⤓) চাপুন, অথবা মেনু → \"Install হিসাব বই\"।", "Click the install icon (⤓) on the right of the address bar, or menu → \"Install Amar Hishab\".")}</p>
                   </>
                 )}
               </div>

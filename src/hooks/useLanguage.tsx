@@ -36,7 +36,7 @@ const dict = {
     "nav.allDashboards": "সব ড্যাশবোর্ড",
     "nav.superAdmin": "সুপার অ্যাডমিন",
     "nav.audit": "অডিট লগ",
-    "brand.title": "আমার হিসাব",
+    "brand.title": "হিসাব বই",
     "brand.subtitle": "Personal Finance",
     "brand.quote": "আর্থিক শৃঙ্খলাই\nসফলতার চাবিকাঠি",
     "header.notifications": "নোটিফিকেশন",
