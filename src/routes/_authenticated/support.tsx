@@ -339,21 +339,18 @@ function SupportPage() {
   };
 
   return (
-    <AppShell
-      title={t("সাপোর্ট", "Support")}
-      actions={
-        <div className="flex gap-2">
-          <button onClick={() => { load(); if (isAdmin) loadFeedback(); }} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border text-sm hover:shadow-sm" style={{ borderColor: "var(--brand-line)" }}>
-            <RefreshCw className="w-4 h-4" /> {t("রিফ্রেশ", "Refresh")}
+    <AppShell title={t("সাপোর্ট", "Support")}>
+      <div className="flex gap-2 mb-3">
+        <button onClick={() => { load(); if (isAdmin) loadFeedback(); }} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border text-sm hover:shadow-sm" style={{ borderColor: "var(--brand-line)" }}>
+          <RefreshCw className="w-4 h-4" /> {t("রিফ্রেশ", "Refresh")}
+        </button>
+        {!isAdmin && (
+          <button onClick={() => setShowNew(true)} className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-white" style={{ background: "var(--brand-emerald-700)" }}>
+            <Plus className="w-4 h-4" /> {t("নতুন টিকেট", "New ticket")}
           </button>
-          {!isAdmin && (
-            <button onClick={() => setShowNew(true)} className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-white" style={{ background: "var(--brand-emerald-700)" }}>
-              <Plus className="w-4 h-4" /> {t("নতুন টিকেট", "New ticket")}
-            </button>
-          )}
-        </div>
-      }
-    >
+        )}
+      </div>
+
       {/* Admin feedback list */}
       {isAdmin && (
         <div className="brand-card p-5 mb-4">
