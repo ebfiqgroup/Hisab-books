@@ -1,0 +1,1 @@
+ALTER TABLE public.budgets DROP CONSTRAINT IF EXISTS budgets_user_id_category_key;
