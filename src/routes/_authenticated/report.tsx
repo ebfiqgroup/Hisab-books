@@ -59,12 +59,6 @@ function ReportPage() {
       const { data, error } = await supabase
         .from("transactions")
         .select("type,amount,occurred_on,category")
-  const catOptions = useMemo(() => {
-    const s = new Set<string>();
-    for (const t of q.data ?? []) if (t.category) s.add(t.category);
-    return Array.from(s).sort();
-  }, [q.data]);
-
         .eq("user_id", uid)
         .gte("occurred_on", range.from)
         .lte("occurred_on", range.to)
@@ -73,6 +67,12 @@ function ReportPage() {
       return (data ?? []) as Txn[];
     },
   });
+
+  const catOptions = useMemo(() => {
+    const s = new Set<string>();
+    for (const t of q.data ?? []) if (t.category) s.add(t.category);
+    return Array.from(s).sort();
+  }, [q.data]);
 
   // Decide bucket granularity: daily if <= 62 days, else monthly.
   const { rows, granularity } = useMemo(() => {
