@@ -19,7 +19,7 @@ export const Route = createFileRoute("/_authenticated/report")({
   component: ReportPage,
 });
 
-type Txn = { type: "income" | "expense"; amount: number; occurred_on: string };
+type Txn = { type: "income" | "expense"; amount: number; occurred_on: string; category: string };
 type Row = { key: string; label: string; income: number; expense: number; saving: number };
 type Preset = "7d" | "1m" | "3m" | "6m" | "1y" | "custom";
 
@@ -46,6 +46,7 @@ function ReportPage() {
   const [range, setRange] = useState(() => presetRange("6m"));
   const [menuOpen, setMenuOpen] = useState(false);
   const [granularityOverride, setGranularityOverride] = useState<DateGranularity>("auto");
+  const [catFilter, setCatFilter] = useState<string>("all");
 
   const setPresetAndRange = (p: Preset) => {
     setPreset(p);
@@ -57,7 +58,13 @@ function ReportPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("transactions")
-        .select("type,amount,occurred_on")
+        .select("type,amount,occurred_on,category")
+  const catOptions = useMemo(() => {
+    const s = new Set<string>();
+    for (const t of q.data ?? []) if (t.category) s.add(t.category);
+    return Array.from(s).sort();
+  }, [q.data]);
+
         .eq("user_id", uid)
         .gte("occurred_on", range.from)
         .lte("occurred_on", range.to)
@@ -121,7 +128,8 @@ function ReportPage() {
       }
     }
 
-    for (const t of q.data ?? []) {
+    const source = (q.data ?? []).filter((t) => catFilter === "all" || t.category === catFilter);
+    for (const t of source) {
       const d = new Date(t.occurred_on);
       let key: string;
       if (gran === "day") key = isoDay(d);
@@ -140,7 +148,7 @@ function ReportPage() {
     }
     const rows = Array.from(map.values()).map((r) => ({ ...r, saving: r.income - r.expense }));
     return { rows, granularity: gran };
-  }, [q.data, range.from, range.to, granularityOverride]);
+  }, [q.data, range.from, range.to, granularityOverride, catFilter]);
 
   const max = Math.max(1, ...rows.flatMap((r) => [r.income, r.expense, Math.abs(r.saving)]));
   const totals = rows.reduce(
