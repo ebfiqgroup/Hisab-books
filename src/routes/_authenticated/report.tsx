@@ -381,6 +381,28 @@ function ReportPage() {
           নির্বাচিত পরিসর: <span className="font-medium text-slate-700">{range.from}</span> থেকে <span className="font-medium text-slate-700">{range.to}</span>
         </div>
         <div className="mt-3 pt-3 border-t border-slate-100">
+          <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold mb-1.5">ক্যাটাগরি ফিল্টার</div>
+          <select
+            value={catFilter}
+            onChange={(e) => setCatFilter(e.target.value)}
+            className="w-full sm:w-72 px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:border-indigo-500"
+          >
+            <option value="all">সব ক্যাটাগরি</option>
+            {catOptions.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+          {catFilter !== "all" && (
+            <div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
+              <span className="px-2 py-1 rounded-full bg-indigo-50 text-indigo-700 font-semibold">{catFilter}</span>
+              <span className="text-emerald-600 font-semibold">আয়: {fmtTk(totals.income)}</span>
+              <span className="text-rose-600 font-semibold">ব্যয়: {fmtTk(totals.expense)}</span>
+              <span className="text-blue-600 font-semibold">সর্বমোট অবশিষ্ট: {fmtTk(totals.saving)}</span>
+              <button onClick={() => setCatFilter("all")} className="text-slate-500 underline">রিসেট</button>
+            </div>
+          )}
+        </div>
+        <div className="mt-3 pt-3 border-t border-slate-100">
           <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold mb-1.5">ভিউ অপশন (গ্রুপিং)</div>
           <div className="flex flex-wrap gap-1.5">
             {([
