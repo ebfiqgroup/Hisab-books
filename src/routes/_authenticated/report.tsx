@@ -19,7 +19,7 @@ export const Route = createFileRoute("/_authenticated/report")({
   component: ReportPage,
 });
 
-type Txn = { type: "income" | "expense"; amount: number; occurred_on: string };
+type Txn = { type: "income" | "expense"; amount: number; occurred_on: string; category: string };
 type Row = { key: string; label: string; income: number; expense: number; saving: number };
 type Preset = "7d" | "1m" | "3m" | "6m" | "1y" | "custom";
 
@@ -46,6 +46,7 @@ function ReportPage() {
   const [range, setRange] = useState(() => presetRange("6m"));
   const [menuOpen, setMenuOpen] = useState(false);
   const [granularityOverride, setGranularityOverride] = useState<DateGranularity>("auto");
+  const [catFilter, setCatFilter] = useState<string>("all");
 
   const setPresetAndRange = (p: Preset) => {
     setPreset(p);
@@ -57,7 +58,7 @@ function ReportPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("transactions")
-        .select("type,amount,occurred_on")
+        .select("type,amount,occurred_on,category")
         .eq("user_id", uid)
         .gte("occurred_on", range.from)
         .lte("occurred_on", range.to)
@@ -66,6 +67,12 @@ function ReportPage() {
       return (data ?? []) as Txn[];
     },
   });
+
+  const catOptions = useMemo(() => {
+    const s = new Set<string>();
+    for (const t of q.data ?? []) if (t.category) s.add(t.category);
+    return Array.from(s).sort();
+  }, [q.data]);
 
   // Decide bucket granularity: daily if <= 62 days, else monthly.
   const { rows, granularity } = useMemo(() => {
@@ -121,7 +128,8 @@ function ReportPage() {
       }
     }
 
-    for (const t of q.data ?? []) {
+    const source = (q.data ?? []).filter((t) => catFilter === "all" || t.category === catFilter);
+    for (const t of source) {
       const d = new Date(t.occurred_on);
       let key: string;
       if (gran === "day") key = isoDay(d);
@@ -140,7 +148,7 @@ function ReportPage() {
     }
     const rows = Array.from(map.values()).map((r) => ({ ...r, saving: r.income - r.expense }));
     return { rows, granularity: gran };
-  }, [q.data, range.from, range.to, granularityOverride]);
+  }, [q.data, range.from, range.to, granularityOverride, catFilter]);
 
   const max = Math.max(1, ...rows.flatMap((r) => [r.income, r.expense, Math.abs(r.saving)]));
   const totals = rows.reduce(
@@ -371,6 +379,28 @@ function ReportPage() {
         </div>
         <div className="text-xs text-slate-500 mt-2">
           নির্বাচিত পরিসর: <span className="font-medium text-slate-700">{range.from}</span> থেকে <span className="font-medium text-slate-700">{range.to}</span>
+        </div>
+        <div className="mt-3 pt-3 border-t border-slate-100">
+          <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold mb-1.5">ক্যাটাগরি ফিল্টার</div>
+          <select
+            value={catFilter}
+            onChange={(e) => setCatFilter(e.target.value)}
+            className="w-full sm:w-72 px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:border-indigo-500"
+          >
+            <option value="all">সব ক্যাটাগরি</option>
+            {catOptions.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+          {catFilter !== "all" && (
+            <div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
+              <span className="px-2 py-1 rounded-full bg-indigo-50 text-indigo-700 font-semibold">{catFilter}</span>
+              <span className="text-emerald-600 font-semibold">আয়: {fmtTk(totals.income)}</span>
+              <span className="text-rose-600 font-semibold">ব্যয়: {fmtTk(totals.expense)}</span>
+              <span className="text-blue-600 font-semibold">সর্বমোট অবশিষ্ট: {fmtTk(totals.saving)}</span>
+              <button onClick={() => setCatFilter("all")} className="text-slate-500 underline">রিসেট</button>
+            </div>
+          )}
         </div>
         <div className="mt-3 pt-3 border-t border-slate-100">
           <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold mb-1.5">ভিউ অপশন (গ্রুপিং)</div>

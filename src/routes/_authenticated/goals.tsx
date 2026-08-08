@@ -459,6 +459,48 @@ function GoalsPage() {
             </div>
             <div>
               <label className="block text-xs text-slate-600 mb-1">{t("ক্যাটাগরি", "Category")}</label>
+              <select
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white mb-2"
+              >
+                <option value="">{t("ক্যাটাগরি বাছুন", "Select category")}</option>
+                {cats.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+              {form.category && (
+                <div className="flex items-center gap-2 mb-2">
+                  {editingCat === form.category ? (
+                    <>
+                      <input
+                        autoFocus
+                        value={editingCatName}
+                        onChange={(e) => setEditingCatName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") { e.preventDefault(); renameCategory(form.category, editingCatName); }
+                          if (e.key === "Escape") setEditingCat(null);
+                        }}
+                        className="flex-1 px-2 py-1 border border-indigo-300 rounded-md text-xs"
+                      />
+                      <button type="button" onClick={() => renameCategory(form.category, editingCatName)}
+                        className="px-2 py-1 text-xs rounded-md bg-indigo-600 text-white">{t("ঠিক", "OK")}</button>
+                      <button type="button" onClick={() => setEditingCat(null)}
+                        className="p-1 text-slate-400 hover:text-slate-600"><X className="w-3.5 h-3.5" /></button>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-xs text-slate-600">{form.category}</span>
+                      <button type="button" title={t("এডিট", "Edit")}
+                        onClick={() => { setEditingCat(form.category); setEditingCatName(form.category); }}
+                        className="p-1 text-slate-400 hover:text-indigo-600"><Pencil className="w-3.5 h-3.5" /></button>
+                      <button type="button" title={t("মুছুন", "Delete")}
+                        onClick={() => removeCategory(form.category)}
+                        className="p-1 text-slate-400 hover:text-rose-600"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </>
+                  )}
+                </div>
+              )}
               <div className="flex gap-2">
                 <input type="text" value={newCat} onChange={(e) => setNewCat(e.target.value)}
                   placeholder={t("নতুন ক্যাটাগরির নাম", "New category name")}
@@ -477,53 +519,6 @@ function GoalsPage() {
                   <Plus className="w-3.5 h-3.5" /> {t("যোগ", "Add")}
                 </button>
               </div>
-              {cats.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {cats.map((c) => {
-                    const isEditing = editingCat === c;
-                    const isSelected = form.category === c;
-                    if (isEditing) {
-                      return (
-                        <div key={c} className="inline-flex items-center gap-1 border border-indigo-300 rounded-full pl-2 pr-1 py-0.5 bg-white">
-                          <input
-                            autoFocus
-                            value={editingCatName}
-                            onChange={(e) => setEditingCatName(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") { e.preventDefault(); renameCategory(c, editingCatName); }
-                              if (e.key === "Escape") setEditingCat(null);
-                            }}
-                            className="text-xs w-24 outline-none bg-transparent"
-                          />
-                          <button type="button" onClick={() => renameCategory(c, editingCatName)}
-                            className="text-xs px-1.5 py-0.5 rounded-full bg-indigo-600 text-white">{t("ঠিক", "OK")}</button>
-                          <button type="button" onClick={() => setEditingCat(null)}
-                            className="p-0.5 text-slate-400 hover:text-slate-600"><X className="w-3 h-3" /></button>
-                        </div>
-                      );
-                    }
-                    return (
-                      <div key={c}
-                        className={`inline-flex items-center rounded-full border text-xs ${isSelected ? "bg-indigo-600 text-white border-indigo-600" : "border-slate-200 text-slate-700"}`}>
-                        <button type="button" onClick={() => setForm({ ...form, category: isSelected ? "" : c })}
-                          className={`pl-2.5 pr-1.5 py-1 ${isSelected ? "" : "hover:bg-slate-50 rounded-l-full"}`}>
-                          {c}
-                        </button>
-                        <button type="button" title={t("এডিট", "Edit")}
-                          onClick={() => { setEditingCat(c); setEditingCatName(c); }}
-                          className={`p-1 ${isSelected ? "text-indigo-100 hover:text-white" : "text-slate-400 hover:text-slate-700"}`}>
-                          <Pencil className="w-3 h-3" />
-                        </button>
-                        <button type="button" title={t("মুছুন", "Delete")}
-                          onClick={() => removeCategory(c)}
-                          className={`p-1 pr-2 ${isSelected ? "text-indigo-100 hover:text-white" : "text-slate-400 hover:text-rose-600"}`}>
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
             </div>
             <div className="flex flex-wrap gap-2 pt-1">
               {[
