@@ -180,6 +180,27 @@ function ReportPage() {
     { income: 0, expense: 0, saving: 0 },
   );
   const nonEmpty = rows.filter((r) => r.income || r.expense);
+  const scoped = useMemo(
+    () => (q.data ?? []).filter((tx) => catFilter === "all" || tx.category === catFilter),
+    [q.data, catFilter],
+  );
+  const txnCount = scoped.length;
+  const grandTotal = totals.income + totals.expense;
+  const avgTxn = txnCount ? grandTotal / txnCount : 0;
+  const catTotals = useMemo(() => {
+    const map = new Map<string, { income: number; expense: number; count: number }>();
+    for (const tx of scoped) {
+      const k = tx.category || "—";
+      const cur = map.get(k) ?? { income: 0, expense: 0, count: 0 };
+      if (tx.type === "income") cur.income += Number(tx.amount);
+      else cur.expense += Number(tx.amount);
+      cur.count += 1;
+      map.set(k, cur);
+    }
+    return Array.from(map.entries())
+      .map(([category, v]) => ({ category, ...v, net: v.income - v.expense }))
+      .sort((a, b) => b.income + b.expense - (a.income + a.expense));
+  }, [scoped]);
   const periodLabel = granularity === "day" ? "দৈনিক" : granularity === "week" ? "সাপ্তাহিক" : granularity === "month" ? "মাসিক" : "বার্ষিক";
   const unitLabel = granularity === "day" ? "দিন" : granularity === "week" ? "সপ্তাহ" : granularity === "month" ? "মাস" : "বছর";
 
