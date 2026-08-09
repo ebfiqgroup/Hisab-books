@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useLanguage } from "@/hooks/useLanguage";
 import { useCurrentUserId } from "@/hooks/useCurrentUserId";
 import { DateRangeFilter, type DateView } from "@/components/DateRangeFilter";
+import { SearchableSelect } from "@/components/SearchableSelect";
 
 export const Route = createFileRoute("/_authenticated/goals")({ component: GoalsPage });
 
