@@ -481,8 +481,22 @@ function ReportPage() {
               <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
               <div className="absolute left-0 mt-2 w-44 bg-white border border-slate-200 rounded-lg shadow-lg z-20 overflow-hidden">
                 <button
+                  onClick={() => { setMenuOpen(false); openInvoice("portrait"); }}
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-indigo-50 flex items-center justify-between font-medium text-indigo-700"
+                >
+                  <span>পিডিএফ (পোর্ট্রেট)</span>
+                  <span className="text-xs text-slate-400">A4</span>
+                </button>
+                <button
+                  onClick={() => { setMenuOpen(false); openInvoice("landscape"); }}
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-indigo-50 flex items-center justify-between font-medium text-indigo-700 border-t border-slate-100"
+                >
+                  <span>পিডিএফ (ল্যান্ডস্কেপ)</span>
+                  <span className="text-xs text-slate-400">A4</span>
+                </button>
+                <button
                   onClick={() => { setMenuOpen(false); downloadCsv(); }}
-                  className="w-full text-left px-3 py-2 text-sm hover:bg-slate-50 flex items-center justify-between"
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-slate-50 flex items-center justify-between border-t border-slate-100"
                 >
                   <span>সিএসভি ফাইল</span>
                   <span className="text-xs text-slate-400">.csv</span>
