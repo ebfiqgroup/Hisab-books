@@ -478,16 +478,25 @@ function BudgetPage() {
               </div>
               <div>
                 <label className="block text-xs text-slate-600 mb-1">{t("ক্যাটাগরি", "Category")}</label>
-                <select
-                  value={form.category}
-                  onChange={(e) => setForm({ ...form, category: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm bg-white mb-2"
-                >
-                  <option value="">{t("ক্যাটাগরি বাছুন", "Select category")}</option>
-                  {cats.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
+                <div className="mb-2">
+                  <SearchableSelect
+                    value={form.category}
+                    options={cats}
+                    onChange={(v) => setForm({ ...form, category: v })}
+                    recentKey="budget_cats"
+                    invalid={!form.category}
+                    placeholder={t("ক্যাটাগরি বাছুন", "Select category")}
+                    searchPlaceholder={t("ক্যাটাগরি খুঁজুন...", "Search category...")}
+                    emptyText={t("কোনো ক্যাটাগরি নেই", "No categories")}
+                    recentLabel={t("সাম্প্রতিক", "Recent")}
+                    renderOption={(c) => (
+                      <span className="inline-flex items-center gap-1.5">
+                        <span className="inline-block w-2 h-2 rounded-full" style={{ background: categoryColor(c) }} />
+                        {c}
+                      </span>
+                    )}
+                  />
+                </div>
                 {form.category && (
                   <div className="flex items-center gap-2 mb-2">
                     {editingCat === form.category ? (
