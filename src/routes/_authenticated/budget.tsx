@@ -11,6 +11,7 @@ import { Plus, Trash2, Pencil, Wallet, CalendarClock, X, ListFilter } from "luci
 import { useLanguage } from "@/hooks/useLanguage";
 import { useCurrentUserId } from "@/hooks/useCurrentUserId";
 import { DateRangeFilter, type DateView } from "@/components/DateRangeFilter";
+import { SearchableSelect } from "@/components/SearchableSelect";
 
 export const Route = createFileRoute("/_authenticated/budget")({ component: BudgetPage });
 
