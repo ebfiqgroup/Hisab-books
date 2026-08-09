@@ -260,51 +260,173 @@ function ReportPage() {
     toast.success("এক্সএলএসএক্স রিপোর্ট ডাউনলোড হয়েছে");
   };
 
-  const printReport = () => {
-    const rowsHtml = rows.map((r) => `
+  // Invoice-style, A4-optimised, print/PDF-ready document. Browsers save this
+  // as a high-quality vector PDF via the print dialog (Bengali text stays crisp,
+  // unlike a canvas rasteriser), with automatic page breaks and page numbers.
+  const buildInvoiceHtml = (orientation: "portrait" | "landscape") => {
+    const esc = (s: string) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c] as string));
+    const genDate = new Date();
+    const rowsHtml = rows.map((r, i) => `
       <tr>
-        <td>${r.label}</td>
-        <td style="text-align:right;color:#059669">${fmtTk(r.income)}</td>
-        <td style="text-align:right;color:#e11d48">${fmtTk(r.expense)}</td>
-        <td style="text-align:right;color:#2563eb">${fmtTk(r.saving)}</td>
+        <td class="c">${toBn(i + 1)}</td>
+        <td>${esc(r.label)}</td>
+        <td class="r pos">${esc(fmtTk(r.income))}</td>
+        <td class="r neg">${esc(fmtTk(r.expense))}</td>
+        <td class="r net">${esc(fmtTk(r.saving))}</td>
       </tr>`).join("");
-    const html = `<!doctype html><html><head><meta charset="utf-8"><title>রিপোর্ট ${range.from} – ${range.to}</title>
-      <style>
-        *{box-sizing:border-box}
-        body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#0f172a;padding:24px;margin:0}
-        h1{margin:0 0 4px;font-size:22px}
-        .meta{color:#64748b;font-size:13px;margin-bottom:16px}
-        .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
-        .card{border:1px solid #e2e8f0;border-radius:8px;padding:10px}
-        .card .l{font-size:11px;color:#64748b}
-        .card .v{font-size:15px;font-weight:700;margin-top:2px}
-        table{width:100%;border-collapse:collapse;font-size:13px}
-        th,td{padding:8px 10px;border-bottom:1px solid #e2e8f0;text-align:left}
-        th{background:#f8fafc;color:#475569;font-weight:600}
-        tr.total td{font-weight:700;background:#eef2ff;color:#3730a3}
-        @media print{ button{display:none} body{padding:14px} }
-      </style></head><body>
-      <h1>আর্থিক রিপোর্ট</h1>
-      <div class="meta">নির্বাচিত পরিসর: <strong>${range.from}</strong> থেকে <strong>${range.to}</strong> · ${periodLabel} ভিউ</div>
-      <div class="summary">
-        ${summary.map((s) => `<div class="card"><div class="l">${s.label}</div><div class="v">${s.value}</div></div>`).join("")}
+    const catHtml = catTotals.map((c) => `
+      <tr>
+        <td>${esc(c.category)}</td>
+        <td class="c">${toBn(c.count)}</td>
+        <td class="r pos">${esc(fmtTk(c.income))}</td>
+        <td class="r neg">${esc(fmtTk(c.expense))}</td>
+        <td class="r net">${esc(fmtTk(c.net))}</td>
+      </tr>`).join("");
+
+    return `<!doctype html><html lang="bn"><head><meta charset="utf-8">
+<title>হিসাব বই — আর্থিক রিপোর্ট ${reportNo}</title>
+<style>
+  @page { size: A4 ${orientation}; margin: 14mm 12mm 18mm; }
+  *{box-sizing:border-box}
+  body{font-family:"Noto Sans Bengali",system-ui,-apple-system,"Segoe UI",sans-serif;color:#0f172a;margin:0;font-size:12px;line-height:1.5}
+  .sheet{padding:0}
+  .head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:3px solid #4f46e5;padding-bottom:12px;margin-bottom:14px}
+  .brand{display:flex;gap:10px;align-items:center}
+  .brand img{width:46px;height:46px;object-fit:contain}
+  .brand .n{font-size:19px;font-weight:800;letter-spacing:-.2px}
+  .brand .s{font-size:10.5px;color:#64748b}
+  .doc{text-align:right}
+  .doc .t{font-size:17px;font-weight:800;color:#4338ca;text-transform:uppercase;letter-spacing:.5px}
+  .doc .m{font-size:10.5px;color:#475569;margin-top:2px}
+  .metagrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+  .metagrid .b{border:1px solid #e2e8f0;border-radius:6px;padding:7px 9px;background:#f8fafc}
+  .metagrid .l{font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:#64748b;font-weight:700}
+  .metagrid .v{font-size:11.5px;font-weight:700;margin-top:2px}
+  h2{font-size:12.5px;margin:16px 0 7px;color:#1e293b;border-left:4px solid #6366f1;padding-left:7px}
+  table{width:100%;border-collapse:collapse;font-size:11.5px}
+  thead{display:table-header-group}
+  tr{page-break-inside:avoid}
+  th,td{padding:6px 8px;border-bottom:1px solid #e6e9ef}
+  th{background:#eef2ff;color:#3730a3;font-weight:700;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px}
+  td.r,th.r{text-align:right}
+  td.c,th.c{text-align:center}
+  .pos{color:#047857;font-weight:600}
+  .neg{color:#be123c;font-weight:600}
+  .net{color:#1d4ed8;font-weight:600}
+  tr.total td{font-weight:800;background:#eef2ff;color:#312e81;border-top:2px solid #6366f1}
+  .sумmary{}
+  .sum{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+  .sum .c1{border:1px solid #e2e8f0;border-radius:6px;padding:8px 10px}
+  .sum .l{font-size:9px;color:#64748b;text-transform:uppercase;font-weight:700;letter-spacing:.4px}
+  .sum .v{font-size:13px;font-weight:800;margin-top:2px}
+  .grand{margin-top:12px;border:2px solid #4f46e5;border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;background:#f5f3ff}
+  .grand .l{font-size:11px;font-weight:700;color:#4338ca;text-transform:uppercase;letter-spacing:.5px}
+  .grand .v{font-size:18px;font-weight:800;color:#312e81}
+  .notes{margin-top:14px;border:1px dashed #cbd5e1;border-radius:6px;padding:9px 11px;min-height:46px}
+  .notes .l{font-size:9px;text-transform:uppercase;color:#64748b;font-weight:700;letter-spacing:.4px;margin-bottom:3px}
+  .sig{display:flex;justify-content:space-between;gap:28px;margin-top:34px;page-break-inside:avoid}
+  .sig .box{flex:1;text-align:center}
+  .sig .line{border-top:1.5px solid #94a3b8;margin-bottom:5px}
+  .sig .cap{font-size:10px;color:#475569;font-weight:600}
+  .foot{margin-top:18px;border-top:1px solid #e2e8f0;padding-top:7px;font-size:9.5px;color:#94a3b8;display:flex;justify-content:space-between}
+  @media print{ .noprint{display:none!important} }
+  .noprint{position:fixed;top:8px;right:8px;display:flex;gap:6px;z-index:9}
+  .noprint button{padding:7px 13px;border-radius:6px;border:0;background:#4f46e5;color:#fff;font-size:12px;cursor:pointer;font-family:inherit}
+</style></head><body>
+<div class="noprint">
+  <button onclick="window.print()">PDF / প্রিন্ট</button>
+  <button style="background:#64748b" onclick="window.close()">বন্ধ</button>
+</div>
+<div class="sheet">
+  <div class="head">
+    <div class="brand">
+      <img src="${window.location.origin}/logo-moneybag.png" alt="হিসাব বই লোগো" />
+      <div>
+        <div class="n">হিসাব বই</div>
+        <div class="s">ব্যক্তিগত আর্থিক ব্যবস্থাপনা প্ল্যাটফর্ম</div>
       </div>
-      <table>
-        <thead><tr><th>${colHeader}</th><th style="text-align:right">আয়</th><th style="text-align:right">ব্যয়</th><th style="text-align:right">অবশিষ্ট</th></tr></thead>
-        <tbody>${rowsHtml}
-          <tr class="total"><td>মোট</td>
-            <td style="text-align:right">${fmtTk(totals.income)}</td>
-            <td style="text-align:right">${fmtTk(totals.expense)}</td>
-            <td style="text-align:right">${fmtTk(totals.saving)}</td>
-          </tr>
-        </tbody>
-      </table>
-      <script>window.onload=()=>{setTimeout(()=>{window.print()},250)}</script>
-      </body></html>`;
-    const w = window.open("", "_blank", "width=900,height=700");
-    if (!w) { toast.error("পপ-আপ ব্লক করা হয়েছে"); return; }
-    w.document.open(); w.document.write(html); w.document.close();
+    </div>
+    <div class="doc">
+      <div class="t">আর্থিক রিপোর্ট</div>
+      <div class="m">রিপোর্ট নম্বর: <strong>${esc(reportNo)}</strong></div>
+      <div class="m">তৈরির তারিখ: ${esc(toBn(genDate.toLocaleDateString("en-GB")))}</div>
+      <div class="m">তৈরির সময়: ${esc(toBn(genDate.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })))}</div>
+    </div>
+  </div>
+
+  <div class="metagrid">
+    <div class="b"><div class="l">ক্যাটাগরি</div><div class="v">${esc(catFilter === "all" ? "সব ক্যাটাগরি" : catFilter)}</div></div>
+    <div class="b"><div class="l">তারিখ পরিসর</div><div class="v">${esc(toBn(range.from))} → ${esc(toBn(range.to))}</div></div>
+    <div class="b"><div class="l">ভিউ / গ্রুপিং</div><div class="v">${esc(periodLabel)}</div></div>
+    <div class="b"><div class="l">প্রস্তুতকারী</div><div class="v">${esc(user?.email ?? "হিসাব বই ব্যবহারকারী")}</div></div>
+  </div>
+
+  <h2>${esc(periodLabel)} বিস্তারিত বিবরণী</h2>
+  <table>
+    <thead><tr>
+      <th class="c" style="width:36px">ক্রম</th><th>${esc(colHeader)}</th>
+      <th class="r">আয়</th><th class="r">ব্যয়</th><th class="r">অবশিষ্ট</th>
+    </tr></thead>
+    <tbody>
+      ${rowsHtml}
+      <tr class="total">
+        <td class="c">—</td><td>সর্বমোট</td>
+        <td class="r">${esc(fmtTk(totals.income))}</td>
+        <td class="r">${esc(fmtTk(totals.expense))}</td>
+        <td class="r">${esc(fmtTk(totals.saving))}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  ${catTotals.length ? `<h2>ক্যাটাগরি ভিত্তিক হিসাব</h2>
+  <table>
+    <thead><tr><th>ক্যাটাগরি</th><th class="c">লেনদেন</th><th class="r">আয়</th><th class="r">ব্যয়</th><th class="r">নিট</th></tr></thead>
+    <tbody>${catHtml}</tbody>
+  </table>` : ""}
+
+  <h2>সারসংক্ষেপ</h2>
+  <div class="sum">
+    <div class="c1"><div class="l">মোট আয়</div><div class="v pos">${esc(fmtTk(totals.income))}</div></div>
+    <div class="c1"><div class="l">মোট ব্যয়</div><div class="v neg">${esc(fmtTk(totals.expense))}</div></div>
+    <div class="c1"><div class="l">মোট ব্যালেন্স</div><div class="v net">${esc(fmtTk(totals.saving))}</div></div>
+    <div class="c1"><div class="l">লেনদেন সংখ্যা</div><div class="v">${esc(toBn(txnCount))}</div></div>
+    <div class="c1"><div class="l">গড় ${esc(periodLabel)} আয়</div><div class="v">${esc(fmtTk(nonEmpty.length ? totals.income / nonEmpty.length : 0))}</div></div>
+    <div class="c1"><div class="l">গড় ${esc(periodLabel)} ব্যয়</div><div class="v">${esc(fmtTk(nonEmpty.length ? totals.expense / nonEmpty.length : 0))}</div></div>
+    <div class="c1"><div class="l">গড় প্রতি লেনদেন</div><div class="v">${esc(fmtTk(avgTxn))}</div></div>
+    <div class="c1"><div class="l">${esc(colHeader)} সংখ্যা</div><div class="v">${esc(toBn(nonEmpty.length))}</div></div>
+  </div>
+
+  <div class="grand">
+    <div class="l">সর্বমোট লেনদেন মূল্য (আয় + ব্যয়)</div>
+    <div class="v">${esc(fmtTk(grandTotal))}</div>
+  </div>
+
+  <div class="notes"><div class="l">নোট</div>${esc(reportNote || "—")}</div>
+
+  <div class="sig">
+    <div class="box"><div class="line"></div><div class="cap">প্রস্তুতকারীর স্বাক্ষর</div></div>
+    <div class="box"><div class="line"></div><div class="cap">পরীক্ষকের স্বাক্ষর</div></div>
+    <div class="box"><div class="line"></div><div class="cap">অনুমোদনকারীর স্বাক্ষর</div></div>
+  </div>
+
+  <div class="foot">
+    <span>হিসাব বই · স্বয়ংক্রিয়ভাবে তৈরি রিপোর্ট · ${esc(reportNo)}</span>
+    <span>পরিসর: ${esc(toBn(range.from))} – ${esc(toBn(range.to))}</span>
+  </div>
+</div>
+<script>window.onload=function(){setTimeout(function(){window.print()},350)}</script>
+</body></html>`;
   };
+
+  const openInvoice = (orientation: "portrait" | "landscape") => {
+    const w = window.open("", "_blank", "width=980,height=760");
+    if (!w) { toast.error("পপ-আপ ব্লক করা হয়েছে — অনুমতি দিন"); return; }
+    w.document.open();
+    w.document.write(buildInvoiceHtml(orientation));
+    w.document.close();
+    toast.success(orientation === "portrait" ? "A4 পোর্ট্রেট রিপোর্ট তৈরি হয়েছে" : "A4 ল্যান্ডস্কেপ রিপোর্ট তৈরি হয়েছে");
+  };
+  const printReport = () => openInvoice("portrait");
 
   const presets: { k: Preset; label: string }[] = [
     { k: "7d", label: "৭ দিন" },
