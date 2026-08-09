@@ -654,6 +654,73 @@ function ReportPage() {
         ))}
       </div>
 
+      {/* Live computed statistics */}
+      <div className="bg-white rounded-2xl p-3 sm:p-5 border border-slate-200 shadow-sm mb-4 sm:mb-6">
+        <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
+          <span className="w-1.5 h-5 rounded-full bg-gradient-to-b from-fuchsia-500 to-indigo-600" />
+          স্বয়ংক্রিয় হিসাব
+        </h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
+          {[
+            { l: "মোট আয়", v: fmtTk(totals.income), c: "text-emerald-600" },
+            { l: "মোট ব্যয়", v: fmtTk(totals.expense), c: "text-rose-600" },
+            { l: "মোট ব্যালেন্স", v: fmtTk(totals.saving), c: "text-blue-600" },
+            { l: "সর্বমোট (আয়+ব্যয়)", v: fmtTk(grandTotal), c: "text-indigo-700" },
+            { l: "লেনদেন সংখ্যা", v: toBn(txnCount), c: "text-slate-700" },
+            { l: "গড় প্রতি লেনদেন", v: fmtTk(avgTxn), c: "text-violet-600" },
+          ].map((s) => (
+            <div key={s.l} className="rounded-xl border border-slate-100 bg-slate-50/60 p-3">
+              <div className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">{s.l}</div>
+              <div className={`text-sm sm:text-base font-extrabold mt-1 tabular-nums ${s.c}`}>{s.v}</div>
+            </div>
+          ))}
+        </div>
+
+        {catTotals.length > 0 && (
+          <div className="mt-4 overflow-x-auto">
+            <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold mb-2">ক্যাটাগরি ভিত্তিক মোট</div>
+            <table className="w-full text-sm min-w-[420px]">
+              <thead>
+                <tr className="text-left text-slate-600 bg-slate-50 border-b border-slate-200">
+                  <th className="py-2 px-3 font-semibold">ক্যাটাগরি</th>
+                  <th className="py-2 px-3 text-center font-semibold">লেনদেন</th>
+                  <th className="py-2 px-3 text-right font-semibold">আয়</th>
+                  <th className="py-2 px-3 text-right font-semibold">ব্যয়</th>
+                  <th className="py-2 px-3 text-right font-semibold">নিট</th>
+                </tr>
+              </thead>
+              <tbody>
+                {catTotals.map((c) => (
+                  <tr key={c.category} className="border-b border-slate-100 hover:bg-indigo-50/30">
+                    <td className="py-2 px-3 font-medium text-slate-800">{c.category}</td>
+                    <td className="py-2 px-3 text-center text-slate-600">{toBn(c.count)}</td>
+                    <td className="py-2 px-3 text-right text-emerald-600 font-semibold">{fmtTk(c.income)}</td>
+                    <td className="py-2 px-3 text-right text-rose-500 font-semibold">{fmtTk(c.expense)}</td>
+                    <td className="py-2 px-3 text-right text-blue-600 font-semibold">{fmtTk(c.net)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2 items-end">
+          <label className="text-xs">
+            <span className="flex items-center gap-1.5 text-slate-500 mb-1"><FileText className="w-3.5 h-3.5" /> রিপোর্ট নোট (পিডিএফে দেখাবে)</span>
+            <input
+              value={reportNote}
+              onChange={(e) => setReportNote(e.target.value)}
+              maxLength={300}
+              placeholder="ঐচ্ছিক মন্তব্য..."
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-500"
+            />
+          </label>
+          <div className="text-xs text-slate-500 flex items-center gap-1.5 pb-2">
+            <Hash className="w-3.5 h-3.5" /> রিপোর্ট নম্বর: <span className="font-semibold text-slate-700">{reportNo}</span>
+          </div>
+        </div>
+      </div>
+
       <div className="bg-white rounded-2xl p-3 sm:p-5 border border-slate-200 shadow-sm mb-4 sm:mb-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-slate-800 flex items-center gap-2">
