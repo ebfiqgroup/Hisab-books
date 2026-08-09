@@ -560,24 +560,53 @@ function ReportPage() {
         <div className="text-xs text-slate-500 mt-2">
           নির্বাচিত পরিসর: <span className="font-medium text-slate-700">{range.from}</span> থেকে <span className="font-medium text-slate-700">{range.to}</span>
         </div>
+        <div className="mt-3 pt-3 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label className="text-xs">
+            <span className="block text-slate-500 mb-1">মাস</span>
+            <select
+              value={monthSel}
+              onChange={(e) => { setMonthSel(e.target.value); applyMonth(e.target.value, yearSel); }}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:border-indigo-500"
+            >
+              <option value="">সব মাস</option>
+              {BN_MONTHS.map((m, i) => <option key={m} value={String(i)}>{m}</option>)}
+            </select>
+          </label>
+          <label className="text-xs">
+            <span className="block text-slate-500 mb-1">বছর</span>
+            <select
+              value={yearSel}
+              onChange={(e) => { setYearSel(e.target.value); applyMonth(monthSel, e.target.value); }}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:border-indigo-500"
+            >
+              <option value="">সব বছর</option>
+              {years.map((y) => <option key={y} value={String(y)}>{toBn(y)}</option>)}
+            </select>
+          </label>
+        </div>
         <div className="mt-3 pt-3 border-t border-slate-100">
           <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold mb-1.5">ক্যাটাগরি ফিল্টার</div>
-          <select
-            value={catFilter}
-            onChange={(e) => setCatFilter(e.target.value)}
-            className="w-full sm:w-72 px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:border-indigo-500"
-          >
-            <option value="all">সব ক্যাটাগরি</option>
-            {catOptions.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
+          <div className="w-full sm:w-72">
+            <SearchableSelect
+              value={catFilter === "all" ? "" : catFilter}
+              options={catOptions}
+              onChange={(v) => setCatFilter(v || "all")}
+              recentKey="report_cats"
+              allowClear
+              clearLabel="সব ক্যাটাগরি"
+              placeholder="সব ক্যাটাগরি"
+              searchPlaceholder="ক্যাটাগরি খুঁজুন..."
+              emptyText="কোনো ক্যাটাগরি নেই"
+              recentLabel="সাম্প্রতিক"
+            />
+          </div>
           {catFilter !== "all" && (
             <div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
               <span className="px-2 py-1 rounded-full bg-indigo-50 text-indigo-700 font-semibold">{catFilter}</span>
               <span className="text-emerald-600 font-semibold">আয়: {fmtTk(totals.income)}</span>
               <span className="text-rose-600 font-semibold">ব্যয়: {fmtTk(totals.expense)}</span>
               <span className="text-blue-600 font-semibold">সর্বমোট অবশিষ্ট: {fmtTk(totals.saving)}</span>
+              <span className="text-slate-600 font-semibold">লেনদেন: {toBn(txnCount)}</span>
               <button onClick={() => setCatFilter("all")} className="text-slate-500 underline">রিসেট</button>
             </div>
           )}
