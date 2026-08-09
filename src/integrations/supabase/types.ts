@@ -200,20 +200,35 @@ export type Database = {
       notes: {
         Row: {
           body: string
+          category: string | null
+          color: string
           created_at: string
           id: string
+          pinned: boolean
+          title: string | null
+          updated_at: string
           user_id: string
         }
         Insert: {
           body: string
+          category?: string | null
+          color?: string
           created_at?: string
           id?: string
+          pinned?: boolean
+          title?: string | null
+          updated_at?: string
           user_id: string
         }
         Update: {
           body?: string
+          category?: string | null
+          color?: string
           created_at?: string
           id?: string
+          pinned?: boolean
+          title?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
