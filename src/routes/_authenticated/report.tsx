@@ -314,7 +314,6 @@ function ReportPage() {
   .neg{color:#be123c;font-weight:600}
   .net{color:#1d4ed8;font-weight:600}
   tr.total td{font-weight:800;background:#eef2ff;color:#312e81;border-top:2px solid #6366f1}
-  .sумmary{}
   .sum{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
   .sum .c1{border:1px solid #e2e8f0;border-radius:6px;padding:8px 10px}
   .sum .l{font-size:9px;color:#64748b;text-transform:uppercase;font-weight:700;letter-spacing:.4px}
