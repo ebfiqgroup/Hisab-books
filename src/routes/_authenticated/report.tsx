@@ -5,9 +5,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUserId } from "@/hooks/useCurrentUserId";
 import { AppShell } from "@/components/AppShell";
 import { fmtTk, toBn, BN_MONTHS } from "@/lib/finance";
-import { Download, BarChart3, TrendingUp, TrendingDown, PiggyBank, Calendar, ChevronDown, Printer } from "lucide-react";
+import { Download, BarChart3, TrendingUp, TrendingDown, PiggyBank, Calendar, ChevronDown, Printer, FileText, Hash } from "lucide-react";
 import { toast } from "sonner";
 import type { DateGranularity } from "@/components/DateRangeFilter";
+import { SearchableSelect } from "@/components/SearchableSelect";
+import { useAuth } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/_authenticated/report")({
   head: () => ({
@@ -42,11 +44,33 @@ function presetRange(p: Preset): { from: string; to: string } {
 
 function ReportPage() {
   const uid = useCurrentUserId();
+  const { user } = useAuth();
   const [preset, setPreset] = useState<Preset>("6m");
   const [range, setRange] = useState(() => presetRange("6m"));
   const [menuOpen, setMenuOpen] = useState(false);
   const [granularityOverride, setGranularityOverride] = useState<DateGranularity>("auto");
   const [catFilter, setCatFilter] = useState<string>("all");
+  const [reportNo] = useState(() => `RPT-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, "0")}-${Math.floor(Math.random() * 9000 + 1000)}`);
+  const [reportNote, setReportNote] = useState("");
+
+  // Month / Year quick pickers — drive the same range state as the presets.
+  const now = new Date();
+  const [monthSel, setMonthSel] = useState<string>("");
+  const [yearSel, setYearSel] = useState<string>("");
+  const years = Array.from({ length: 8 }, (_, i) => now.getFullYear() - i);
+
+  const applyMonth = (m: string, y: string) => {
+    const yy = Number(y || now.getFullYear());
+    if (!m) {
+      if (!y) return;
+      setRange({ from: isoDay(new Date(yy, 0, 1)), to: isoDay(new Date(yy, 11, 31)) });
+      setPreset("custom");
+      return;
+    }
+    const mm = Number(m);
+    setRange({ from: isoDay(new Date(yy, mm, 1)), to: isoDay(new Date(yy, mm + 1, 0)) });
+    setPreset("custom");
+  };
 
   const setPresetAndRange = (p: Preset) => {
     setPreset(p);
