@@ -17,6 +17,7 @@ import { attachPerfTracker } from "@/lib/perf-tracker";
 import { OfflineBadge } from "@/components/OfflineBadge";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import "@/lib/pwa-install";
+import "@/lib/number-input-guard";
 
 import appCss from "../styles.css?url";
 
