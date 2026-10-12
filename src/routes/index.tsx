@@ -32,7 +32,7 @@ function Landing() {
   const primaryLabel = authed ? "ড্যাশবোর্ডে যান" : "বিনামূল্যে শুরু করুন";
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--gradient-page)" }}>
+    <div className="min-h-screen overflow-x-clip" style={{ background: "var(--gradient-page)" }}>
       {/* Nav */}
       <header className="sticky top-0 z-30 backdrop-blur-md" style={{ background: "color-mix(in oklab, var(--brand-ivory) 80%, transparent)", borderBottom: "1px solid var(--brand-line)" }}>
         <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
