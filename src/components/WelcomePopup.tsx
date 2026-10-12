@@ -51,7 +51,7 @@ const itemVariants: Variants = {
 export function WelcomePopup() {
   const { user } = useAuth();
   const { t } = useLanguage();
-  const search = useSearch({ from: "/_authenticated" });
+  const search = useSearch({ strict: false }) as { welcome?: string };
   const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
 
