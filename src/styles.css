@@ -596,3 +596,8 @@ a:hover > svg {
     scroll-behavior: auto !important;
   }
 }
+
+/* Hide number spinners so amounts can't be nudged accidentally */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+input[type="number"] { -moz-appearance: textfield; appearance: textfield; }

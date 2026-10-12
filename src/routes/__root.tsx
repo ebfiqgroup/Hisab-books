@@ -17,6 +17,7 @@ import { attachPerfTracker } from "@/lib/perf-tracker";
 import { OfflineBadge } from "@/components/OfflineBadge";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import "@/lib/pwa-install";
+import "@/lib/number-input-guard";
 
 import appCss from "../styles.css?url";
 
@@ -42,7 +43,7 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }: { error: unknown; reset: () => void }) {
   console.error(error);
   const router = useRouter();
 
